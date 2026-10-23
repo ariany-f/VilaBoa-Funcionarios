@@ -18,10 +18,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
 $requestUri = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
 
 // Se não for rota da API, tenta servir arquivos estáticos ou o frontend Vue (SPA)
-if (!str_starts_with($requestUri, '/api')) {
-    $filePath = __DIR__ . $requestUri;
+$apiPos = strpos($requestUri, '/api');
+if ($apiPos === false) {
+    $subPath = preg_replace('#^.*/(assets|img)/#', '/$1/', $requestUri);
+    $filePath = __DIR__ . $subPath;
     if ($requestUri !== '/' && file_exists($filePath) && is_file($filePath)) {
-        return false; // Permite que o servidor web embutido sirva o arquivo estático diretamente
+        $ext = strtolower(pathinfo($filePath, PATHINFO_EXTENSION));
+        $mimes = ['css'=>'text/css','js'=>'application/javascript','png'=>'image/png','jpg'=>'image/jpeg','jpeg'=>'image/jpeg','svg'=>'image/svg+xml','ico'=>'image/x-icon','woff'=>'font/woff','woff2'=>'font/woff2'];
+        if (isset($mimes[$ext])) header('Content-Type: ' . $mimes[$ext]);
+        readfile($filePath);
+        exit;
     }
 
     $spaIndex = __DIR__ . '/index.html';
@@ -70,7 +76,11 @@ function salvarTentativasSeguranca(string $file, array $data): void {
 
 // Normaliza o path da rota removendo prefixos
 $route = preg_replace('#^/index\.php#', '', $requestUri);
-$route = preg_replace('#^/api#', '', $route);
+if ($apiPos !== false) {
+    $route = substr($requestUri, $apiPos + 4);
+} else {
+    $route = preg_replace('#^/api#', '', $route);
+}
 if ($route === '' || $route === '/') {
     $route = '/';
 }

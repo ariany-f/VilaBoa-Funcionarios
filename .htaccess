@@ -1,0 +1,25 @@
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+
+    # Proteção de segurança: bloqueia acesso direto a pastas confidenciais
+    RewriteRule ^backend/data/ - [F,L]
+    RewriteRule ^backend/controllers/ - [F,L]
+    RewriteRule ^backend/services/ - [F,L]
+    RewriteRule ^backend/scripts/ - [F,L]
+    RewriteRule ^frontend/ - [F,L]
+    RewriteRule ^\.git - [F,L]
+
+    # Roteia estáticos diretamente para backend/public
+    RewriteRule ^assets/(.*)$ backend/public/assets/$1 [L]
+    RewriteRule ^img/(.*)$ backend/public/img/$1 [L]
+
+    # Se a requisição for para um arquivo existente na raiz
+    RewriteCond %{REQUEST_FILENAME} -f
+    RewriteRule ^ - [L]
+
+    # Encaminha API e rotas SPA para backend/public/index.php
+    RewriteRule ^api/(.*)$ backend/public/index.php [L,QSA]
+    RewriteCond %{REQUEST_FILENAME} !-f
+    RewriteCond %{REQUEST_FILENAME} !-d
+    RewriteRule ^(.*)$ backend/public/index.php [L,QSA]
+</IfModule>
