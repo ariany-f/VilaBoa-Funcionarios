@@ -1,0 +1,42 @@
+{
+  "VB-1040": {
+    "dias_direito": 30,
+    "dias_saldo": 30,
+    "periodo_aquisitivo_atual": {
+      "inicio": "10/03/2025",
+      "fim": "09/03/2026",
+      "limite_concessivo": "09/02/2027",
+      "status": "Adquirido (Pronto para Gozo)"
+    },
+    "solicitacao_atual": {
+      "status": "Em Análise pela Engenharia / RH",
+      "data_inicio": "15/12/2026",
+      "dias": 20,
+      "abono_pecuniario": true,
+      "dias_abono": 10,
+      "adiantamento_13": false,
+      "data_retorno": "04/01/2027",
+      "protocolo": "FER-2026-981"
+    },
+    "historico": [
+      {
+        "periodo_aquisitivo": "10/03/2024 a 09/03/2025",
+        "data_inicio": "02/01/2025",
+        "data_fim": "21/01/2025",
+        "dias_gozados": 20,
+        "abono_pecuniario": "10 Dias Vendidos",
+        "recibo_pago_em": "30/12/2024",
+        "valor_liquido": 4210.85
+      },
+      {
+        "periodo_aquisitivo": "10/03/2023 a 09/03/2024",
+        "data_inicio": "15/01/2024",
+        "data_fim": "13/02/2024",
+        "dias_gozados": 30,
+        "abono_pecuniario": "Não",
+        "recibo_pago_em": "12/01/2024",
+        "valor_liquido": 3950.40
+      }
+    ]
+  }
+}

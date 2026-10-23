@@ -1,0 +1,12 @@
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+    RewriteBase /
+
+    # Se a requisição for para um arquivo ou diretório real, serve direto
+    RewriteCond %{REQUEST_FILENAME} -f [OR]
+    RewriteCond %{REQUEST_FILENAME} -d
+    RewriteRule ^ - [L]
+
+    # Todas as demais requisições passam pelo index.php
+    RewriteRule ^ index.php [L]
+</IfModule>

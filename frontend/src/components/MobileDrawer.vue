@@ -1,0 +1,226 @@
+<template>
+  <div v-if="aberto" class="fixed inset-0 z-50 flex md:hidden">
+    <!-- Backdrop com blur escuro suave e toque para fechar -->
+    <div 
+      class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs transition-opacity animate-fade-in"
+      @click="$emit('close')"
+      aria-hidden="true"
+    ></div>
+
+    <!-- Gaveta Deslizante Lateral (Estilo Superapp Executivo Light) -->
+    <div 
+      class="relative w-[85%] max-w-xs bg-white text-slate-800 flex flex-col justify-between shadow-2xl z-10 animate-slide-right border-r border-slate-200/90 select-none h-full overflow-hidden"
+      role="dialog"
+      aria-modal="true"
+      aria-label="Menu de Navegação Lateral"
+    >
+      <!-- Topo: Identidade da Empresa e Botão Fechar -->
+      <div class="p-4 border-b border-slate-100 flex items-center justify-between bg-slate-50/60 shrink-0">
+        <div class="flex items-center space-x-2.5 min-w-0">
+          <div class="w-9 h-9 rounded-xl bg-white border border-slate-200/80 flex items-center justify-center font-black text-xs text-[#ba2e45] shadow-2xs shrink-0">
+            VB
+          </div>
+          <div class="min-w-0">
+            <div class="flex items-center gap-1.5 leading-none">
+              <span class="text-xs font-black text-slate-900 tracking-tight truncate">Vila Boa</span>
+              <span class="text-[9px] bg-rose-50 text-[#ba2e45] border border-rose-200/80 font-bold px-1.5 py-0.2 rounded-md uppercase">
+                Portal
+              </span>
+            </div>
+            <span class="text-[10px] text-slate-400 font-medium block truncate mt-0.5">Construções e Serviços</span>
+          </div>
+        </div>
+
+        <!-- Botão Fechar Estilo Glass Bubble Nativo -->
+        <button 
+          type="button" 
+          @click="$emit('close')" 
+          class="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 active:scale-95 text-slate-500 hover:text-slate-800 flex items-center justify-center transition cursor-pointer shadow-2xs shrink-0"
+          title="Fechar menu"
+          aria-label="Fechar menu"
+        >
+          <AppIcon name="close" size="14" />
+        </button>
+      </div>
+
+      <!-- Área de Rolagem do Menu -->
+      <div class="flex-1 overflow-y-auto p-4 space-y-4">
+        
+        <!-- Cartão do Colaborador Logado (Visual Fintech) -->
+        <div class="p-3.5 rounded-2xl bg-slate-50 border border-slate-200/80 flex items-center space-x-3 shadow-2xs">
+          <div class="relative shrink-0">
+            <div class="w-11 h-11 rounded-2xl bg-white border border-slate-200 flex items-center justify-center font-black text-sm text-[#ba2e45] shadow-2xs">
+              {{ colaborador?.nome ? colaborador.nome.slice(0, 2).toUpperCase() : 'VB' }}
+            </div>
+            <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 border-2 border-white absolute -bottom-0.5 -right-0.5 shadow-[0_0_6px_rgba(16,185,129,0.8)]"></span>
+          </div>
+          <div class="overflow-hidden min-w-0 flex-1">
+            <span class="text-[9px] font-bold text-slate-400 uppercase tracking-wider block">Colaborador</span>
+            <h4 class="text-xs font-black truncate text-slate-900 leading-tight">{{ colaborador?.nome || 'Usuário' }}</h4>
+            <span class="text-[10px] text-slate-500 font-medium block truncate mt-0.5">
+              {{ colaborador?.cargo || 'Colaborador' }}
+            </span>
+          </div>
+        </div>
+
+        <!-- Grupo 1: Navegação Principal -->
+        <div class="space-y-1.5">
+          <span class="text-[10px] font-bold uppercase tracking-wider text-slate-400 px-2 block">
+            Navegação
+          </span>
+
+          <nav class="space-y-1 text-xs">
+            <!-- Item 1: Holerites -->
+            <button
+              type="button"
+              @click="navegar('holerites')"
+              class="w-full flex items-center justify-between p-3 rounded-2xl transition cursor-pointer group active:scale-[0.98]"
+              :class="abaAtiva === 'holerites' ? 'bg-[#ba2e45] text-white shadow-xs font-bold' : 'text-slate-700 hover:bg-slate-50 border border-transparent hover:border-slate-200/80 font-semibold'"
+            >
+              <div class="flex items-center space-x-3 min-w-0">
+                <div 
+                  class="w-8 h-8 rounded-xl flex items-center justify-center transition shrink-0"
+                  :class="abaAtiva === 'holerites' ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-600 group-hover:text-[#ba2e45] group-hover:bg-rose-50'"
+                >
+                  <AppIcon name="document" size="16" />
+                </div>
+                <div class="text-left min-w-0">
+                  <span class="block truncate leading-tight">Holerites & Folha</span>
+                  <span 
+                    class="text-[10px] block mt-0.5 font-normal truncate"
+                    :class="abaAtiva === 'holerites' ? 'text-white/80' : 'text-slate-400'"
+                  >
+                    Demonstrativos de pagamento
+                  </span>
+                </div>
+              </div>
+              <AppIcon 
+                name="chevron-right" 
+                size="14" 
+                :class="abaAtiva === 'holerites' ? 'text-white/70' : 'text-slate-300 group-hover:text-slate-500'" 
+              />
+            </button>
+          </nav>
+        </div>
+
+        <!-- Grupo 2: Ações & Utilidades -->
+        <div class="space-y-1.5 pt-2 border-t border-slate-100">
+          <span class="text-[10px] font-bold uppercase tracking-wider text-slate-400 px-2 block">
+            Serviços Rápidos
+          </span>
+
+          <div class="space-y-1 text-xs">
+
+
+            <!-- Ação 2: Privacidade LGPD -->
+            <button
+              type="button"
+              @click="acionarLgpd"
+              class="w-full flex items-center justify-between p-3 rounded-2xl bg-white hover:bg-slate-50 border border-slate-200/60 transition cursor-pointer group active:scale-[0.98]"
+            >
+              <div class="flex items-center space-x-3 min-w-0">
+                <div class="w-8 h-8 rounded-xl bg-emerald-50 border border-emerald-200/60 flex items-center justify-center text-emerald-700 shrink-0">
+                  <AppIcon name="shield-check" size="15" />
+                </div>
+                <div class="text-left min-w-0">
+                  <span class="font-bold text-slate-800 block truncate leading-tight">Segurança & LGPD</span>
+                  <span class="text-[10px] text-slate-400 block font-normal truncate mt-0.5">Proteção e direitos do titular</span>
+                </div>
+              </div>
+              <span class="text-[9px] font-bold uppercase px-1.5 py-0.5 rounded-md bg-emerald-50 border border-emerald-200 text-emerald-800 shrink-0">
+                Ativa
+              </span>
+            </button>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Rodapé da Gaveta Lateral: Sair da Conta e Informações Legais -->
+      <div class="p-4 border-t border-slate-100 bg-slate-50/80 space-y-3 shrink-0">
+        <!-- Botão Sair com Estilo Limpo -->
+        <button
+          type="button"
+          @click="solicitarLogout"
+          class="w-full py-2.5 px-4 rounded-xl bg-white hover:bg-rose-50 border border-slate-200/90 hover:border-rose-200 text-slate-700 hover:text-[#ba2e45] text-xs font-bold transition flex items-center justify-center gap-2 cursor-pointer active:scale-[0.98] shadow-2xs"
+          title="Encerrar sessão no dispositivo"
+        >
+          <AppIcon name="log-out" size="15" class="text-rose-500" />
+          <span>Sair da Minha Conta</span>
+        </button>
+
+        <div class="text-[9px] text-slate-400 text-center space-y-0.5 font-mono">
+          <p class="font-semibold text-slate-500 font-sans">Vila Boa Construções e Serviços</p>
+          <p>Portal do Colaborador · v2.6</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</template>
+
+<script setup>
+import AppIcon from './AppIcon.vue';
+
+const props = defineProps({
+  aberto: {
+    type: Boolean,
+    default: false
+  },
+  abaAtiva: {
+    type: String,
+    required: true
+  },
+  colaborador: {
+    type: Object,
+    default: null
+  },
+  episPendentes: {
+    type: Number,
+    default: 0
+  }
+});
+
+const emit = defineEmits(['close', 'selecionar', 'logout', 'gerar-pacote', 'abrir-lgpd']);
+
+function navegar(aba) {
+  emit('selecionar', aba);
+  emit('close');
+}
+
+function acionarPacoteRenda() {
+  emit('gerar-pacote');
+  emit('close');
+}
+
+function acionarLgpd() {
+  emit('abrir-lgpd');
+  emit('close');
+}
+
+function solicitarLogout() {
+  emit('logout');
+  emit('close');
+}
+</script>
+
+<style scoped>
+@keyframes slideRight {
+  from {
+    transform: translateX(-100%);
+  }
+  to {
+    transform: translateX(0);
+  }
+}
+.animate-slide-right {
+  animation: slideRight 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+.animate-fade-in {
+  animation: fadeIn 0.2s ease-out;
+}
+</style>

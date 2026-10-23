@@ -1,0 +1,52 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html, body {
+    height: 100%;
+    margin: 0;
+    padding: 0;
+    font-family: 'Plus Jakarta Sans', 'Inter', system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+    -webkit-tap-highlight-color: transparent;
+    -webkit-touch-callout: none;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+  }
+
+  /* Impede seleção acidental em botões e barras nativas */
+  button, nav, header, footer {
+    user-select: none;
+    -webkit-user-select: none;
+  }
+}
+
+/* Scrollbar ultrafina e translúcida (estilo app nativo macOS/Windows 11) */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(148, 163, 184, 0.35);
+  border-radius: 9999px;
+  border: 1px solid transparent;
+  background-clip: padding-box;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(100, 116, 139, 0.6);
+}
+
+/* Suporte a Safe Area de celulares com entalhe/Dynamic Island */
+.safe-bottom {
+  padding-bottom: env(safe-area-inset-bottom, 0.75rem);
+}
+.safe-top {
+  padding-top: env(safe-area-inset-top, 0.5rem);
+}

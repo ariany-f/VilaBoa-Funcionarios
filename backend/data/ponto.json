@@ -1,0 +1,37 @@
+{
+  "VB-1040": {
+    "competencia": "10/2026",
+    "mes_nome": "Outubro / 2026",
+    "banco_horas": {
+      "saldo_total": "+14h 30m",
+      "saldo_positivo": true,
+      "horas_mes_atual": "+06h 15m",
+      "horas_compensadas": "02h 00m",
+      "limite_compensacao": "31/12/2026"
+    },
+    "dias": [
+      { "data": "2026-10-01", "dia_semana": "Qui", "e1": "07:00", "s1": "12:00", "e2": "13:00", "s2": "17:00", "total": "09:00", "saldo": "+01:00", "tipo": "Trabalhado" },
+      { "data": "2026-10-02", "dia_semana": "Sex", "e1": "07:00", "s1": "12:00", "e2": "13:00", "s2": "17:00", "total": "09:00", "saldo": "+01:00", "tipo": "Trabalhado" },
+      { "data": "2026-10-03", "dia_semana": "Sáb", "e1": "--:--", "s1": "--:--", "e2": "--:--", "s2": "--:--", "total": "00:00", "saldo": "00:00", "tipo": "Folga Compensatória" },
+      { "data": "2026-10-04", "dia_semana": "Dom", "e1": "--:--", "s1": "--:--", "e2": "--:--", "s2": "--:--", "total": "00:00", "saldo": "00:00", "tipo": "DSR (Descanso)" },
+      { "data": "2026-10-05", "dia_semana": "Seg", "e1": "07:02", "s1": "12:00", "e2": "13:00", "s2": "17:15", "total": "09:13", "saldo": "+01:13", "tipo": "Trabalhado" },
+      { "data": "2026-10-06", "dia_semana": "Ter", "e1": "06:58", "s1": "12:01", "e2": "13:00", "s2": "17:00", "total": "09:01", "saldo": "+01:01", "tipo": "Trabalhado" },
+      { "data": "2026-10-07", "dia_semana": "Qua", "e1": "07:00", "s1": "12:00", "e2": "13:00", "s2": "16:48", "total": "08:48", "saldo": "+00:48", "tipo": "Trabalhado" },
+      { "data": "2026-10-08", "dia_semana": "Qui", "e1": "07:00", "s1": "12:00", "e2": "13:00", "s2": "17:00", "total": "09:00", "saldo": "+01:00", "tipo": "Trabalhado" },
+      { "data": "2026-10-09", "dia_semana": "Sex", "e1": "07:05", "s1": "12:00", "e2": "13:00", "s2": "17:05", "total": "09:00", "saldo": "+01:00", "tipo": "Trabalhado" },
+      { "data": "2026-10-10", "dia_semana": "Sáb", "e1": "--:--", "s1": "--:--", "e2": "--:--", "s2": "--:--", "total": "00:00", "saldo": "00:00", "tipo": "Folga" },
+      { "data": "2026-10-11", "dia_semana": "Dom", "e1": "--:--", "s1": "--:--", "e2": "--:--", "s2": "--:--", "total": "00:00", "saldo": "00:00", "tipo": "DSR" },
+      { "data": "2026-10-12", "dia_semana": "Seg", "e1": "--:--", "s1": "--:--", "e2": "--:--", "s2": "--:--", "total": "00:00", "saldo": "00:00", "tipo": "Feriado Nacional (N. Sra Aparecida)" },
+      { "data": "2026-10-13", "dia_semana": "Ter", "e1": "07:00", "s1": "12:00", "e2": "13:00", "s2": "17:00", "total": "09:00", "saldo": "+01:00", "tipo": "Trabalhado" },
+      { "data": "2026-10-14", "dia_semana": "Qua", "e1": "07:00", "s1": "12:00", "e2": "13:00", "s2": "17:00", "total": "09:00", "saldo": "+01:00", "tipo": "Trabalhado" },
+      { "data": "2026-10-15", "dia_semana": "Qui", "e1": "06:55", "s1": "12:00", "e2": "13:00", "s2": "17:00", "total": "09:05", "saldo": "+01:05", "tipo": "Trabalhado" },
+      { "data": "2026-10-16", "dia_semana": "Sex", "e1": "07:00", "s1": "12:00", "e2": "13:00", "s2": "16:00", "total": "08:00", "saldo": "00:00", "tipo": "Trabalhado" },
+      { "data": "2026-10-17", "dia_semana": "Sáb", "e1": "--:--", "s1": "--:--", "e2": "--:--", "s2": "--:--", "total": "00:00", "saldo": "00:00", "tipo": "Folga" },
+      { "data": "2026-10-18", "dia_semana": "Dom", "e1": "--:--", "s1": "--:--", "e2": "--:--", "s2": "--:--", "total": "00:00", "saldo": "00:00", "tipo": "DSR" },
+      { "data": "2026-10-19", "dia_semana": "Seg", "e1": "07:00", "s1": "12:00", "e2": "13:00", "s2": "17:00", "total": "09:00", "saldo": "+01:00", "tipo": "Trabalhado" },
+      { "data": "2026-10-20", "dia_semana": "Ter", "e1": "07:00", "s1": "12:00", "e2": "13:00", "s2": "17:00", "total": "09:00", "saldo": "+01:00", "tipo": "Trabalhado" },
+      { "data": "2026-10-21", "dia_semana": "Qua", "e1": "07:00", "s1": "12:00", "e2": "13:00", "s2": "17:00", "total": "09:00", "saldo": "+01:00", "tipo": "Trabalhado" },
+      { "data": "2026-10-22", "dia_semana": "Qui", "e1": "06:59", "s1": "12:02", "e2": "13:00", "s2": "17:00", "total": "08:59", "saldo": "+00:59", "tipo": "Trabalhado (Hoje)" }
+    ]
+  }
+}

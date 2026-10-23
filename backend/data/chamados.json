@@ -1,0 +1,26 @@
+[
+  {
+    "id": "CHAM-2026-104",
+    "colaborador_id": 1,
+    "matricula": "VB-1040",
+    "tipo": "Declaração de Trabalho",
+    "assunto": "Declaração de Vínculo Empregatício para Fins Bancários",
+    "data_abertura": "2026-10-15 11:20:30",
+    "status": "Concluído",
+    "resposta_rh": "Sua declaração digital com assinatura e carimbo do DP está disponível para download.",
+    "data_fechamento": "2026-10-16 09:15:00",
+    "documento_disponivel": true
+  },
+  {
+    "id": "CHAM-2026-142",
+    "colaborador_id": 1,
+    "matricula": "VB-1040",
+    "tipo": "Segunda Via de Crachá",
+    "assunto": "Solicitação de novo crachá para entrada no Canteiro Rodoanel",
+    "data_abertura": "2026-10-21 16:40:12",
+    "status": "Em Produção",
+    "resposta_rh": "Solicitação aprovada. O crachá será enviado com o malote de sexta-feira para o almoxarifado da obra.",
+    "data_fechamento": null,
+    "documento_disponivel": false
+  }
+]
