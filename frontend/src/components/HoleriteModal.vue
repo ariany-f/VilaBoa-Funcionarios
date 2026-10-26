@@ -1,7 +1,7 @@
 <template>
   <div v-if="holerite" class="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 bg-slate-900/60 backdrop-blur-sm transition-all duration-300">
     <div 
-      class="bg-white w-full max-w-xl md:max-w-2xl lg:max-w-3xl max-h-[94vh] sm:max-h-[90vh] rounded-t-3xl sm:rounded-3xl shadow-2xl flex flex-col overflow-hidden animate-slide-up border border-slate-200/80"
+      class="bg-white w-full max-w-xl md:max-w-2xl lg:max-w-3xl max-h-[94vh] sm:max-h-[90vh] rounded-t-3xl sm:rounded-2xl shadow-2xl flex flex-col overflow-hidden animate-slide-up border border-slate-200"
       @click.stop
     >
       <!-- Drag Handle para Mobile (Estilo Bottom Sheet Nativo) -->
@@ -19,13 +19,24 @@
           </div>
         </div>
 
+        <div class="flex items-center gap-2">
+        <button
+          type="button"
+          @click="valoresOcultos = !valoresOcultos"
+          class="w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-500 hover:text-slate-800 flex items-center justify-center transition-all cursor-pointer active:scale-90 border border-slate-200 shadow-2xs"
+          :title="valoresOcultos ? 'Mostrar valores' : 'Ocultar valores'"
+          :aria-label="valoresOcultos ? 'Mostrar valores' : 'Ocultar valores'"
+        >
+          <AppIcon :name="valoresOcultos ? 'eye' : 'eye-off'" size="14" />
+        </button>
         <button 
           @click="$emit('close')" 
-          class="w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-slate-100 hover:bg-slate-200 active:bg-slate-300 text-slate-500 hover:text-slate-800 flex items-center justify-center transition-all cursor-pointer active:scale-90 border border-slate-200/80 shadow-2xs"
+          class="w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-slate-100 hover:bg-slate-200 active:bg-slate-300 text-slate-500 hover:text-slate-800 flex items-center justify-center transition-all cursor-pointer active:scale-90 border border-slate-200 shadow-2xs"
           aria-label="Fechar"
         >
           <AppIcon name="x" size="14" />
         </button>
+        </div>
       </div>
 
       <!-- Corpo com rolagem do Holerite (Área imprimível) -->
@@ -37,13 +48,13 @@
           <div class="bg-slate-50 p-4 sm:p-5 rounded-2xl border border-slate-200/90 flex flex-col justify-between space-y-3 shadow-2xs">
             <div>
               <div class="flex items-center justify-between">
-                <span class="text-[10px] uppercase font-black text-slate-400 tracking-wider">Valor Líquido do Demonstrativo</span>
+                <span class="text-[10px] uppercase font-semibold text-slate-400 tracking-wider">Valor Líquido do Demonstrativo</span>
                 <span class="text-[10px] font-bold text-slate-600 bg-white border border-slate-200 px-2 py-0.5 rounded-full">
                   {{ holerite.competencia }}
                 </span>
               </div>
-              <div class="text-2xl sm:text-3xl lg:text-4xl font-black text-slate-900 font-mono tracking-tight mt-1.5">
-                {{ formatCurrency(holerite.salario_liquido) }}
+              <div class="text-2xl sm:text-3xl lg:text-4xl font-semibold text-slate-900 font-mono tracking-tight mt-1.5">
+                {{ moeda(holerite.salario_liquido) }}
               </div>
             </div>
 
@@ -77,7 +88,7 @@
                   <div class="w-5 h-5 rounded-full bg-emerald-600 text-white flex items-center justify-center shrink-0">
                     <AppIcon name="check" size="12" />
                   </div>
-                  <span class="text-[10px] uppercase font-black text-emerald-900 tracking-wider">Ciência Registrada</span>
+                  <span class="text-[10px] uppercase font-semibold text-emerald-900 tracking-wider">Ciência Registrada</span>
                 </div>
                 <span class="text-[9px] font-bold text-emerald-900 bg-emerald-200/80 px-2 py-0.5 rounded-full uppercase">
                   Art. 464 CLT
@@ -97,7 +108,7 @@
         </div>
 
         <!-- Dados da Empresa e Colaborador -->
-        <div class="bg-slate-50 p-3.5 rounded-2xl border border-slate-200/80 space-y-2.5">
+        <div class="bg-slate-50 p-3.5 rounded-2xl border border-slate-200 space-y-2.5">
           <div class="flex justify-between items-start border-b border-slate-200 pb-2">
             <div>
               <p class="font-bold text-slate-800 uppercase tracking-tight">Vila Boa Construcoes e Servicos Limitada</p>
@@ -129,9 +140,9 @@
         </div>
 
         <!-- Barra Didática "Entenda seu Holerite" (Apenas na tela) -->
-        <div class="flex items-center justify-between text-[11px] text-slate-600 bg-slate-50 px-3 py-2 rounded-xl border border-slate-200/80 shadow-xs no-print">
+        <div class="flex items-center justify-between text-[11px] text-slate-600 bg-slate-50 px-3 py-2 rounded-xl border border-slate-200 shadow-xs no-print">
           <span class="flex items-center gap-1.5 font-medium">
-            <AppIcon name="info" size="14" class="text-[#ba2e45] shrink-0" />
+            <AppIcon name="info" size="14" class="text-[#9c2337] shrink-0" />
             <span><strong>Entenda seu Holerite:</strong> Toque em qualquer linha, desconto ou no FGTS para ver a explicação em linguagem simples.</span>
           </span>
         </div>
@@ -156,7 +167,7 @@
               <span class="col-span-2 font-mono text-slate-400 text-[10px]">{{ item.codigo }}</span>
               <span class="col-span-5 font-medium text-slate-800 leading-tight flex items-center gap-1">
                 <span>{{ item.descricao }}</span>
-                <span class="text-slate-300 group-hover:text-[#ba2e45] transition no-print">
+                <span class="text-slate-300 group-hover:text-[#9c2337] transition no-print">
                   <AppIcon name="info" size="11" />
                 </span>
               </span>
@@ -165,7 +176,7 @@
                 class="col-span-3 text-right font-semibold font-mono"
                 :class="item.tipo === 'PROVENTO' ? 'text-emerald-600' : 'text-rose-500'"
               >
-                {{ item.tipo === 'DESCONTO' ? '-' : '+' }} {{ formatCurrency(item.valor) }}
+                {{ item.tipo === 'DESCONTO' ? '-' : '+' }} {{ moeda(item.valor) }}
               </span>
             </div>
           </div>
@@ -180,7 +191,7 @@
           >
             <span class="text-[10px] text-slate-500 uppercase block font-medium group-hover:text-emerald-700">Total Proventos</span>
             <span class="text-xs sm:text-sm font-bold text-emerald-600 font-mono">
-              {{ formatCurrency(holerite.total_proventos) }}
+              {{ moeda(holerite.total_proventos) }}
             </span>
           </div>
           <div 
@@ -190,7 +201,7 @@
           >
             <span class="text-[10px] text-slate-500 uppercase block font-medium group-hover:text-rose-700">Total Descontos</span>
             <span class="text-xs sm:text-sm font-bold text-rose-500 font-mono">
-              {{ formatCurrency(holerite.total_descontos) }}
+              {{ moeda(holerite.total_descontos) }}
             </span>
           </div>
           <div 
@@ -199,8 +210,8 @@
             title="Toque para entender o Salário Líquido"
           >
             <span class="text-[10px] text-slate-700 uppercase block font-bold group-hover:text-slate-900">Valor Líquido</span>
-            <span class="text-xs sm:text-sm font-black text-slate-900 font-mono">
-              {{ formatCurrency(holerite.salario_liquido) }}
+            <span class="text-xs sm:text-sm font-semibold text-slate-900 font-mono">
+              {{ moeda(holerite.salario_liquido) }}
             </span>
           </div>
         </div>
@@ -213,7 +224,7 @@
             title="Toque para entender o Salário Base"
           >
             <span class="text-slate-400 block">Salário Base:</span>
-            <span class="font-semibold text-slate-800 font-mono">{{ formatCurrency(holerite.salario_base) }}</span>
+            <span class="font-semibold text-slate-800 font-mono">{{ moeda(holerite.salario_base) }}</span>
           </div>
           <div 
             @click="explicarChave('BASE_INSS')" 
@@ -221,7 +232,7 @@
             title="Toque para entender a Base INSS"
           >
             <span class="text-slate-400 block">Base INSS:</span>
-            <span class="font-semibold text-slate-800 font-mono">{{ formatCurrency(holerite.base_inss) }}</span>
+            <span class="font-semibold text-slate-800 font-mono">{{ moeda(holerite.base_inss) }}</span>
           </div>
           <div 
             @click="explicarChave('BASE_FGTS')" 
@@ -229,7 +240,7 @@
             title="Toque para entender a Base FGTS"
           >
             <span class="text-slate-400 block">Base FGTS:</span>
-            <span class="font-semibold text-slate-800 font-mono">{{ formatCurrency(holerite.base_fgts) }}</span>
+            <span class="font-semibold text-slate-800 font-mono">{{ moeda(holerite.base_fgts) }}</span>
           </div>
           <div 
             @click="explicarChave('FGTS_MES')" 
@@ -237,7 +248,7 @@
             title="Toque para entender o FGTS depositado pela Vila Boa"
           >
             <span class="text-slate-500 font-bold block">FGTS do Mês:</span>
-            <span class="font-black text-slate-900 font-mono">{{ formatCurrency(holerite.fgts_mes) }}</span>
+            <span class="font-semibold text-slate-900 font-mono">{{ moeda(holerite.fgts_mes) }}</span>
           </div>
         </div>
 
@@ -265,7 +276,7 @@
       <div class="p-3.5 pb-[calc(0.875rem+env(safe-area-inset-bottom,0px))] bg-slate-50 border-t border-slate-200 flex flex-wrap sm:flex-nowrap gap-2.5 shrink-0 no-print">
         <button 
           @click="imprimir" 
-          class="flex-1 h-12 px-5 bg-[#ba2e45] hover:bg-[#9c2337] active:scale-[0.98] text-white font-bold rounded-xl text-xs sm:text-sm flex items-center justify-center gap-2 shadow-sm transition cursor-pointer"
+          class="flex-1 h-12 px-5 bg-[#9c2337] hover:bg-[#831b2d] active:scale-[0.98] text-white font-bold rounded-xl text-xs sm:text-sm flex items-center justify-center gap-2 shadow-sm transition cursor-pointer"
         >
           <AppIcon name="printer" size="16" />
           <span>Salvar / Imprimir PDF</span>
@@ -296,7 +307,7 @@
       @click="rubricaSelecionada = null"
     >
       <div 
-        class="bg-white rounded-3xl max-w-md w-full p-5 sm:p-6 shadow-2xl border border-slate-200 space-y-4 animate-scale-in"
+        class="bg-white rounded-2xl max-w-md w-full p-5 sm:p-6 shadow-2xl border border-slate-200 space-y-4 animate-scale-in"
         @click.stop
       >
         <div class="flex items-start justify-between border-b border-slate-100 pb-3">
@@ -310,10 +321,10 @@
               </span>
               <span class="text-[10px] text-slate-400 font-medium">Tradutor da Folha</span>
             </div>
-            <h4 class="text-sm sm:text-base font-black text-slate-900">
+            <h4 class="text-sm sm:text-base font-semibold text-slate-900">
               {{ rubricaSelecionada.titulo }}
             </h4>
-            <p class="text-[11px] text-[#ba2e45] font-semibold">
+            <p class="text-[11px] text-[#9c2337] font-semibold">
               {{ rubricaSelecionada.subtitulo }}
             </p>
           </div>
@@ -330,13 +341,13 @@
 
         <!-- Conteúdo Didático em Linguagem Simples -->
         <div class="space-y-3 text-xs text-slate-600">
-          <div class="bg-slate-50 p-3.5 rounded-2xl border border-slate-200/80 leading-relaxed">
+          <div class="bg-slate-50 p-3.5 rounded-2xl border border-slate-200 leading-relaxed">
             <strong class="text-slate-800 block text-[11px] uppercase mb-1">O que significa:</strong>
             {{ rubricaSelecionada.descricao }}
           </div>
 
           <div class="bg-rose-50/60 p-3.5 rounded-2xl border border-rose-200/60 leading-relaxed text-slate-700">
-            <strong class="text-[#ba2e45] block text-[11px] uppercase mb-1">Como funciona na prática:</strong>
+            <strong class="text-[#9c2337] block text-[11px] uppercase mb-1">Como funciona na prática:</strong>
             {{ rubricaSelecionada.comoFunciona }}
           </div>
         </div>
@@ -345,7 +356,7 @@
         <button 
           type="button"
           @click="rubricaSelecionada = null"
-          class="w-full py-3 px-4 bg-[#ba2e45] hover:bg-[#9c2337] active:scale-[0.98] text-white font-bold rounded-xl text-xs flex items-center justify-center gap-2 shadow-sm transition cursor-pointer"
+          class="w-full py-3 px-4 bg-[#9c2337] hover:bg-[#831b2d] active:scale-[0.98] text-white font-bold rounded-xl text-xs flex items-center justify-center gap-2 shadow-sm transition cursor-pointer"
         >
           <span>Entendi, obrigado!</span>
         </button>
@@ -355,6 +366,7 @@
 </template>
 
 <script setup>
+import { usarFecharComEsc } from '../utils/fecharComEsc.js';
 import { ref, computed, watch, onMounted } from 'vue';
 import { formatCurrency } from '../utils/masks.js';
 import { obterExplicacaoRubrica, GLOSSARIO_RUBRICAS } from '../utils/rubricas.js';
@@ -373,10 +385,15 @@ const props = defineProps({
   focarCiencia: {
     type: Boolean,
     default: false
+  },
+  ocultarValores: {
+    type: Boolean,
+    default: false
   }
 });
 
 const emit = defineEmits(['close', 'ciencia-confirmada']);
+usarFecharComEsc(() => emit('close'));
 
 // QR Code Oficial de Validação para Bancos e Terceiros
 const qrCodeDataUrl = ref('');
@@ -392,7 +409,7 @@ watch(
           width: 140,
           margin: 1,
           color: {
-            dark: '#0f1117',
+            dark: '#141414',
             light: '#ffffff'
           }
         });
@@ -416,7 +433,14 @@ onMounted(() => {
 });
 
 // Tradutor Didático ("Entenda seu Holerite")
+// Valores começam ocultos quando o colaborador escondeu os dados no portal
+const valoresOcultos = ref(props.ocultarValores);
+function moeda(valor) {
+  return valoresOcultos.value ? 'R$ ••••••' : formatCurrency(valor);
+}
+
 const rubricaSelecionada = ref(null);
+usarFecharComEsc(() => { rubricaSelecionada.value = null; }, () => !!rubricaSelecionada.value);
 
 function explicarItem(item) {
   rubricaSelecionada.value = obterExplicacaoRubrica(item.codigo, item.descricao);
@@ -439,7 +463,7 @@ function getRubricaBadgeClasse(tipo) {
     case 'BENEFICIO_EMPRESA':
       return 'bg-amber-100 text-amber-950 border border-amber-300';
     case 'VALOR_FINAL':
-      return 'bg-rose-50 text-[#ba2e45] border border-rose-200/80';
+      return 'bg-rose-50 text-[#9c2337] border border-rose-200/80';
     default:
       return 'bg-slate-100 text-slate-800 border border-slate-300';
   }
@@ -468,7 +492,7 @@ const badgeTipoFolhaClasse = computed(() => {
     return 'bg-amber-100 text-amber-900 border-amber-300';
   }
   if (codigo === '13_salario' || tipo.includes('13')) {
-    return 'bg-rose-50 text-[#ba2e45] border border-rose-200/80';
+    return 'bg-rose-50 text-[#9c2337] border border-rose-200/80';
   }
   if (codigo === 'ferias' || tipo.includes('férias') || tipo.includes('ferias')) {
     return 'bg-emerald-100 text-emerald-900 border-emerald-300';

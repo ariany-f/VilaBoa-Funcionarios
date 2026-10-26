@@ -1,7 +1,7 @@
 <template>
   <div v-if="pacote" class="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 bg-slate-900/60 backdrop-blur-sm transition-all duration-300">
     <div 
-      class="bg-white w-full max-w-2xl lg:max-w-3xl max-h-[96vh] sm:max-h-[92vh] rounded-t-3xl sm:rounded-3xl shadow-2xl flex flex-col overflow-hidden animate-slide-up border border-slate-200"
+      class="bg-white w-full max-w-2xl lg:max-w-3xl max-h-[96vh] sm:max-h-[92vh] rounded-t-3xl sm:rounded-2xl shadow-2xl flex flex-col overflow-hidden animate-slide-up border border-slate-200"
       @click.stop
     >
       <!-- Drag Handle para Mobile (Estilo Bottom Sheet Nativo) -->
@@ -14,7 +14,7 @@
         <div class="flex items-center space-x-3">
           <img src="/img/logo-vilaboa-color.png" alt="Vila Boa" class="h-7 w-auto object-contain" />
           <div class="border-l border-slate-200 pl-3">
-            <h3 class="text-xs sm:text-sm font-black text-slate-800">
+            <h3 class="text-xs sm:text-sm font-semibold text-slate-800">
               Dossiê Consolidado dos Últimos 3 Meses
             </h3>
             <p class="text-[10px] text-slate-500">
@@ -25,7 +25,7 @@
 
         <button 
           @click="$emit('close')" 
-          class="w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-slate-100 hover:bg-slate-200 active:bg-slate-300 text-slate-500 hover:text-slate-800 flex items-center justify-center transition-all cursor-pointer active:scale-90 border border-slate-200/80 shadow-2xs"
+          class="w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-slate-100 hover:bg-slate-200 active:bg-slate-300 text-slate-500 hover:text-slate-800 flex items-center justify-center transition-all cursor-pointer active:scale-90 border border-slate-200 shadow-2xs"
           aria-label="Fechar"
         >
           <AppIcon name="x" size="14" />
@@ -41,12 +41,12 @@
         <div class="space-y-4 pb-4 border-b-2 border-dashed border-slate-200 page-break">
           
           <!-- Banner Superior Corporativo (Sólido) -->
-          <div class="bg-[#0f1117] text-white p-4 sm:p-5 rounded-2xl flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
+          <div class="bg-[#141414] text-white p-4 sm:p-5 rounded-2xl flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
             <div>
               <span class="text-[10px] uppercase font-bold tracking-wider text-rose-200 block">
                 Documento Oficial de Comprovação de Rendimentos
               </span>
-              <h2 class="text-base sm:text-lg font-black text-white">
+              <h2 class="text-base sm:text-lg font-semibold text-white">
                 Dossiê Consolidado dos Últimos 3 Meses
               </h2>
               <p class="text-xs text-slate-300 mt-0.5">
@@ -87,14 +87,14 @@
             <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 text-center">
               <div class="bg-emerald-50 border border-emerald-200 p-3 rounded-xl">
                 <span class="text-[10px] font-bold text-emerald-800 uppercase block">Média Bruta Mensal</span>
-                <span class="text-sm sm:text-base font-black text-emerald-700 font-mono">
+                <span class="text-sm sm:text-base font-semibold text-emerald-700 font-mono">
                   {{ formatCurrency(pacote.resumo_financeiro.media_proventos_bruta) }}
                 </span>
               </div>
 
               <div class="bg-rose-50 border border-rose-200 p-3 rounded-xl">
-                <span class="text-[10px] font-bold text-[#ba2e45] uppercase block">Média Líquida Mensal</span>
-                <span class="text-sm sm:text-base font-black text-[#ba2e45] font-mono">
+                <span class="text-[10px] font-bold text-[#9c2337] uppercase block">Média Líquida Mensal</span>
+                <span class="text-sm sm:text-base font-semibold text-[#9c2337] font-mono">
                   {{ formatCurrency(pacote.resumo_financeiro.media_salario_liquida) }}
                 </span>
               </div>
@@ -190,7 +190,7 @@
             <!-- Topo do Holerite Individual -->
             <div class="flex justify-between items-start border-b border-slate-200 pb-2.5">
               <div class="flex items-center gap-2.5">
-                <span class="w-7 h-7 rounded-lg bg-[#ba2e45] text-white font-bold text-xs flex items-center justify-center shrink-0">
+                <span class="w-7 h-7 rounded-lg bg-[#9c2337] text-white font-bold text-xs flex items-center justify-center shrink-0">
                   {{ idx + 1 }}
                 </span>
                 <div>
@@ -205,7 +205,7 @@
 
               <div class="text-right">
                 <span class="text-[10px] text-slate-400 block uppercase">Salário Líquido</span>
-                <span class="text-sm font-black text-slate-900 font-mono">
+                <span class="text-sm font-semibold text-slate-900 font-mono">
                   {{ formatCurrency(h.salario_liquido) }}
                 </span>
               </div>
@@ -250,7 +250,7 @@
               </div>
               <div>
                 <span class="text-slate-600 block font-bold">Líquido Recebido:</span>
-                <span class="font-black text-slate-900 font-mono">{{ formatCurrency(h.salario_liquido) }}</span>
+                <span class="font-semibold text-slate-900 font-mono">{{ formatCurrency(h.salario_liquido) }}</span>
               </div>
             </div>
 
@@ -274,7 +274,7 @@
       <div class="p-3.5 pb-[calc(0.875rem+env(safe-area-inset-bottom,0px))] bg-slate-50 border-t border-slate-200 flex flex-wrap sm:flex-nowrap gap-2.5 shrink-0">
         <button 
           @click="imprimirPacote" 
-          class="flex-1 h-12 px-5 bg-[#ba2e45] hover:bg-[#9c2337] active:scale-[0.98] text-white font-bold rounded-xl text-xs sm:text-sm flex items-center justify-center gap-2 shadow-sm transition cursor-pointer"
+          class="flex-1 h-12 px-5 bg-[#9c2337] hover:bg-[#831b2d] active:scale-[0.98] text-white font-bold rounded-xl text-xs sm:text-sm flex items-center justify-center gap-2 shadow-sm transition cursor-pointer"
         >
           <AppIcon name="printer" size="16" />
           <span>Salvar / Imprimir PDF (3 Meses)</span>
@@ -302,6 +302,7 @@
 </template>
 
 <script setup>
+import { usarFecharComEsc } from '../utils/fecharComEsc.js';
 import { ref, computed, watch } from 'vue';
 import QRCode from 'qrcode';
 import { formatCurrency } from '../utils/masks.js';
@@ -319,7 +320,7 @@ watch(() => props.pacote, async (novo) => {
         width: 180,
         margin: 1,
         color: {
-          dark: '#0f1117',
+          dark: '#141414',
           light: '#ffffff'
         }
       });
@@ -336,7 +337,8 @@ const props = defineProps({
   }
 });
 
-defineEmits(['close']);
+const emit = defineEmits(['close']);
+usarFecharComEsc(() => emit('close'));
 
 const suportaCompartilhar = computed(() => {
   return typeof navigator !== 'undefined' && !!navigator.share;
@@ -414,7 +416,7 @@ function imprimirPacote() {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      border-bottom: 2px solid #ba2e45;
+      border-bottom: 2px solid #9c2337;
       padding-bottom: 8px;
       margin-bottom: 12px;
     }
@@ -436,7 +438,7 @@ function imprimirPacote() {
     .doc-banner {
       background: #f8fafc;
       border: 1px solid #e2e8f0;
-      border-left: 4px solid #ba2e45;
+      border-left: 4px solid #9c2337;
       padding: 10px 12px;
       border-radius: 8px;
       margin-bottom: 12px;
@@ -534,7 +536,7 @@ function imprimirPacote() {
       color: #0f172a;
     }
     .metric-num.wine {
-      color: #ba2e45;
+      color: #9c2337;
     }
     .table-custom {
       width: 100%;
@@ -881,7 +883,7 @@ function imprimirPacote() {
               <span class="totals-val" style="color: #dc2626;">-${formatCurrency(h.total_descontos)}</span>
             </div>
             <div style="background: #ffffff; border-radius: 4px; border: 1px solid #cbd5e1; padding: 2px 4px;">
-              <span class="totals-lbl" style="color: #ba2e45;">VALOR LÍQUIDO A RECEBER</span>
+              <span class="totals-lbl" style="color: #9c2337;">VALOR LÍQUIDO A RECEBER</span>
               <span class="totals-val" style="color: #0f172a; font-size: 13px;">${formatCurrency(h.salario_liquido)}</span>
             </div>
           </div>

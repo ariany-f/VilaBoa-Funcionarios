@@ -1,6 +1,6 @@
 <template>
   <div 
-    class="bg-slate-100 flex flex-col selection:bg-[#ba2e45] selection:text-white text-slate-800"
+    class="bg-slate-100 flex flex-col selection:bg-[#9c2337] selection:text-white text-slate-800"
     :class="etapaAtual === 'dashboard' ? 'h-screen overflow-hidden' : 'min-h-screen'"
   >
     
@@ -9,24 +9,24 @@
 
     <!-- TELA DE TRANSIÇÃO / RESTAURAÇÃO DE SESSÃO COM LOGO PINTANDO DINÂMICO -->
     <div v-else-if="verificandoSessao" class="min-h-screen flex-1 flex flex-col items-center justify-center p-6 bg-slate-50">
-      <LogoLoader mensagem="Acessando o portal corporativo..." />
+      <LogoLoader />
     </div>
 
     <!-- ========================================================================= -->
     <!-- TELA 1: LOGIN (RESPONSIVO: SPLIT SCREEN NO DESKTOP, COMPACTO NO MOBILE)   -->
     <!-- ========================================================================= -->
     <div v-else-if="etapaAtual === 'login'" class="flex-1 flex items-center justify-center p-3 sm:p-6 lg:p-8">
-      <div class="w-full max-w-md md:max-w-xl lg:max-w-5xl xl:max-w-6xl bg-white rounded-3xl lg:rounded-[32px] shadow-2xl overflow-hidden flex flex-col lg:flex-row border border-slate-200/80">
+      <div class="w-full max-w-md md:max-w-xl lg:max-w-5xl xl:max-w-6xl bg-white rounded-2xl lg:rounded-3xl shadow-2xl overflow-hidden flex flex-col lg:flex-row border border-slate-200">
         
         <!-- Lado Esquerdo Institucional (Desktop / Tablet) - Sólido Corporativo Sem Gradiente -->
-        <div class="lg:w-1/2 bg-[#0f1117] text-white p-8 lg:p-12 flex flex-col justify-between relative border-b lg:border-b-0 lg:border-r border-slate-800">
+        <div class="lg:w-1/2 bg-[#141414] text-white p-8 lg:p-12 flex flex-col justify-between relative border-b lg:border-b-0 lg:border-r border-slate-800">
           <div class="relative z-10 space-y-6">
             <div class="inline-flex items-center space-x-3 bg-white/10 px-4 py-2.5 rounded-2xl border border-white/15">
               <img src="/img/logo-vilaboa-white.png" alt="Vila Boa Construções e Serviços" class="h-9 w-auto object-contain" />
             </div>
 
             <div class="space-y-3 pt-2">
-              <h1 class="text-2xl sm:text-3xl lg:text-4xl font-black leading-tight tracking-tight">
+              <h1 class="text-2xl sm:text-3xl lg:text-4xl font-semibold leading-tight tracking-tight">
                 Portal do Colaborador
               </h1>
               <p class="text-slate-300 text-xs sm:text-sm leading-relaxed">
@@ -69,13 +69,13 @@
               <div class="lg:hidden flex items-center mb-4">
                 <img src="/img/logo-horizontal.png" alt="Vila Boa Construções e Serviços" class="h-8 w-auto object-contain" />
               </div>
-              <h2 class="text-xl sm:text-2xl font-black text-slate-900 tracking-tight">Acesso ao Portal</h2>
+              <h2 class="text-xl sm:text-2xl font-semibold text-slate-900 tracking-tight">Acesso ao Portal</h2>
               <p class="text-xs sm:text-sm text-slate-500">Informe seu CPF e data de nascimento cadastrados</p>
             </div>
 
             <!-- Mensagem de Alerta/Erro -->
             <div v-if="mensagemErro" class="p-3.5 rounded-2xl bg-rose-50 border border-rose-200 text-rose-700 text-xs flex items-start gap-2 animate-shake">
-              <AppIcon name="alert-triangle" size="16" class="text-[#ba2e45] shrink-0 mt-0.5" />
+              <AppIcon name="alert-triangle" size="16" class="text-[#9c2337] shrink-0 mt-0.5" />
               <span class="font-medium">{{ mensagemErro }}</span>
             </div>
 
@@ -92,7 +92,7 @@
                   @input="handleCpfInput"
                   placeholder="000.000.000-00"
                   maxlength="14"
-                  class="w-full px-4 py-3.5 rounded-2xl bg-slate-50 border border-slate-200 text-slate-900 font-semibold text-base focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#ba2e45] focus:border-transparent transition"
+                  class="w-full px-4 py-3.5 rounded-2xl bg-slate-50 border border-slate-200 text-slate-900 font-semibold text-base focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#9c2337] focus:border-transparent transition"
                   required
                 />
               </div>
@@ -108,7 +108,7 @@
                   @input="handleDataInput"
                   placeholder="DD/MM/AAAA"
                   maxlength="10"
-                  class="w-full px-4 py-3.5 rounded-2xl bg-slate-50 border border-slate-200 text-slate-900 font-semibold text-base focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#ba2e45] focus:border-transparent transition"
+                  class="w-full px-4 py-3.5 rounded-2xl bg-slate-50 border border-slate-200 text-slate-900 font-semibold text-base focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#9c2337] focus:border-transparent transition"
                   required
                 />
               </div>
@@ -116,7 +116,7 @@
               <button 
                 type="submit" 
                 :disabled="carregando || formLogin.cpf.length < 14 || formLogin.data_nascimento.length < 10 || bloqueioSegundos > 0"
-                class="w-full py-4 px-6 rounded-2xl bg-[#ba2e45] hover:bg-[#9c2337] disabled:opacity-50 active:scale-[0.98] text-white font-bold text-sm tracking-wide shadow-lg shadow-[#ba2e45]/25 transition flex items-center justify-center gap-2 cursor-pointer"
+                class="w-full py-4 px-6 rounded-2xl bg-[#9c2337] hover:bg-[#831b2d] disabled:opacity-50 active:scale-[0.98] text-white font-bold text-sm tracking-wide shadow-lg shadow-[#9c2337]/25 transition flex items-center justify-center gap-2 cursor-pointer"
               >
                 <span v-if="carregando" class="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
                 <span>{{ bloqueioSegundos > 0 ? 'Aguarde ' + tempoFormatadoBloqueio : (carregando ? 'Autenticando...' : 'Acessar Portal') }}</span>
@@ -134,7 +134,7 @@
                 >
                   <span>{{ mostrarMocks ? '▼ Ocultar Perfis de Teste' : '▶ Perfis de Teste (Homologação)' }}</span>
                 </button>
-                <span class="text-[9px] bg-slate-100 text-slate-600 border border-slate-200/80 px-2 py-0.5 rounded-full font-bold">
+                <span class="text-[9px] bg-slate-100 text-slate-600 border border-slate-200 px-2 py-0.5 rounded-full font-bold">
                   Ambiente Homologação
                 </span>
               </div>
@@ -149,20 +149,20 @@
                   :key="demo.id"
                   type="button"
                   @click="preencherDemo(demo)"
-                  class="w-full text-left p-3 rounded-2xl border border-slate-200/90 hover:border-[#ba2e45] bg-slate-50/80 hover:bg-rose-50/40 active:scale-[0.99] transition flex items-center justify-between group cursor-pointer shadow-2xs"
+                  class="w-full text-left p-3 rounded-2xl border border-slate-200/90 hover:border-[#9c2337] bg-slate-50/80 hover:bg-rose-50/40 active:scale-[0.99] transition flex items-center justify-between group cursor-pointer shadow-2xs"
                 >
                   <div class="flex items-center space-x-3 min-w-0">
-                    <div class="w-9 h-9 rounded-xl bg-white border border-slate-200/80 group-hover:border-[#ba2e45]/40 flex items-center justify-center font-black text-xs text-[#ba2e45] shrink-0 shadow-2xs">
+                    <div class="w-9 h-9 rounded-xl bg-white border border-slate-200 group-hover:border-[#9c2337]/40 flex items-center justify-center font-semibold text-xs text-[#9c2337] shrink-0 shadow-2xs">
                       {{ demo.nome.slice(0, 2).toUpperCase() }}
                     </div>
                     <div class="min-w-0">
-                      <div class="text-xs font-bold text-slate-800 group-hover:text-[#ba2e45] transition truncate">{{ demo.nome }}</div>
+                      <div class="text-xs font-bold text-slate-800 group-hover:text-[#9c2337] transition truncate">{{ demo.nome }}</div>
                       <div class="text-[10px] text-slate-400 font-medium truncate">{{ demo.cargo }} • Mat: {{ demo.matricula }}</div>
                     </div>
                   </div>
                   <div class="text-right shrink-0">
                     <span class="text-[9px] font-bold uppercase tracking-wider text-slate-400 block">Nasc.</span>
-                    <span class="text-[11px] font-mono font-bold text-slate-700 group-hover:text-[#ba2e45]">
+                    <span class="text-[11px] font-mono font-bold text-slate-700 group-hover:text-[#9c2337]">
                       {{ demo.data_nascimento }}
                     </span>
                   </div>
@@ -189,10 +189,60 @@
     </div>
 
     <!-- ========================================================================= -->
+    <!-- TELA 2A: CONFIRMAÇÃO POR TOKEN NO CELULAR (com alternativa pelas perguntas) -->
+    <div v-else-if="etapaAtual === 'token'" class="flex-1 flex items-center justify-center p-4 sm:p-6 lg:p-10">
+      <div class="w-full max-w-md bg-white rounded-2xl shadow-2xl border border-slate-200 p-6 sm:p-10 space-y-6 animate-slide-up">
+        <div class="flex items-center justify-between border-b border-slate-100 pb-4">
+          <button @click="voltarParaLogin" class="text-slate-400 hover:text-slate-700 text-xs font-semibold flex items-center gap-1 transition cursor-pointer">
+            ← Voltar para o início
+          </button>
+          <span class="text-xs font-bold text-[#9c2337]">Etapa 2 de 3</span>
+        </div>
+
+        <div class="text-center space-y-2">
+          <div class="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-rose-50 text-[#9c2337] border border-rose-200/80">
+            <AppIcon name="phone" size="24" />
+          </div>
+          <h2 class="text-xl sm:text-2xl font-semibold text-slate-800">Confirme pelo celular</h2>
+          <p class="text-xs sm:text-sm text-slate-500">
+            Olá, <strong class="text-slate-700">{{ dadosEtapaSeguranca.colaborador?.primeiro_nome }}</strong>. Enviamos um código de 6 dígitos para
+            <strong class="text-slate-700">{{ dadosEtapaSeguranca.token_sms?.telefone_mascarado }}</strong>.
+          </p>
+        </div>
+
+        <input
+          v-model="codigoToken"
+          @input="codigoToken = codigoToken.replace(/\D/g, '').slice(0, 6)"
+          @keydown.enter="validarToken"
+          type="tel"
+          inputmode="numeric"
+          autocomplete="one-time-code"
+          placeholder="000000"
+          class="w-full h-14 text-center text-2xl tracking-[0.5em] font-mono rounded-xl border border-slate-300 focus:border-[#9c2337] focus:ring-2 focus:ring-rose-100 outline-none"
+        />
+
+        <p v-if="mensagemErro" class="text-xs text-rose-700 text-center">{{ mensagemErro }}</p>
+
+        <button
+          type="button"
+          @click="validarToken"
+          :disabled="codigoToken.length !== 6 || carregando"
+          class="w-full h-12 rounded-full bg-[#9c2337] hover:bg-[#831b2d] disabled:opacity-50 text-white font-semibold text-sm transition cursor-pointer"
+        >
+          {{ carregando ? 'Validando...' : 'Confirmar código' }}
+        </button>
+
+        <button type="button" @click="responderPerguntas" class="w-full text-xs font-semibold text-slate-500 hover:text-slate-900 transition cursor-pointer">
+          Não tenho acesso ao meu celular
+        </button>
+      </div>
+    </div>
+
+    <!-- ========================================================================= -->
     <!-- TELA 2: VERIFICAÇÃO DE SEGURANÇA (DADO PESSOAL ALEATÓRIO)                 -->
     <!-- ========================================================================= -->
     <div v-else-if="etapaAtual === 'seguranca'" class="flex-1 flex items-center justify-center p-4 sm:p-6 lg:p-10">
-      <div class="w-full max-w-xl lg:max-w-3xl bg-white rounded-3xl shadow-2xl border border-slate-200/80 p-6 sm:p-10 space-y-6 animate-slide-up">
+      <div class="w-full max-w-xl lg:max-w-3xl bg-white rounded-2xl shadow-2xl border border-slate-200 p-6 sm:p-10 space-y-6 animate-slide-up">
         
         <!-- Indicador de Progresso -->
         <div class="flex items-center justify-between border-b border-slate-100 pb-4">
@@ -200,22 +250,22 @@
             ← Voltar para o início
           </button>
           <div class="flex items-center gap-1.5">
-            <span class="text-xs font-bold text-[#ba2e45]">Etapa 2 de 3</span>
+            <span class="text-xs font-bold text-[#9c2337]">Etapa 2 de 3</span>
             <div class="flex gap-1">
-              <span class="w-4 h-1.5 rounded-full bg-[#ba2e45]"></span>
-              <span class="w-4 h-1.5 rounded-full bg-[#ba2e45]"></span>
+              <span class="w-4 h-1.5 rounded-full bg-[#9c2337]"></span>
+              <span class="w-4 h-1.5 rounded-full bg-[#9c2337]"></span>
               <span class="w-2 h-1.5 rounded-full bg-slate-200"></span>
             </div>
           </div>
         </div>
 
         <div class="text-center space-y-2">
-          <div class="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-rose-50 text-[#ba2e45] border border-rose-200/80 shadow-sm">
+          <div class="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-rose-50 text-[#9c2337] border border-rose-200/80 shadow-sm">
             <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
             </svg>
           </div>
-          <h2 class="text-xl sm:text-2xl font-black text-slate-800">Verificação de Segurança</h2>
+          <h2 class="text-xl sm:text-2xl font-semibold text-slate-800">Verificação de Segurança</h2>
           <p class="text-xs sm:text-sm text-slate-500">
             Olá, <strong class="text-slate-700">{{ dadosEtapaSeguranca.colaborador?.primeiro_nome }}</strong>. Para proteger suas informações salariais contra acessos não autorizados, confirme o dado abaixo:
           </p>
@@ -223,7 +273,7 @@
 
         <!-- Pergunta Aleatória -->
         <div class="bg-rose-50/70 border border-rose-200 p-4 rounded-2xl space-y-1">
-          <span class="text-[10px] uppercase font-bold text-[#ba2e45] tracking-wider">Pergunta de Autenticação</span>
+          <span class="text-[10px] uppercase font-bold text-[#9c2337] tracking-wider">Pergunta de Autenticação</span>
           <p class="text-sm sm:text-base font-bold text-slate-900 leading-snug">
             {{ dadosEtapaSeguranca.pergunta?.enunciado }}
           </p>
@@ -238,7 +288,7 @@
             <AppIcon name="lock" size="14" class="text-amber-800" />
             <span>Tentativa Temporariamente Travada</span>
           </div>
-          <div class="text-3xl font-black font-mono text-[#ba2e45]">
+          <div class="text-3xl font-semibold font-mono text-[#9c2337]">
             {{ tempoFormatadoBloqueio }}
           </div>
           <p class="text-[11px] text-amber-900/90 font-medium">
@@ -263,14 +313,14 @@
             :class="[
               bloqueioSegundos > 0 ? 'opacity-40 cursor-not-allowed bg-slate-100 border-slate-200 text-slate-400' : 'cursor-pointer',
               respostaSelecionada === opcao && bloqueioSegundos === 0
-                ? 'border-[#ba2e45] bg-rose-50/90 text-[#ba2e45] font-bold shadow-sm' 
+                ? 'border-[#9c2337] bg-rose-50/90 text-[#9c2337] font-bold shadow-sm' 
                 : 'border-slate-200 bg-slate-50/60 hover:bg-slate-100 text-slate-800 font-medium'
             ]"
           >
             <span class="truncate">{{ opcao }}</span>
             <span 
               class="w-5 h-5 ml-2 shrink-0 rounded-full border flex items-center justify-center text-xs"
-              :class="respostaSelecionada === opcao && bloqueioSegundos === 0 ? 'border-[#ba2e45] bg-[#ba2e45] text-white' : 'border-slate-300'"
+              :class="respostaSelecionada === opcao && bloqueioSegundos === 0 ? 'border-[#9c2337] bg-[#9c2337] text-white' : 'border-slate-300'"
             >
               <AppIcon v-if="respostaSelecionada === opcao && bloqueioSegundos === 0" name="check" size="12" />
             </span>
@@ -280,7 +330,7 @@
         <button 
           @click="validarRespostaSeguranca"
           :disabled="carregando || !respostaSelecionada || bloqueioSegundos > 0"
-          class="w-full py-4 px-6 rounded-2xl bg-[#ba2e45] hover:bg-[#9c2337] disabled:opacity-50 active:scale-[0.98] text-white font-bold text-sm shadow-lg shadow-[#ba2e45]/25 transition flex items-center justify-center gap-2"
+          class="w-full py-4 px-6 rounded-2xl bg-[#9c2337] hover:bg-[#831b2d] disabled:opacity-50 active:scale-[0.98] text-white font-bold text-sm shadow-lg shadow-[#9c2337]/25 transition flex items-center justify-center gap-2"
           :class="bloqueioSegundos > 0 ? 'cursor-not-allowed' : 'cursor-pointer'"
         >
           <span v-if="carregando" class="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
@@ -294,30 +344,30 @@
     <!-- TELA 3: ATUALIZAÇÃO / CONFIRMAÇÃO DE TELEFONE (OBJETIVO PRIMÁRIO DA EMPRESA)-->
     <!-- ========================================================================= -->
     <div v-else-if="etapaAtual === 'telefone'" class="flex-1 flex items-center justify-center p-4 sm:p-6 lg:p-10">
-      <div class="w-full max-w-xl lg:max-w-2xl bg-white rounded-3xl shadow-2xl border border-slate-200/80 p-6 sm:p-10 space-y-6 animate-slide-up">
+      <div class="w-full max-w-xl lg:max-w-2xl bg-white rounded-2xl shadow-2xl border border-slate-200 p-6 sm:p-10 space-y-6 animate-slide-up">
         
         <div class="flex items-center justify-between border-b border-slate-100 pb-4">
           <div class="flex items-center gap-2">
-            <span class="inline-block w-2.5 h-2.5 rounded-full bg-[#ba2e45] animate-pulse"></span>
-            <span class="text-xs font-bold text-[#ba2e45] uppercase tracking-wider">Ação Obrigatória</span>
+            <span class="inline-block w-2.5 h-2.5 rounded-full bg-[#9c2337] animate-pulse"></span>
+            <span class="text-xs font-bold text-[#9c2337] uppercase tracking-wider">Ação Obrigatória</span>
           </div>
           <div class="flex items-center gap-1.5">
-            <span class="text-xs font-bold text-[#ba2e45]">Etapa 3 de 3</span>
+            <span class="text-xs font-bold text-[#9c2337]">Etapa 3 de 3</span>
             <div class="flex gap-1">
-              <span class="w-4 h-1.5 rounded-full bg-[#ba2e45]"></span>
-              <span class="w-4 h-1.5 rounded-full bg-[#ba2e45]"></span>
-              <span class="w-4 h-1.5 rounded-full bg-[#ba2e45]"></span>
+              <span class="w-4 h-1.5 rounded-full bg-[#9c2337]"></span>
+              <span class="w-4 h-1.5 rounded-full bg-[#9c2337]"></span>
+              <span class="w-4 h-1.5 rounded-full bg-[#9c2337]"></span>
             </div>
           </div>
         </div>
 
         <div class="text-center space-y-2">
-          <div class="inline-flex items-center justify-center w-16 h-16 rounded-3xl bg-rose-50 border border-rose-200 text-[#ba2e45] shadow-md">
+          <div class="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-rose-50 border border-rose-200 text-[#9c2337] shadow-md">
             <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
             </svg>
           </div>
-          <h2 class="text-xl sm:text-2xl font-black text-slate-800">Confirmação de Telefone</h2>
+          <h2 class="text-xl sm:text-2xl font-semibold text-slate-800">Confirmação de Telefone</h2>
           <p class="text-xs sm:text-sm text-slate-500 leading-relaxed">
             O Departamento de RH da <strong>Vila Boa Construções e Serviços</strong> precisa do seu contato atualizado para envio de avisos de folha, benefícios e comunicados corporativos.
           </p>
@@ -338,7 +388,7 @@
               <span class="text-xl font-bold font-mono text-slate-800 tracking-tight">
                 {{ dadosEtapaTelefone.colaborador?.telefone_atual || '(Não informado)' }}
               </span>
-              <span class="text-xs bg-rose-100 text-[#ba2e45] font-bold px-3 py-1 rounded-lg">
+              <span class="text-xs bg-rose-100 text-[#9c2337] font-bold px-3 py-1 rounded-lg">
                 Atual
               </span>
             </div>
@@ -348,7 +398,7 @@
                 type="button"
                 @click="confirmarTelefoneMesmo()"
                 :disabled="carregando"
-                class="w-full py-4 px-4 rounded-xl bg-[#ba2e45] hover:bg-[#9c2337] active:scale-[0.98] text-white font-bold text-sm shadow-md transition flex items-center justify-center gap-2 cursor-pointer"
+                class="w-full py-4 px-4 rounded-xl bg-[#9c2337] hover:bg-[#831b2d] active:scale-[0.98] text-white font-bold text-sm shadow-md transition flex items-center justify-center gap-2 cursor-pointer"
               >
                 <span v-if="carregando" class="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
                 <AppIcon v-else name="check" size="16" />
@@ -378,7 +428,7 @@
                 @input="handleTelefoneInput"
                 placeholder="(11) 90000-0000"
                 maxlength="15"
-                class="w-full px-4 py-3.5 rounded-xl bg-white border-2 border-[#ba2e45] font-mono text-lg font-bold text-slate-900 focus:outline-none focus:ring-2 focus:ring-[#ba2e45]"
+                class="w-full px-4 py-3.5 rounded-xl bg-white border-2 border-[#9c2337] font-mono text-lg font-bold text-slate-900 focus:outline-none focus:ring-2 focus:ring-[#9c2337]"
                 autofocus
               />
               <span class="text-xs text-slate-400 block mt-1">Informe DDD + 9 dígitos para celular/WhatsApp</span>
@@ -389,7 +439,7 @@
                 type="button"
                 @click="salvarNovoTelefone"
                 :disabled="carregando || novoTelefoneInput.length < 14"
-                class="w-full py-4 px-4 rounded-xl bg-[#ba2e45] hover:bg-[#9c2337] disabled:opacity-50 active:scale-[0.98] text-white font-bold text-sm shadow-md transition flex items-center justify-center gap-2 cursor-pointer"
+                class="w-full py-4 px-4 rounded-xl bg-[#9c2337] hover:bg-[#831b2d] disabled:opacity-50 active:scale-[0.98] text-white font-bold text-sm shadow-md transition flex items-center justify-center gap-2 cursor-pointer"
               >
                 <span v-if="carregando" class="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
                 <span>Salvar Novo Telefone e Continuar →</span>
@@ -444,10 +494,10 @@
       />
 
       <!-- ÁREA PRINCIPAL DE CONTEÚDO (APP SHELL COM HEADER E FOOTER FIXOS) -->
-      <div class="flex-1 flex flex-col min-w-0 h-full overflow-hidden bg-slate-100">
+      <div class="flex-1 flex flex-col min-w-0 h-full overflow-hidden bg-[#f7f7f8]">
         
         <!-- Header Superior Fixo: Mobile Native SuperApp Bar + Desktop Titlebar -->
-        <header class="h-16 shrink-0 bg-white/95 backdrop-blur-md border-b border-slate-200/90 px-3.5 sm:px-6 flex items-center justify-between z-20 select-none shadow-xs safe-top">
+        <header class="h-16 shrink-0 bg-[#141414] border-b border-[#262626] px-3.5 sm:px-6 flex items-center justify-between z-20 select-none shadow-xs safe-top">
           <!-- ========================================================= -->
           <!-- 1. VERSÃO MOBILE (md:hidden): ESTILO SUPERAPP (IFOOD / FINTECH) -->
           <!-- ========================================================= -->
@@ -455,12 +505,10 @@
             <!-- Lado Esquerdo: Avatar Circular com Status Online + Saudação -->
             <button 
               type="button"
-              @click="navegarParaAba('perfil')"
-              class="flex items-center space-x-2.5 text-left active:scale-95 transition cursor-pointer min-w-0"
-              title="Acessar meus dados cadastrais"
+              class="flex items-center space-x-2.5 text-left min-w-0 cursor-default"
             >
               <div class="relative shrink-0">
-                <div class="w-10 h-10 rounded-full bg-[#0f1117] text-white flex items-center justify-center font-black text-sm shadow-xs ring-2 ring-slate-100">
+                <div class="w-10 h-10 rounded-full bg-[#9c2337] text-white flex items-center justify-center font-semibold text-sm shadow-xs ring-2 ring-white/30">
                   {{ usuarioLogado?.nome ? usuarioLogado.nome.charAt(0).toUpperCase() : 'VB' }}
                 </div>
                 <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 border-2 border-white absolute bottom-0 right-0 shadow-[0_0_6px_rgba(16,185,129,0.8)]"></span>
@@ -468,11 +516,11 @@
 
               <div class="overflow-hidden min-w-0">
                 <div class="flex items-center gap-1.5 leading-none">
-                  <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider truncate">
+                  <span class="text-[10px] font-bold text-neutral-200 uppercase tracking-wider truncate">
                     {{ usuarioLogado?.cargo || 'Colaborador' }}
                   </span>
                 </div>
-                <h2 class="text-sm font-extrabold text-slate-900 truncate leading-tight mt-0.5">
+                <h2 class="text-sm font-semibold text-white truncate leading-tight mt-0.5">
                   Olá, {{ usuarioLogado?.nome ? usuarioLogado.nome.split(' ')[0] : 'Colaborador' }}
                 </h2>
               </div>
@@ -484,7 +532,7 @@
               <button 
                 type="button"
                 @click="ocultarValores = !ocultarValores"
-                class="w-9 h-9 rounded-full bg-slate-100 active:bg-slate-200 text-slate-700 flex items-center justify-center transition border border-slate-200/80 cursor-pointer active:scale-95"
+                class="w-9 h-9 rounded-full bg-white/10 active:bg-white/20 text-white flex items-center justify-center transition border border-white/20 cursor-pointer active:scale-95"
                 :title="ocultarValores ? 'Exibir valores' : 'Ocultar valores por privacidade'"
                 :aria-label="ocultarValores ? 'Exibir valores' : 'Ocultar valores'"
               >
@@ -495,7 +543,7 @@
               <button 
                 type="button"
                 @click="drawerMobileAberto = true"
-                class="w-9 h-9 rounded-full bg-slate-100 active:bg-slate-200 text-slate-700 flex items-center justify-center transition border border-slate-200/80 cursor-pointer active:scale-95"
+                class="w-9 h-9 rounded-full bg-white/10 active:bg-white/20 text-white flex items-center justify-center transition border border-white/20 cursor-pointer active:scale-95"
                 title="Abrir Menu de Navegação"
                 aria-label="Abrir Menu"
               >
@@ -510,24 +558,68 @@
           <!-- 2. VERSÃO DESKTOP / TABLET (hidden md:flex): TITLEBAR EXECUTIVA -->
           <!-- ========================================================= -->
           <div class="hidden md:flex items-center justify-between w-full min-w-0 gap-3">
-            <!-- Pill da Empresa / Filial (Responsivo para Tablet e Desktop) -->
-            <div class="flex items-center gap-2.5 px-3 py-1.5 rounded-xl bg-slate-50 border border-slate-200 text-left shrink-0">
-              <div class="w-7 h-7 rounded-lg bg-rose-50 text-[#ba2e45] flex items-center justify-center font-black text-xs border border-rose-200/60 shrink-0">
-                VB
+            <!-- Busca geral do portal (estilo NewRocket) -->
+            <div class="hidden lg:block relative flex-1 max-w-md">
+              <div class="flex items-center h-9 rounded-lg bg-white overflow-hidden">
+                <AppIcon name="search" size="15" class="text-slate-400 ml-3 shrink-0" />
+                <input
+                  v-model="buscaGlobal"
+                  @focus="buscaGlobalAberta = true; carregarCadernosBusca()"
+                  @blur="fecharBuscaGlobal"
+                  @keydown.enter.prevent="resultadosBusca[0] && selecionarResultado(resultadosBusca[0])"
+                  type="text"
+                  placeholder="Buscar no portal: holerites, cadernos, ponto..."
+                  class="flex-1 min-w-0 h-full px-3 text-sm text-slate-800 placeholder-slate-400 outline-none"
+                />
               </div>
-              <div class="leading-tight">
-                <span class="text-xs font-bold text-slate-800 block truncate">Vila Boa Construções e Serviços</span>
-                <span class="text-[10px] font-semibold text-slate-400 hidden lg:block uppercase tracking-wider">Matriz · Obras & Infraestrutura</span>
+
+              <div
+                v-if="buscaGlobalAberta && buscaGlobal.trim()"
+                class="absolute left-0 right-0 top-full mt-2 bg-white rounded-xl border border-slate-200 shadow-xl py-2 z-50 max-h-96 overflow-y-auto"
+              >
+                <p v-if="!resultadosBusca.length" class="px-4 py-3 text-sm text-slate-500">Nada encontrado para "{{ buscaGlobal }}".</p>
+                <button
+                  v-for="(r, i) in resultadosBusca"
+                  :key="i"
+                  type="button"
+                  @mousedown.prevent="selecionarResultado(r)"
+                  class="w-full px-4 py-2.5 flex items-center gap-3 text-left hover:bg-slate-50 cursor-pointer"
+                >
+                  <span class="w-8 h-8 rounded-lg bg-slate-100 text-slate-500 flex items-center justify-center shrink-0">
+                    <AppIcon :name="r.icone" size="15" />
+                  </span>
+                  <span class="min-w-0 flex-1">
+                    <span class="block text-sm font-medium text-slate-800 truncate">{{ r.titulo }}</span>
+                    <span class="block text-xs text-slate-400 truncate">{{ r.categoria }}</span>
+                  </span>
+                </button>
               </div>
             </div>
 
             <!-- Ações da Direita no Desktop e Tablet -->
             <div class="flex items-center space-x-2 sm:space-x-3 shrink-0">
+              <!-- Pendências de ciência com contador (estilo NewRocket) -->
+              <button
+                type="button"
+                @click="navegarParaAba('holerites'); filtroStatusCiencia = 'pendente'; paginaAtual = 1; rolarParaHistorico()"
+                class="relative w-9 h-9 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center transition border border-white/20 cursor-pointer active:scale-95"
+                :title="resumoCiencia.total - resumoCiencia.confirmados + ' demonstrativo(s) pendente(s) de ciência'"
+                aria-label="Demonstrativos pendentes"
+              >
+                <AppIcon name="document" size="15" />
+                <span
+                  v-if="resumoCiencia.total - resumoCiencia.confirmados > 0"
+                  class="absolute -top-1 -right-1 min-w-[18px] h-[18px] px-1 rounded-full bg-[#9c2337] text-white text-[10px] font-semibold flex items-center justify-center ring-2 ring-[#141414]"
+                >
+                  {{ resumoCiencia.total - resumoCiencia.confirmados }}
+                </span>
+              </button>
+
               <!-- Botão Ocultar / Mostrar Valores Salariais (Disponível no Header Desktop/Tablet) -->
               <button 
                 type="button"
                 @click="ocultarValores = !ocultarValores"
-                class="w-9 h-9 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-700 flex items-center justify-center transition border border-slate-200 cursor-pointer active:scale-95"
+                class="w-9 h-9 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center transition border border-white/20 cursor-pointer active:scale-95"
                 :title="ocultarValores ? 'Exibir valores salariais' : 'Ocultar valores por privacidade'"
                 :aria-label="ocultarValores ? 'Exibir valores' : 'Ocultar valores'"
               >
@@ -537,22 +629,22 @@
 
 
               <!-- Perfil do Usuário Logado com Menu Flutuante -->
-              <div class="relative pl-2 border-l border-slate-200">
+              <div class="relative pl-2 border-l border-white/20">
                 <button 
                   type="button"
                   @click="menuUsuarioAberto = !menuUsuarioAberto"
-                  class="flex items-center gap-2 py-1 px-2 rounded-xl hover:bg-slate-100 active:bg-slate-200 transition cursor-pointer text-left select-none group"
+                  class="flex items-center gap-2 py-1 px-2 rounded-xl hover:bg-white/10 active:bg-white/20 transition cursor-pointer text-left select-none group"
                   :title="menuUsuarioAberto ? 'Fechar menu de opções' : 'Abrir menu de opções'"
                   :aria-expanded="menuUsuarioAberto"
                 >
-                  <div class="w-8 h-8 rounded-full bg-[#0f1117] text-white flex items-center justify-center text-xs font-black shrink-0 ring-2 ring-slate-100 group-hover:ring-slate-300 transition">
+                  <div class="w-8 h-8 rounded-full bg-[#9c2337] text-white flex items-center justify-center text-xs font-semibold shrink-0 ring-2 ring-white/30 group-hover:ring-slate-300 transition">
                     {{ usuarioLogado?.nome ? usuarioLogado.nome.charAt(0).toUpperCase() : 'C' }}
                   </div>
                   <div class="text-left leading-tight hidden sm:block max-w-[130px] lg:max-w-[180px]">
-                    <span class="text-xs font-bold text-slate-800 block truncate group-hover:text-[#ba2e45] transition">{{ usuarioLogado?.nome }}</span>
-                    <span class="text-[10px] text-slate-400 block truncate">{{ usuarioLogado?.cargo }}</span>
+                    <span class="text-xs font-bold text-white block truncate group-hover:text-rose-200 transition">{{ usuarioLogado?.nome }}</span>
+                    <span class="text-[10px] text-neutral-200 block truncate">{{ usuarioLogado?.cargo }}</span>
                   </div>
-                  <AppIcon name="chevron-down" size="14" class="text-slate-400 group-hover:text-slate-700 transition hidden sm:block shrink-0" :class="menuUsuarioAberto ? 'rotate-180' : ''" />
+                  <AppIcon name="chevron-down" size="14" class="text-neutral-200 group-hover:text-white transition hidden sm:block shrink-0" :class="menuUsuarioAberto ? 'rotate-180' : ''" />
                 </button>
 
                 <!-- Overlay para fechar ao clicar fora -->
@@ -580,53 +672,14 @@
                     </div>
                   </div>
 
-                  <!-- Links Rápidos -->
-                  <div class="py-1">
-                    <button 
-                      type="button"
-                      @click="navegarParaAba('perfil'); menuUsuarioAberto = false"
-                      class="w-full px-4 py-2.5 text-left text-slate-700 hover:bg-slate-50 hover:text-[#ba2e45] flex items-center gap-2.5 transition cursor-pointer font-medium"
-                    >
-                      <AppIcon name="user" size="15" class="text-slate-400" />
-                      <span>Meus Dados & Contato</span>
-                    </button>
-
-                    <button 
-                      type="button"
-                      @click="navegarParaAba('holerites'); menuUsuarioAberto = false"
-                      class="w-full px-4 py-2.5 text-left text-slate-700 hover:bg-slate-50 hover:text-[#ba2e45] flex items-center gap-2.5 transition cursor-pointer font-medium"
-                    >
-                      <AppIcon name="document" size="15" class="text-slate-400" />
-                      <span>Holerites & Salários</span>
-                    </button>
-
-                    <button 
-                      type="button"
-                      @click="abrirAbaIrpf(); menuUsuarioAberto = false"
-                      class="w-full px-4 py-2.5 text-left text-slate-700 hover:bg-slate-50 hover:text-[#ba2e45] flex items-center gap-2.5 transition cursor-pointer font-medium"
-                    >
-                      <AppIcon name="landmark" size="15" class="text-slate-400" />
-                      <span>Informe de Rendimentos (IRPF)</span>
-                    </button>
-
-                    <button 
-                      type="button"
-                      @click="gerarPacoteRenda(); menuUsuarioAberto = false"
-                      class="w-full px-4 py-2.5 text-left text-slate-700 hover:bg-slate-50 hover:text-[#ba2e45] flex items-center gap-2.5 transition cursor-pointer font-medium"
-                    >
-                      <AppIcon name="download" size="15" class="text-slate-400" />
-                      <span>Dossiê de Renda (3 Meses)</span>
-                    </button>
-                  </div>
-
                   <!-- Ação de Sair da Conta -->
                   <div class="pt-1 border-t border-slate-100">
                     <button 
                       type="button"
                       @click="menuUsuarioAberto = false; fazerLogout()"
-                      class="w-full px-4 py-2.5 text-left text-[#ba2e45] hover:bg-rose-50 font-bold flex items-center gap-2.5 transition cursor-pointer"
+                      class="w-full px-4 py-2.5 text-left text-[#9c2337] hover:bg-rose-50 font-bold flex items-center gap-2.5 transition cursor-pointer"
                     >
-                      <AppIcon name="log-out" size="15" class="text-[#ba2e45]" />
+                      <AppIcon name="log-out" size="15" class="text-[#9c2337]" />
                       <span>Sair da Conta</span>
                     </button>
                   </div>
@@ -640,100 +693,63 @@
         <main class="flex-1 min-h-0 overflow-y-auto max-w-[1600px] w-full mx-auto p-4 sm:p-6 lg:p-8">
           
           <!-- MÓDULO 1: HOLERITES & SALÁRIOS (POLISHED EXECUTIVE FINTECH STORYTELLING) -->
-          <div v-if="abaAtiva === 'holerites'" class="space-y-6">
-              
-              <!-- CARD 1: DADOS BÁSICOS DO COLABORADOR (IDENTIFICAÇÃO EXECUTIVA) -->
-              <div class="bg-white rounded-3xl p-5 sm:p-6 border border-slate-200/80 shadow-[0_2px_8px_rgba(0,0,0,0.02)] flex flex-col md:flex-row md:items-center justify-between gap-4 transition-all duration-200">
-                <div class="flex items-center space-x-4 min-w-0">
-                  <!-- Avatar Executivo com Iniciais -->
-                  <div class="w-12 h-12 sm:w-14 sm:h-14 rounded-2xl bg-[#0f1117] text-white flex items-center justify-center font-black text-sm shrink-0 shadow-sm ring-4 ring-slate-100/80 border border-white/10 tracking-wider">
-                    {{ usuarioLogado?.nome ? usuarioLogado.nome.slice(0, 2).toUpperCase() : 'VB' }}
-                  </div>
-
-                  <!-- Nome, Cargo & Vínculo -->
-                  <div class="min-w-0">
-                    <div class="flex items-center gap-2.5 flex-wrap">
-                      <h2 class="text-base sm:text-xl font-black text-slate-900 truncate tracking-tight leading-none">
-                        {{ usuarioLogado?.nome }}
-                      </h2>
-                      <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-emerald-50 text-emerald-800 border border-emerald-200/80 shadow-2xs">
-                        <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
-                        <span>CLT Ativo</span>
-                      </span>
-                    </div>
-                    <p class="text-xs sm:text-[13px] text-slate-500 font-medium truncate mt-1">
-                      {{ usuarioLogado?.cargo }} <span class="text-slate-300 mx-1">·</span> {{ usuarioLogado?.departamento }}
-                    </p>
-                  </div>
-                </div>
-
-                <!-- Pílulas de Metadados Funcionais (Matrícula, CPF, Admissão) -->
-                <div class="flex items-center gap-2 sm:gap-3 flex-wrap border-t md:border-t-0 pt-3 md:pt-0 border-slate-100 text-xs">
-                  <div class="bg-slate-50/80 hover:bg-slate-50 border border-slate-200/70 hover:border-slate-300 rounded-2xl px-4 py-2 transition-all duration-150">
-                    <span class="text-[9px] uppercase font-black text-slate-400 block tracking-widest leading-none">Matrícula</span>
-                    <span class="font-black text-slate-900 font-mono text-xs sm:text-[13px] mt-1 block">{{ usuarioLogado?.matricula }}</span>
-                  </div>
-
-                  <div class="bg-slate-50/80 hover:bg-slate-50 border border-slate-200/70 hover:border-slate-300 rounded-2xl px-4 py-2 transition-all duration-150">
-                    <span class="text-[9px] uppercase font-black text-slate-400 block tracking-widest leading-none">CPF</span>
-                    <span class="font-black text-slate-900 font-mono text-xs sm:text-[13px] mt-1 block">{{ ocultarValores ? '***.***.***-**' : (usuarioLogado?.cpf ? maskCPF(usuarioLogado.cpf) : '---') }}</span>
-                  </div>
-
-                  <div v-if="usuarioLogado?.data_admissao" class="bg-slate-50/80 hover:bg-slate-50 border border-slate-200/70 hover:border-slate-300 rounded-2xl px-4 py-2 transition-all duration-150 hidden sm:block">
-                    <span class="text-[9px] uppercase font-black text-slate-400 block tracking-widest leading-none">Admissão</span>
-                    <span class="font-black text-slate-900 text-xs sm:text-[13px] mt-1 block">{{ usuarioLogado.data_admissao.split('-').reverse().join('/') }}</span>
-                  </div>
-                </div>
-              </div>
+          <div v-if="abaAtiva === 'holerites'" class="grid xl:grid-cols-[minmax(0,1fr)_300px] gap-6 items-start">
+            <div class="space-y-6 min-w-0">
               
               <!-- CARD 2: HERO CARD - DEMONSTRATIVO MAIS RECENTE & ENVIO WHATSAPP -->
-              <div v-if="holerites.length > 0" class="w-full bg-white rounded-3xl p-6 sm:p-7 border border-slate-200/80 shadow-[0_4px_20px_rgba(0,0,0,0.03)] relative overflow-hidden space-y-5 transition-all duration-200">
+              <div v-if="holerites.length > 0" class="w-full bg-gradient-to-br from-[#141414] to-[#000000] text-white rounded-2xl p-6 sm:p-7 shadow-sm relative overflow-hidden space-y-5 transition-all duration-200">
                 <!-- Luz ambiente suave de fundo -->
-                <div class="absolute -right-20 -top-20 w-80 h-80 bg-emerald-500/[0.04] rounded-full blur-3xl pointer-events-none"></div>
+                <div class="absolute -right-20 -top-20 w-80 h-80 bg-[#9c2337]/30 rounded-full blur-3xl pointer-events-none"></div>
+
+                <!-- Identificação do colaborador -->
+                <div class="flex flex-wrap items-center justify-between gap-x-4 gap-y-1 relative z-10 text-xs text-white/60">
+                  <span class="text-sm font-semibold text-white">{{ usuarioLogado?.nome }}</span>
+                  <span class="flex flex-wrap items-center gap-x-3 gap-y-1">
+                    <span>{{ usuarioLogado?.cargo }}</span>
+                    <span>Matrícula <strong class="text-white/90 font-medium">{{ usuarioLogado?.matricula }}</strong></span>
+                    <span>CPF <strong class="text-white/90 font-medium">{{ ocultarValores ? '***.***.***-**' : (usuarioLogado?.cpf ? maskCPF(usuarioLogado.cpf) : '---') }}</strong></span>
+                  </span>
+                </div>
 
                 <!-- Topo do Card: Identificação da Folha + Status de Ciência CLT -->
-                <div class="flex items-center justify-between border-b border-slate-100 pb-3.5 flex-wrap gap-2.5 relative z-10">
+                <div class="flex items-center justify-between border-b border-white/10 pb-3.5 flex-wrap gap-2.5 relative z-10">
                   <div class="flex items-center gap-2.5 flex-wrap">
-                    <span class="inline-flex items-center gap-2 text-[10px] sm:text-[11px] font-black uppercase tracking-wider text-slate-600 bg-slate-100/90 border border-slate-200/80 px-3.5 py-1.5 rounded-full shadow-2xs">
-                      <span class="w-2 h-2 rounded-full bg-[#ba2e45]"></span>
+                    <span class="inline-flex items-center gap-2 text-[10px] sm:text-[11px] font-semibold uppercase tracking-wider text-white bg-white/10 border border-white/15 px-3.5 py-1.5 rounded-full shadow-2xs">
+                      <span class="w-2 h-2 rounded-full bg-rose-300"></span>
                       <span>Demonstrativo Mais Recente</span>
                     </span>
 
                     <!-- Indicador Discreto de Ciência CLT -->
                     <span 
                       v-if="holerites[0].aceite?.confirmado" 
-                      class="inline-flex items-center gap-1.5 text-[11px] font-bold text-slate-600 bg-slate-100/90 border border-slate-200/80 px-3 py-1.5 rounded-full shadow-2xs"
+                      class="inline-flex items-center gap-1.5 text-[11px] font-bold text-white bg-white/10 border border-white/15 px-3 py-1.5 rounded-full shadow-2xs"
                     >
                       <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
                       <span>Ciência registrada</span>
                     </span>
                     <span 
                       v-else 
-                      class="inline-flex items-center gap-1.5 text-[11px] font-bold text-slate-500 bg-slate-100/90 border border-slate-200/80 px-3 py-1.5 rounded-full shadow-2xs"
+                      class="inline-flex items-center gap-1.5 text-[11px] font-bold text-white/90 bg-white/10 border border-white/15 px-3 py-1.5 rounded-full shadow-2xs"
                     >
                       <span class="w-1.5 h-1.5 rounded-full bg-amber-500"></span>
                       <span>Pendente de ciência</span>
                     </span>
                   </div>
-
-                  <span class="text-xs text-slate-400 font-medium hidden sm:inline">
-                    Canal oficial WhatsApp
-                  </span>
                 </div>
 
                 <!-- Miolo do Card: Competência e Ação de Enviar para WhatsApp (Sem valor salarial) -->
                 <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-5 relative z-10">
                   <div class="space-y-1">
                     <div class="flex items-center gap-2.5">
-                      <h3 class="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight leading-tight">
+                      <h3 class="text-2xl sm:text-3xl font-semibold text-white tracking-tight leading-tight">
                         {{ holerites[0].mes_nome }} / {{ holerites[0].ano }}
                       </h3>
-                      <span class="text-xs font-bold text-slate-500 bg-slate-100/80 border border-slate-200/80 px-3 py-1 rounded-xl">
+                      <span class="text-xs font-bold text-white/80 bg-white/10 border border-white/15 px-3 py-1 rounded-xl">
                         {{ holerites[0].tipo_folha || 'Folha Mensal' }}
                       </span>
                     </div>
 
-                    <p class="text-xs sm:text-[13px] text-slate-500 font-medium">
+                    <p class="text-xs sm:text-[13px] text-white/70 font-medium">
                       Pago em {{ holerites[0].data_pagamento }} · Autenticação Art. 464 CLT
                     </p>
                   </div>
@@ -743,7 +759,7 @@
                     <button 
                       type="button"
                       @click="abrirModalWhatsapp(holerites[0])"
-                      class="h-12 px-6 rounded-2xl bg-[#25D366] hover:bg-[#20bd5a] active:scale-[0.98] text-white font-black text-sm shadow-md shadow-[#25D366]/25 hover:shadow-lg hover:shadow-[#25D366]/35 transition-all duration-200 flex items-center justify-center gap-2.5 cursor-pointer"
+                      class="h-12 px-6 rounded-full bg-[#25D366] hover:bg-[#20bd5a] active:scale-[0.98] text-white font-semibold text-sm  transition-all duration-200 flex items-center justify-center gap-2.5 cursor-pointer"
                       title="Enviar demonstrativo para o WhatsApp do colaborador"
                     >
                       <AppIcon name="whatsapp" size="18" />
@@ -753,7 +769,7 @@
                     <button 
                       type="button"
                       @click="abrirHolerite(holerites[0], !holerites[0].aceite?.confirmado)"
-                      class="h-12 px-4 rounded-2xl bg-slate-100 hover:bg-slate-200 text-slate-700 active:scale-[0.98] font-bold text-xs flex items-center justify-center gap-2 border border-slate-200/80 transition cursor-pointer"
+                      class="h-12 px-4 rounded-full bg-[#9c2337] hover:bg-[#831b2d] text-white active:scale-[0.98] font-semibold text-xs flex items-center justify-center gap-2 transition cursor-pointer"
                       title="Visualizar demonstrativo na tela"
                     >
                       <AppIcon name="document" size="15" />
@@ -764,11 +780,11 @@
               </div>
 
               <!-- CARD 3: HISTÓRICO DE DEMONSTRATIVOS (TABELA & FEED COM MENU FLUTUANTE) -->
-              <div class="w-full bg-white rounded-3xl p-6 sm:p-8 border border-slate-200/80 shadow-[0_4px_20px_rgba(0,0,0,0.03)] space-y-6">
+              <div class="w-full bg-white rounded-2xl p-6 sm:p-8 border border-slate-200 shadow-none space-y-6">
                 <!-- CABEÇALHO DO CARD (TÍTULO, SUBTÍTULO E SELETOR DE ANO) -->
                 <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3.5 border-b border-slate-100 pb-4">
                   <div>
-                    <h3 class="text-lg sm:text-xl font-black text-slate-900 tracking-tight leading-tight">
+                    <h3 id="historico-demonstrativos" class="text-sm font-semibold uppercase tracking-wider text-slate-800 leading-tight">
                       Histórico de Demonstrativos
                     </h3>
                     <p class="text-xs text-slate-400 mt-0.5 font-medium">
@@ -777,8 +793,8 @@
                   </div>
                   
                   <!-- Seletor de Exercício Fiscal (Pill Switcher Elegante) -->
-                  <div class="flex items-center gap-1.5 bg-slate-100/90 p-1 rounded-full border border-slate-200/80 self-start sm:self-auto shadow-2xs">
-                    <span class="text-[10px] uppercase font-black text-slate-400 pl-2.5 hidden sm:inline">Ano:</span>
+                  <div class="flex items-center gap-1.5 bg-slate-100/90 p-1 rounded-full border border-slate-200 self-start sm:self-auto shadow-2xs">
+                    <span class="text-[10px] uppercase font-semibold text-slate-400 pl-2.5 hidden sm:inline">Ano:</span>
                     <button 
                       v-for="ano in anosDisponiveis" 
                       :key="ano"
@@ -786,7 +802,7 @@
                       @click="mudarAnoReferencia(ano)"
                       :disabled="carregandoHolerites"
                       class="px-4 py-1.5 rounded-full text-xs font-bold transition-all duration-150 cursor-pointer active:scale-95"
-                      :class="anoReferencia === ano ? 'bg-[#ba2e45] text-white shadow-xs' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-200/60'"
+                      :class="anoReferencia === ano ? 'bg-[#9c2337] text-white shadow-xs' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-200/60'"
                     >
                       {{ ano }}
                     </button>
@@ -801,7 +817,7 @@
                       type="button"
                       @click="filtroFolha = 'todos'; filtroStatusCiencia = 'todos'; paginaAtual = 1"
                       class="h-9 px-4 rounded-full text-xs font-bold transition-all duration-150 inline-flex items-center gap-2 cursor-pointer whitespace-nowrap border shrink-0 active:scale-95"
-                      :class="filtroFolha === 'todos' && filtroStatusCiencia === 'todos' ? 'bg-[#ba2e45] text-white border-[#ba2e45] shadow-xs' : 'bg-white text-slate-700 border-slate-200/80 hover:border-slate-300 hover:bg-slate-50'"
+                      :class="filtroFolha === 'todos' && filtroStatusCiencia === 'todos' ? 'bg-[#9c2337] text-white border-[#9c2337] shadow-xs' : 'bg-white text-slate-700 border-slate-200 hover:border-slate-300 hover:bg-slate-50'"
                     >
                       <span>Todos</span>
                       <span class="text-[10px] px-2 py-0.5 rounded-full font-bold" :class="filtroFolha === 'todos' && filtroStatusCiencia === 'todos' ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-600'">
@@ -813,7 +829,7 @@
                       type="button"
                       @click="filtroFolha = 'mensal'; filtroStatusCiencia = 'todos'; paginaAtual = 1"
                       class="h-9 px-4 rounded-full text-xs font-bold transition-all duration-150 inline-flex items-center gap-2 cursor-pointer whitespace-nowrap border shrink-0 active:scale-95"
-                      :class="filtroFolha === 'mensal' ? 'bg-[#ba2e45] text-white border-[#ba2e45] shadow-xs' : 'bg-white text-slate-700 border-slate-200/80 hover:border-slate-300 hover:bg-slate-50'"
+                      :class="filtroFolha === 'mensal' ? 'bg-[#9c2337] text-white border-[#9c2337] shadow-xs' : 'bg-white text-slate-700 border-slate-200 hover:border-slate-300 hover:bg-slate-50'"
                     >
                       <span>Folha Mensal</span>
                       <span class="text-[10px] px-2 py-0.5 rounded-full font-bold" :class="filtroFolha === 'mensal' ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-600'">
@@ -825,7 +841,7 @@
                       type="button"
                       @click="filtroFolha = 'adiantamento'; filtroStatusCiencia = 'todos'; paginaAtual = 1"
                       class="h-9 px-4 rounded-full text-xs font-bold transition-all duration-150 inline-flex items-center gap-2 cursor-pointer whitespace-nowrap border shrink-0 active:scale-95"
-                      :class="filtroFolha === 'adiantamento' ? 'bg-[#ba2e45] text-white border-[#ba2e45] shadow-xs' : 'bg-white text-slate-700 border-slate-200/80 hover:border-slate-300 hover:bg-slate-50'"
+                      :class="filtroFolha === 'adiantamento' ? 'bg-[#9c2337] text-white border-[#9c2337] shadow-xs' : 'bg-white text-slate-700 border-slate-200 hover:border-slate-300 hover:bg-slate-50'"
                     >
                       <span>Adiantamento</span>
                       <span class="text-[10px] px-2 py-0.5 rounded-full font-bold" :class="filtroFolha === 'adiantamento' ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-600'">
@@ -837,7 +853,7 @@
                       type="button"
                       @click="filtroFolha = 'ferias'; filtroStatusCiencia = 'todos'; paginaAtual = 1"
                       class="h-9 px-4 rounded-full text-xs font-bold transition-all duration-150 inline-flex items-center gap-2 cursor-pointer whitespace-nowrap border shrink-0 active:scale-95"
-                      :class="filtroFolha === 'ferias' ? 'bg-[#ba2e45] text-white border-[#ba2e45] shadow-xs' : 'bg-white text-slate-700 border-slate-200/80 hover:border-slate-300 hover:bg-slate-50'"
+                      :class="filtroFolha === 'ferias' ? 'bg-[#9c2337] text-white border-[#9c2337] shadow-xs' : 'bg-white text-slate-700 border-slate-200 hover:border-slate-300 hover:bg-slate-50'"
                     >
                       <AppIcon name="calendar" size="13" />
                       <span>Férias</span>
@@ -850,7 +866,7 @@
                       type="button"
                       @click="filtroStatusCiencia = (filtroStatusCiencia === 'pendente' ? 'todos' : 'pendente'); paginaAtual = 1"
                       class="h-9 px-4 rounded-full text-xs font-bold transition-all duration-150 inline-flex items-center gap-1.5 cursor-pointer whitespace-nowrap border shrink-0 active:scale-95"
-                      :class="filtroStatusCiencia === 'pendente' ? 'bg-slate-900 text-white border-slate-900 shadow-xs' : 'bg-white text-slate-700 border-slate-200/80 hover:bg-slate-50'"
+                      :class="filtroStatusCiencia === 'pendente' ? 'bg-slate-900 text-white border-slate-900 shadow-xs' : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-50'"
                     >
                       <AppIcon name="alert-triangle" size="12" />
                       <span>Pendentes</span>
@@ -872,7 +888,7 @@
                         @input="paginaAtual = 1"
                         type="text"
                         placeholder="Buscar demonstrativo..."
-                        class="w-full h-9 pl-9 pr-8 text-xs bg-slate-100/80 hover:bg-slate-100 border border-slate-200/60 focus:border-[#ba2e45]/40 rounded-full text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-[#ba2e45]/20 focus:bg-white transition-all shadow-2xs"
+                        class="w-full h-9 pl-9 pr-8 text-xs bg-slate-100/80 hover:bg-slate-100 border border-slate-200/60 focus:border-[#9c2337]/40 rounded-full text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-[#9c2337]/20 focus:bg-white transition-all shadow-2xs"
                       />
                       <button 
                         v-if="buscaHolerite"
@@ -890,7 +906,7 @@
                       type="button"
                       @click="limparFiltrosHolerite"
                       title="Limpar todos os filtros"
-                      class="w-9 h-9 rounded-full bg-rose-50 text-[#ba2e45] hover:bg-rose-100 border border-rose-200 transition-all inline-flex items-center justify-center cursor-pointer shrink-0 active:scale-95 shadow-2xs"
+                      class="w-9 h-9 rounded-full bg-rose-50 text-[#9c2337] hover:bg-rose-100 border border-rose-200 transition-all inline-flex items-center justify-center cursor-pointer shrink-0 active:scale-95 shadow-2xs"
                     >
                       <AppIcon name="refresh-cw" size="13" />
                     </button>
@@ -899,7 +915,7 @@
 
                 <!-- CARREGANDO SPINNER -->
                 <div v-if="carregandoHolerites" class="py-12 text-center text-slate-400 space-y-2">
-                  <div class="w-6 h-6 border-2 border-[#ba2e45] border-t-transparent rounded-full animate-spin mx-auto"></div>
+                  <div class="w-6 h-6 border-2 border-[#9c2337] border-t-transparent rounded-full animate-spin mx-auto"></div>
                   <p class="text-xs font-medium">Carregando dados da folha {{ anoReferencia }}...</p>
                 </div>
 
@@ -909,18 +925,18 @@
                     v-for="h in holeritesPaginados" 
                     :key="h.id"
                     @click="abrirHolerite(h)"
-                    class="bg-white rounded-2xl p-4 sm:p-5 border border-slate-200/80 shadow-[0_2px_8px_rgba(0,0,0,0.02)] hover:border-[#ba2e45]/40 hover:shadow-xs active:bg-slate-50/50 transition-all cursor-pointer space-y-3 relative"
-                    :class="menuItemAbertoId === h.id ? 'z-30 relative ring-2 ring-[#ba2e45]/20 shadow-lg' : ''"
+                    class="bg-white rounded-2xl p-4 sm:p-5 border border-slate-200 shadow-none hover:border-[#9c2337]/40 hover:shadow-xs active:bg-slate-50/50 transition-all cursor-pointer space-y-3 relative"
+                    :class="menuItemAbertoId === h.id ? 'z-30 relative ring-2 ring-[#9c2337]/20 shadow-lg' : ''"
                   >
                     <!-- Linha 1: Dados da Competência & Salário Líquido -->
                     <div class="flex items-center justify-between gap-3">
                       <div class="flex items-center space-x-3 min-w-0">
                         <div class="w-12 h-12 rounded-2xl bg-slate-100/90 border border-slate-200/70 flex flex-col items-center justify-center shrink-0 shadow-2xs">
-                          <span class="text-[10px] font-black uppercase text-slate-500 tracking-wider leading-none">{{ h.mes_nome.slice(0, 3) }}</span>
-                          <span class="text-xs font-black text-slate-900 leading-tight mt-0.5">{{ h.ano.toString().slice(-2) }}</span>
+                          <span class="text-[10px] font-semibold uppercase text-slate-500 tracking-wider leading-none">{{ h.mes_nome.slice(0, 3) }}</span>
+                          <span class="text-xs font-semibold text-slate-900 leading-tight mt-0.5">{{ h.ano.toString().slice(-2) }}</span>
                         </div>
                         <div class="min-w-0">
-                          <h4 class="font-black text-slate-900 text-sm leading-tight truncate">
+                          <h4 class="font-semibold text-slate-900 text-sm leading-tight truncate">
                             {{ h.mes_nome }} de {{ h.ano }}
                           </h4>
                           <span class="text-[11px] text-slate-400 font-medium block mt-0.5 truncate">
@@ -936,14 +952,14 @@
                       <div class="flex items-center gap-1.5">
                         <span 
                           v-if="h.aceite?.confirmado" 
-                          class="h-6 px-2.5 rounded-full text-[10px] font-bold text-slate-600 bg-slate-100/90 border border-slate-200/80 inline-flex items-center gap-1.5 shadow-2xs"
+                          class="h-6 px-2.5 rounded-full text-[10px] font-bold text-slate-600 bg-slate-100/90 border border-slate-200 inline-flex items-center gap-1.5 shadow-2xs"
                         >
                           <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
                           <span>Ciência OK</span>
                         </span>
                         <span 
                           v-else 
-                          class="h-6 px-2.5 rounded-full text-[10px] font-bold text-slate-500 bg-slate-100/90 border border-slate-200/80 inline-flex items-center gap-1.5 shadow-2xs"
+                          class="h-6 px-2.5 rounded-full text-[10px] font-bold text-slate-500 bg-slate-100/90 border border-slate-200 inline-flex items-center gap-1.5 shadow-2xs"
                         >
                           <span class="w-1.5 h-1.5 rounded-full bg-amber-500"></span>
                           <span>Pendente</span>
@@ -977,7 +993,7 @@
                           <button 
                             type="button" 
                             @click="alternarMenuHolerite(h.id)"
-                            class="w-8 h-8 rounded-xl bg-slate-100 hover:bg-slate-200 active:scale-95 text-slate-600 flex items-center justify-center border border-slate-200/80 transition-all cursor-pointer shadow-2xs"
+                            class="w-8 h-8 rounded-xl bg-slate-100 hover:bg-slate-200 active:scale-95 text-slate-600 flex items-center justify-center border border-slate-200 transition-all cursor-pointer shadow-2xs"
                             title="Mais opções do demonstrativo"
                             :aria-expanded="menuItemAbertoId === h.id"
                           >
@@ -989,14 +1005,6 @@
                             v-if="menuItemAbertoId === h.id" 
                             class="absolute right-0 top-full mt-1.5 w-56 bg-white/98 backdrop-blur-md rounded-2xl shadow-xl shadow-slate-900/10 border border-slate-200/90 py-1.5 z-50 text-xs animate-scale-in select-none text-left"
                           >
-                            <button 
-                              type="button"
-                              @click="abrirHolerite(h); fecharMenuHolerite()"
-                              class="w-full px-4 py-2.5 text-left text-slate-700 hover:bg-slate-50 hover:text-[#ba2e45] flex items-center gap-2.5 font-medium transition cursor-pointer"
-                            >
-                              <AppIcon name="document" size="14" class="text-slate-400" />
-                              <span>Visualizar Holerite</span>
-                            </button>
 
                             <button 
                               type="button"
@@ -1018,15 +1026,6 @@
 
                             <button 
                               type="button"
-                              @click="gerarPacoteRenda(); fecharMenuHolerite()"
-                              class="w-full px-4 py-2.5 text-left text-slate-700 hover:bg-slate-50 hover:text-slate-900 flex items-center gap-2.5 font-medium transition cursor-pointer"
-                            >
-                              <AppIcon name="download" size="14" class="text-slate-400" />
-                              <span>Dossiê Consolidado (3M)</span>
-                            </button>
-
-                            <button 
-                              type="button"
                               @click="copiarChaveAutenticacao(h)"
                               class="w-full px-4 py-2.5 text-left text-slate-700 hover:bg-slate-50 hover:text-slate-900 flex items-center gap-2.5 font-medium transition cursor-pointer"
                             >
@@ -1041,10 +1040,10 @@
                 </div>
 
                 <!-- TABELA DE DEMONSTRATIVOS (ESTRUTURA LIMPA & MENU FLUTUANTE CONTEXTUAL) -->
-                <div v-if="holeritesPaginados.length > 0" class="hidden md:block overflow-visible rounded-2xl border border-slate-200/80 bg-white shadow-2xs">
+                <div v-if="holeritesPaginados.length > 0" class="hidden md:block overflow-visible rounded-2xl border border-slate-200 bg-white shadow-2xs">
                   <table class="w-full text-left border-collapse min-w-[620px]">
-                    <thead class="bg-slate-50/80 border-b border-slate-200/80">
-                      <tr class="text-[10px] font-black uppercase tracking-wider text-slate-400">
+                    <thead class="bg-slate-50/80 border-b border-slate-200">
+                      <tr class="text-[10px] font-semibold uppercase tracking-wider text-slate-400">
                         <th class="py-3.5 px-5">DEMONSTRATIVO / COMPETÊNCIA</th>
                         <th class="py-3.5 px-5">DATA PAGTO</th>
                         <th class="py-3.5 px-5">CIÊNCIA CLT</th>
@@ -1055,7 +1054,8 @@
                       <tr 
                         v-for="h in holeritesPaginados" 
                         :key="h.id"
-                        class="transition-colors duration-150 group"
+                        @click="abrirHolerite(h)"
+                        class="transition-colors duration-150 group cursor-pointer"
                         :class="menuItemAbertoId === h.id ? 'relative z-30 bg-slate-50' : 'hover:bg-slate-50/70'"
                       >
                         <!-- Coluna 1: Demonstrativo & Competência -->
@@ -1063,7 +1063,7 @@
                           <button 
                             type="button"
                             @click="abrirHolerite(h)"
-                            class="font-black text-slate-900 group-hover:text-[#ba2e45] transition-colors cursor-pointer text-left block text-sm leading-tight"
+                            class="font-semibold text-slate-900 group-hover:text-[#9c2337] transition-colors cursor-pointer text-left block text-sm leading-tight"
                           >
                             {{ h.mes_nome }} / {{ h.ano }}
                           </button>
@@ -1083,7 +1083,7 @@
                         <td class="py-4 px-5">
                           <span 
                             v-if="h.aceite?.confirmado" 
-                            class="h-6 px-3 rounded-full text-[11px] font-bold text-slate-600 bg-slate-100/90 border border-slate-200/80 inline-flex items-center gap-1.5 shadow-2xs"
+                            class="h-6 px-3 rounded-full text-[11px] font-bold text-slate-600 bg-slate-100/90 border border-slate-200 inline-flex items-center gap-1.5 shadow-2xs"
                           >
                             <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
                             <span>Confirmada</span>
@@ -1091,7 +1091,7 @@
                           
                           <span 
                             v-else 
-                            class="h-6 px-3 rounded-full text-[11px] font-bold text-slate-500 bg-slate-100/90 border border-slate-200/80 inline-flex items-center gap-1.5 shadow-2xs"
+                            class="h-6 px-3 rounded-full text-[11px] font-bold text-slate-500 bg-slate-100/90 border border-slate-200 inline-flex items-center gap-1.5 shadow-2xs"
                           >
                             <span class="w-1.5 h-1.5 rounded-full bg-amber-500"></span>
                             <span>Pendente</span>
@@ -1099,26 +1099,24 @@
                         </td>
 
                         <!-- Coluna 5: AÇÕES (Abrir Direto + Menu Flutuante Kebab) -->
-                        <td class="py-4 px-5 text-right">
+                        <td class="py-4 px-5 text-right" @click.stop>
                           <div class="flex items-center justify-end space-x-2">
                             <button 
                               type="button"
                               @click="abrirModalWhatsapp(h)"
                               title="Enviar demonstrativo via WhatsApp"
-                              class="h-8 px-3.5 rounded-xl bg-[#25D366] hover:bg-[#20bd5a] active:scale-95 text-white text-xs font-bold inline-flex items-center gap-1.5 transition-all duration-150 cursor-pointer shadow-2xs"
+                              class="w-8 h-8 rounded-lg bg-slate-100 text-slate-500 hover:bg-[#25D366] hover:text-white active:scale-95 inline-flex items-center justify-center transition-all duration-150 cursor-pointer"
                             >
-                              <AppIcon name="whatsapp" size="13" />
-                              <span>Enviar</span>
+                              <AppIcon name="whatsapp" size="14" />
                             </button>
 
                             <button 
                               type="button"
                               @click="abrirHolerite(h)"
                               title="Visualizar Holerite"
-                              class="h-8 px-3 rounded-xl bg-slate-100 hover:bg-slate-200 active:scale-95 text-slate-700 text-xs font-bold inline-flex items-center gap-1.5 transition-all duration-150 cursor-pointer shadow-2xs"
+                              class="w-8 h-8 rounded-lg bg-slate-100 text-slate-500 hover:bg-slate-200 hover:text-slate-900 active:scale-95 inline-flex items-center justify-center transition-all duration-150 cursor-pointer"
                             >
-                              <AppIcon name="eye" size="13" />
-                              <span>Abrir</span>
+                              <AppIcon name="eye" size="14" />
                             </button>
 
                             <!-- Menu Flutuante Kebab Dropdown -->
@@ -1138,14 +1136,6 @@
                                 v-if="menuItemAbertoId === h.id" 
                                 class="absolute right-0 top-full mt-1.5 w-56 bg-white/98 backdrop-blur-md rounded-2xl shadow-xl shadow-slate-900/10 border border-slate-200/90 py-1.5 z-50 text-xs animate-scale-in select-none text-left"
                               >
-                                <button 
-                                  type="button"
-                                  @click="abrirHolerite(h); fecharMenuHolerite()"
-                                  class="w-full px-4 py-2.5 text-left text-slate-700 hover:bg-slate-50 hover:text-[#ba2e45] flex items-center gap-2.5 font-medium transition cursor-pointer"
-                                >
-                                  <AppIcon name="document" size="14" class="text-slate-400" />
-                                  <span>Visualizar Holerite</span>
-                                </button>
 
                                 <button 
                                   type="button"
@@ -1163,15 +1153,6 @@
                                 >
                                   <AppIcon name="share" size="14" class="text-slate-400" />
                                   <span>Compartilhar no WhatsApp</span>
-                                </button>
-
-                                <button 
-                                  type="button"
-                                  @click="gerarPacoteRenda(); fecharMenuHolerite()"
-                                  class="w-full px-4 py-2.5 text-left text-slate-700 hover:bg-slate-50 hover:text-slate-900 flex items-center gap-2.5 font-medium transition cursor-pointer"
-                                >
-                                  <AppIcon name="download" size="14" class="text-slate-400" />
-                                  <span>Dossiê Consolidado (3M)</span>
                                 </button>
 
                                 <button 
@@ -1198,7 +1179,7 @@
                   <button 
                     type="button"
                     @click="limparFiltrosHolerite"
-                    class="text-xs font-bold text-[#ba2e45] hover:underline cursor-pointer"
+                    class="text-xs font-bold text-[#9c2337] hover:underline cursor-pointer"
                   >
                     Limpar filtros
                   </button>
@@ -1234,7 +1215,51 @@
                 </div>
               </div>
             
+            </div>
+
+            <!-- PAINEL LATERAL (estilo NewRocket): ciência do ano, atalhos e documentos recentes -->
+            <aside class="space-y-6 xl:sticky xl:top-0">
+              <div class="bg-white rounded-2xl border border-slate-200 p-5 space-y-3">
+                <div class="flex items-center justify-between">
+                  <h4 class="text-xs font-semibold uppercase tracking-wider text-slate-700">Recebidos em {{ anoReferencia }}</h4>
+                  <span class="text-xs font-semibold text-slate-700">{{ resumoCiencia.confirmados }} de {{ resumoCiencia.total }}</span>
+                </div>
+                <div class="h-1.5 rounded-full bg-slate-100 overflow-hidden">
+                  <div class="h-full rounded-full bg-[#9c2337] transition-all duration-500" :style="{ width: resumoCiencia.percentual + '%' }"></div>
+                </div>
+                <p class="text-xs text-slate-500">
+                  O recebimento é registrado ao abrir o demonstrativo ou enviá-lo para o WhatsApp.
+                </p>
+              </div>
+
+              <div v-if="holerites.length" class="bg-white rounded-2xl border border-slate-200 p-5">
+                <div class="flex items-center justify-between mb-2">
+                  <h4 class="text-xs font-semibold uppercase tracking-wider text-slate-700">Documentos recentes</h4>
+                  <button type="button" @click="rolarParaHistorico" class="text-xs text-slate-500 hover:text-[#9c2337] cursor-pointer">Ver todos</button>
+                </div>
+                <button
+                  v-for="h in holerites.slice(0, 4)"
+                  :key="h.id"
+                  type="button"
+                  @click="abrirHolerite(h)"
+                  class="w-full flex items-center gap-3 py-2.5 border-b border-slate-100 last:border-b-0 text-left cursor-pointer group"
+                >
+                  <span class="w-7 h-7 rounded-md bg-[#9c2337] text-white text-[10px] font-semibold flex items-center justify-center shrink-0">PDF</span>
+                  <span class="min-w-0 flex-1">
+                    <span class="block text-sm font-medium text-slate-800 truncate group-hover:text-[#9c2337] transition">{{ h.mes_nome }} / {{ h.ano }}</span>
+                    <span class="block text-xs text-slate-400 truncate">{{ h.tipo_folha || 'Folha Mensal' }}</span>
+                  </span>
+                  <span class="w-2 h-2 rounded-full shrink-0" :class="h.aceite?.confirmado ? 'bg-emerald-500' : 'bg-amber-500'" :title="h.aceite?.confirmado ? 'Recebido' : 'Pendente'"></span>
+                </button>
+              </div>
+            </aside>
           </div>
+
+          <!-- ESPELHO DE PONTO COM ASSINATURA ELETRÔNICA -->
+          <PontoView v-else-if="abaAtiva === 'ponto'" :colaborador="usuarioLogado" />
+
+          <!-- CADERNOS DO COLABORADOR (PDFs) -->
+          <CadernosView v-else-if="abaAtiva === 'cadernos'" :key="buscaCadernoInicial" :buscaInicial="buscaCadernoInicial" />
 
           <!-- MÓDULO 2: GESTÃO & CONSULTA DE FÉRIAS -->
           <FeriasView v-else-if="abaAtiva === 'ferias'" :ferias="ferias" />
@@ -1242,7 +1267,7 @@
           <!-- MÓDULO 4: GESTÃO DE EPIS (NR-06 COM ASSINATURA ELETRÔNICA) -->
           <div v-else-if="abaAtiva === 'epis'" class="space-y-6">
             <!-- Banner Superior do Módulo de SST (Sólido Corporativo) -->
-            <div class="bg-[#0f1117] border-l-4 border-[#ba2e45] text-white rounded-3xl p-6 sm:p-7 shadow-sm flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+            <div class="bg-[#141414] border-l-4 border-[#9c2337] text-white rounded-2xl p-6 sm:p-7 shadow-sm flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
               <div class="space-y-1.5">
                 <div class="flex items-center gap-2">
                   <span class="text-xs bg-white/10 text-white font-bold px-2.5 py-0.5 rounded-full uppercase tracking-wider border border-white/10">
@@ -1250,7 +1275,7 @@
                   </span>
                   <span class="text-xs text-rose-200">Portaria MTP nº 672/2021</span>
                 </div>
-                <h2 class="text-xl sm:text-2xl font-black tracking-tight">Ficha Eletrônica de EPIs</h2>
+                <h2 class="text-xl sm:text-2xl font-semibold tracking-tight">Ficha Eletrônica de EPIs</h2>
                 <p class="text-xs text-slate-300 max-w-xl leading-relaxed">
                   Controle digital de fornecimento, guarda e conservação de Equipamentos de Proteção Individual da Vila Boa Construções e Serviços LTDA.
                 </p>
@@ -1260,13 +1285,13 @@
               <div class="flex items-center gap-2 self-stretch sm:self-auto">
                 <div class="flex-1 sm:flex-none bg-black/25 backdrop-blur-md px-4 py-3 rounded-2xl border border-white/10 text-center">
                   <span class="text-[10px] text-rose-200 uppercase font-bold block">Pendentes</span>
-                  <span class="text-xl font-black" :class="epis.total_pendentes > 0 ? 'text-amber-300' : 'text-white'">
+                  <span class="text-xl font-semibold" :class="epis.total_pendentes > 0 ? 'text-amber-300' : 'text-white'">
                     {{ epis.total_pendentes }}
                   </span>
                 </div>
                 <div class="flex-1 sm:flex-none bg-black/25 backdrop-blur-md px-4 py-3 rounded-2xl border border-white/10 text-center">
                   <span class="text-[10px] text-rose-200 uppercase font-bold block">Assinadas</span>
-                  <span class="text-xl font-black text-emerald-300">
+                  <span class="text-xl font-semibold text-emerald-300">
                     {{ epis.total_assinados }}
                   </span>
                 </div>
@@ -1276,7 +1301,7 @@
             <!-- SEÇÃO 1: ENTREGAS PENDENTES DE ASSINATURA -->
             <div v-if="epis.pendentes && epis.pendentes.length > 0" class="space-y-3">
               <div class="flex items-center justify-between px-1">
-                <h3 class="text-xs sm:text-sm font-black text-slate-800 uppercase tracking-wider flex items-center gap-1.5">
+                <h3 class="text-xs sm:text-sm font-semibold text-slate-800 uppercase tracking-wider flex items-center gap-1.5">
                   <span class="w-2.5 h-2.5 rounded-full bg-amber-500 animate-ping"></span>
                   <span>Aguardando Sua Assinatura Digital</span>
                 </h3>
@@ -1288,7 +1313,7 @@
               <div 
                 v-for="entrega in epis.pendentes" 
                 :key="entrega.id"
-                class="bg-white rounded-3xl p-5 sm:p-6 border-2 border-amber-300 shadow-md space-y-4"
+                class="bg-white rounded-2xl p-5 sm:p-6 border-2 border-amber-300 shadow-md space-y-4"
               >
                 <div class="flex flex-col sm:flex-row sm:items-center justify-between pb-3 border-b border-slate-100 gap-2">
                   <div>
@@ -1309,7 +1334,7 @@
                   </div>
                 </div>
 
-                <div class="bg-slate-50 rounded-2xl p-3 space-y-1.5 border border-slate-200/80">
+                <div class="bg-slate-50 rounded-2xl p-3 space-y-1.5 border border-slate-200">
                   <span class="text-[10px] uppercase font-bold text-slate-500 block">Itens para conferência física no canteiro:</span>
                   <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
                     <div 
@@ -1321,7 +1346,7 @@
                         <span class="font-bold text-slate-800 text-xs">{{ item.descricao }}</span>
                         <span class="text-[10px] text-slate-400 block font-mono">CA {{ item.ca }} • {{ item.fabricante }}</span>
                       </div>
-                      <span class="text-xs font-bold text-[#ba2e45] ml-2 shrink-0">{{ item.quantidade }} {{ item.unidade }}</span>
+                      <span class="text-xs font-bold text-[#9c2337] ml-2 shrink-0">{{ item.quantidade }} {{ item.unidade }}</span>
                     </div>
                   </div>
                 </div>
@@ -1334,7 +1359,7 @@
                   <button 
                     type="button" 
                     @click="abrirAssinaturaEpi(entrega)"
-                    class="w-full sm:w-auto py-3.5 px-6 rounded-2xl bg-[#ba2e45] hover:bg-[#9c2337] active:scale-[0.98] text-white font-bold text-xs sm:text-sm flex items-center justify-center gap-2 shadow-lg shadow-[#ba2e45]/25 transition cursor-pointer"
+                    class="w-full sm:w-auto py-3.5 px-6 rounded-2xl bg-[#9c2337] hover:bg-[#831b2d] active:scale-[0.98] text-white font-bold text-xs sm:text-sm flex items-center justify-center gap-2 shadow-lg shadow-[#9c2337]/25 transition cursor-pointer"
                   >
                     <AppIcon name="pen-tool" size="14" />
                     <span>Assinar Termo de Recebimento</span>
@@ -1344,7 +1369,7 @@
             </div>
 
             <!-- SEÇÃO 2: HISTÓRICO DE FICHAS ASSINADAS -->
-            <div class="bg-white rounded-3xl p-5 sm:p-7 border border-slate-200 shadow-sm space-y-4">
+            <div class="bg-white rounded-2xl p-5 sm:p-7 border border-slate-200 shadow-sm space-y-4">
               <div class="flex items-center justify-between border-b border-slate-100 pb-3">
                 <div>
                   <h3 class="text-sm sm:text-base font-bold text-slate-900">Histórico de Fichas Assinadas</h3>
@@ -1386,7 +1411,7 @@
                     <button 
                       type="button" 
                       @click="abrirReciboEpi(entrega)"
-                      class="w-full sm:w-auto px-4 py-2.5 rounded-xl bg-slate-100 hover:bg-[#ba2e45] hover:text-white text-slate-700 font-bold text-xs flex items-center justify-center gap-2 transition cursor-pointer"
+                      class="w-full sm:w-auto px-4 py-2.5 rounded-xl bg-slate-100 hover:bg-[#9c2337] hover:text-white text-slate-700 font-bold text-xs flex items-center justify-center gap-2 transition cursor-pointer"
                     >
                       <AppIcon name="document" size="14" />
                       <span>Visualizar Ficha / PDF</span>
@@ -1412,11 +1437,11 @@
           <div v-else-if="abaAtiva === 'perfil'" class="max-w-2xl mx-auto space-y-4 pb-12 sm:pb-6 animate-slide-up">
             
             <!-- 1. Card de Identidade do Colaborador (Estilo Perfil VIP Fintech) -->
-            <div class="bg-white rounded-3xl p-5 sm:p-7 border border-slate-200/90 shadow-2xs">
+            <div class="bg-white rounded-2xl p-5 sm:p-7 border border-slate-200/90 shadow-2xs">
               <div class="flex items-center space-x-4">
                 <!-- Avatar Circular com Anel Suave e Status Online -->
                 <div class="relative shrink-0">
-                  <div class="w-16 h-16 sm:w-20 sm:h-20 rounded-full bg-[#ba2e45] text-white flex items-center justify-center font-black text-xl sm:text-2xl shadow-md ring-4 ring-rose-50">
+                  <div class="w-16 h-16 sm:w-20 sm:h-20 rounded-full bg-[#9c2337] text-white flex items-center justify-center font-semibold text-xl sm:text-2xl shadow-md ring-4 ring-rose-50">
                     {{ usuarioLogado?.nome ? usuarioLogado.nome.slice(0, 2).toUpperCase() : 'VB' }}
                   </div>
                   <span class="w-4 h-4 rounded-full bg-emerald-500 border-2 border-white absolute bottom-0 right-0 shadow-[0_0_8px_rgba(16,185,129,0.8)]"></span>
@@ -1425,7 +1450,7 @@
                 <!-- Nome, Cargo e Badges em Alinhamento Perfeito -->
                 <div class="min-w-0 flex-1">
                   <div class="flex items-center gap-2 flex-wrap">
-                    <span class="text-[10px] font-black uppercase tracking-wider text-emerald-800 bg-emerald-50 border border-emerald-200/80 px-2.5 py-0.5 rounded-full inline-flex items-center gap-1">
+                    <span class="text-[10px] font-semibold uppercase tracking-wider text-emerald-800 bg-emerald-50 border border-emerald-200/80 px-2.5 py-0.5 rounded-full inline-flex items-center gap-1">
                       <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
                       <span>CLT Ativo</span>
                     </span>
@@ -1434,7 +1459,7 @@
                     </span>
                   </div>
 
-                  <h3 class="text-lg sm:text-2xl font-black text-slate-900 tracking-tight leading-tight mt-1 truncate">
+                  <h3 class="text-lg sm:text-2xl font-semibold text-slate-900 tracking-tight leading-tight mt-1 truncate">
                     {{ usuarioLogado?.nome }}
                   </h3>
                   <p class="text-xs text-slate-500 font-medium truncate mt-0.5">
@@ -1445,9 +1470,9 @@
             </div>
 
             <!-- 2. Ficha Funcional em Lista Agrupada Nativa (Grouped Inset Rows) -->
-            <div class="bg-white rounded-3xl border border-slate-200/90 shadow-2xs overflow-hidden">
+            <div class="bg-white rounded-2xl border border-slate-200/90 shadow-2xs overflow-hidden">
               <div class="px-5 py-3.5 bg-slate-50/80 border-b border-slate-100 flex items-center justify-between">
-                <span class="text-[10px] font-black uppercase tracking-wider text-slate-400">
+                <span class="text-[10px] font-semibold uppercase tracking-wider text-slate-400">
                   Ficha Funcional & Contrato CLT
                 </span>
                 <span class="text-[10px] text-slate-400 font-medium">Dados Oficiais</span>
@@ -1531,7 +1556,7 @@
                 <!-- Linha 5: Empregadora -->
                 <div class="p-4 flex items-center justify-between hover:bg-slate-50/60 transition bg-slate-50/30">
                   <div class="flex items-center space-x-3 min-w-0">
-                    <div class="w-9 h-9 rounded-xl bg-rose-50 text-[#ba2e45] flex items-center justify-center shrink-0 border border-rose-200/60 font-black text-xs">
+                    <div class="w-9 h-9 rounded-xl bg-rose-50 text-[#9c2337] flex items-center justify-center shrink-0 border border-rose-200/60 font-semibold text-xs">
                       VB
                     </div>
                     <div class="min-w-0">
@@ -1545,9 +1570,9 @@
             </div>
 
             <!-- 3. Contato & Compartilhamento de Ficha -->
-            <div class="bg-white rounded-3xl p-5 border border-slate-200/90 shadow-2xs space-y-3">
+            <div class="bg-white rounded-2xl p-5 border border-slate-200/90 shadow-2xs space-y-3">
               <div class="flex items-center justify-between">
-                <span class="text-[10px] font-black uppercase tracking-wider text-slate-400">
+                <span class="text-[10px] font-semibold uppercase tracking-wider text-slate-400">
                   Contato & Comunicação
                 </span>
                 <span class="text-[10px] bg-emerald-50 text-emerald-800 border border-emerald-200 px-2 py-0.5 rounded-full font-bold inline-flex items-center gap-1">
@@ -1556,10 +1581,10 @@
                 </span>
               </div>
 
-              <div class="p-3.5 bg-slate-50 rounded-2xl border border-slate-200/80 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+              <div class="p-3.5 bg-slate-50 rounded-2xl border border-slate-200 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                 <div class="space-y-0.5">
                   <span class="text-[10px] uppercase font-bold text-slate-400 tracking-wider">Número de Celular Cadastrado</span>
-                  <div class="text-xl sm:text-2xl font-black font-mono text-slate-900 tracking-tight">
+                  <div class="text-xl sm:text-2xl font-semibold font-mono text-slate-900 tracking-tight">
                     {{ usuarioLogado?.telefone_atual }}
                   </div>
                   <p class="text-[10px] text-slate-400">
@@ -1584,7 +1609,7 @@
               <button 
                 type="button"
                 @click="fazerLogout"
-                class="w-full h-12 px-5 rounded-xl bg-rose-50 hover:bg-rose-100 active:scale-[0.98] border border-rose-200/80 text-[#ba2e45] font-bold text-xs sm:text-sm flex items-center justify-center gap-2 transition cursor-pointer shadow-2xs"
+                class="w-full h-12 px-5 rounded-xl bg-rose-50 hover:bg-rose-100 active:scale-[0.98] border border-rose-200/80 text-[#9c2337] font-bold text-xs sm:text-sm flex items-center justify-center gap-2 transition cursor-pointer shadow-2xs"
                 title="Encerrar sessão com segurança"
               >
                 <AppIcon name="log-out" size="16" />
@@ -1607,55 +1632,55 @@
         </main>
 
         <!-- FOOTER / STATUS BAR FIXA NO DESKTOP (ESTILO APP NATIVO SHELL) -->
-        <footer class="hidden md:flex h-9 shrink-0 bg-white border-t border-slate-200/90 px-6 items-center justify-between text-[11px] text-slate-500 select-none z-20">
-          <div class="flex items-center gap-3">
-            <span class="inline-flex items-center gap-1.5 font-medium">
-              <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-              <span class="text-slate-700 font-semibold">Portal do Colaborador · Vila Boa</span>
-            </span>
-            <span class="text-slate-300">|</span>
-            <span class="text-slate-500">Canal WhatsApp Verificado ({{ usuarioLogado?.telefone_atual }})</span>
-            <span class="text-slate-300">|</span>
-            <span class="text-slate-500">Autenticidade eSocial S-1210 & Art. 464 CLT</span>
-          </div>
-          
-          <div class="flex items-center gap-3 font-mono text-[10px] text-slate-500">
-            <span>Exercício: <strong class="text-slate-700 font-sans">{{ anoReferencia }}</strong></span>
-            <span>·</span>
-            <span>Matrícula: <strong class="text-slate-700 font-sans">{{ usuarioLogado?.matricula }}</strong></span>
-            <span>·</span>
-            <span class="text-emerald-800 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded font-bold">● SISTEMA OPERACIONAL</span>
-          </div>
+        <footer class="hidden md:flex h-9 shrink-0 bg-white border-t border-slate-200 px-6 items-center justify-between text-[11px] text-slate-500 select-none z-20">
+          <span class="font-medium text-slate-600">Portal do Colaborador · Vila Boa Construções e Serviços</span>
+          <span class="inline-flex items-center gap-1.5">
+            <AppIcon name="shield-check" size="12" class="text-emerald-600" />
+            <span>Conformidade eSocial S-1210 · Art. 464 CLT</span>
+          </span>
         </footer>
 
         <!-- BOTTOM NAVIGATION BAR FIXA EXCLUSIVA PARA CELULARES (PINNED FOOTER ESTILO NATIVO SUPERAPP) -->
-        <nav class="md:hidden h-16 shrink-0 bg-white/95 backdrop-blur-md border-t border-slate-200/80 px-4 flex items-center justify-around z-30 safe-bottom shadow-lg select-none">
+        <nav class="md:hidden h-16 shrink-0 bg-white/95 backdrop-blur-md border-t border-slate-200 px-4 flex items-center justify-around z-30 safe-bottom shadow-lg select-none">
           <!-- Aba 1: Holerites -->
           <button 
             type="button"
             @click="navegarParaAba('holerites')" 
             class="flex flex-col items-center justify-center flex-1 py-1 transition-all active:scale-95 cursor-pointer relative"
-            :class="abaAtiva === 'holerites' ? 'text-[#ba2e45]' : 'text-slate-500 hover:text-slate-700'"
+            :class="abaAtiva === 'holerites' ? 'text-[#9c2337]' : 'text-slate-500 hover:text-slate-700'"
           >
             <div class="relative">
               <AppIcon name="document" size="20" />
-              <span v-if="abaAtiva === 'holerites'" class="w-1.5 h-1.5 rounded-full bg-[#ba2e45] absolute -bottom-1 left-1/2 -translate-x-1/2"></span>
+              <span v-if="abaAtiva === 'holerites'" class="w-1.5 h-1.5 rounded-full bg-[#9c2337] absolute -bottom-1 left-1/2 -translate-x-1/2"></span>
             </div>
             <span class="text-[10px] mt-1 tracking-normal" :class="abaAtiva === 'holerites' ? 'font-semibold' : 'font-normal'">Holerites</span>
           </button>
 
           <!-- Aba 2: Meus Dados -->
-          <button 
+          <button
             type="button"
-            @click="navegarParaAba('perfil')" 
+            @click="navegarParaAba('ponto')"
             class="flex flex-col items-center justify-center flex-1 py-1 transition-all active:scale-95 cursor-pointer relative"
-            :class="abaAtiva === 'perfil' ? 'text-[#ba2e45]' : 'text-slate-500 hover:text-slate-700'"
+            :class="abaAtiva === 'ponto' ? 'text-[#9c2337]' : 'text-slate-500 hover:text-slate-700'"
           >
             <div class="relative">
-              <AppIcon name="user" size="20" />
-              <span v-if="abaAtiva === 'perfil'" class="w-1.5 h-1.5 rounded-full bg-[#ba2e45] absolute -bottom-1 left-1/2 -translate-x-1/2"></span>
+              <AppIcon name="calendar" size="20" />
+              <span v-if="abaAtiva === 'ponto'" class="w-1.5 h-1.5 rounded-full bg-[#9c2337] absolute -bottom-1 left-1/2 -translate-x-1/2"></span>
             </div>
-            <span class="text-[10px] mt-1 tracking-normal" :class="abaAtiva === 'perfil' ? 'font-semibold' : 'font-normal'">Meus Dados</span>
+            <span class="text-[10px] mt-1 tracking-normal" :class="abaAtiva === 'ponto' ? 'font-semibold' : 'font-normal'">Ponto</span>
+          </button>
+
+          <button
+            type="button"
+            @click="navegarParaAba('cadernos')"
+            class="flex flex-col items-center justify-center flex-1 py-1 transition-all active:scale-95 cursor-pointer relative"
+            :class="abaAtiva === 'cadernos' ? 'text-[#9c2337]' : 'text-slate-500 hover:text-slate-700'"
+          >
+            <div class="relative">
+              <AppIcon name="landmark" size="20" />
+              <span v-if="abaAtiva === 'cadernos'" class="w-1.5 h-1.5 rounded-full bg-[#9c2337] absolute -bottom-1 left-1/2 -translate-x-1/2"></span>
+            </div>
+            <span class="text-[10px] mt-1 tracking-normal" :class="abaAtiva === 'cadernos' ? 'font-semibold' : 'font-normal'">Cadernos</span>
           </button>
         </nav>
       </div>
@@ -1677,6 +1702,7 @@
       :holerite="holeriteSelecionado" 
       :colaborador="usuarioLogado"
       :focarCiencia="focarCienciaModal"
+      :ocultarValores="ocultarValores"
       @close="holeriteSelecionado = null; focarCienciaModal = false"
       @ciencia-confirmada="onHoleriteCienciaConfirmada"
     />
@@ -1718,18 +1744,12 @@
     <!-- TOAST NOTIFICATION DE FEEDBACK FLUTUANTE -->
     <div 
       v-if="toastMensagem" 
-      class="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 bg-[#0f1117] text-white text-xs font-bold px-4 py-2.5 rounded-full shadow-2xl flex items-center gap-2 border border-white/10 animate-fade-in"
+      class="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 bg-[#141414] text-white text-xs font-bold px-4 py-2.5 rounded-full shadow-2xl flex items-center gap-2 border border-white/10 animate-fade-in"
     >
       <AppIcon name="check" size="14" class="text-emerald-400" />
       <span>{{ toastMensagem }}</span>
     </div>
 
-    <!-- BACKDROP INVISÍVEL GLOBAL PARA FECHAR MENUS FLUTUANTES -->
-    <div 
-      v-if="menuItemAbertoId" 
-      class="fixed inset-0 z-40 bg-transparent" 
-      @click="fecharMenuHolerite"
-    ></div>
   </div>
 </template>
 
@@ -1740,6 +1760,8 @@ import AppIcon from './components/AppIcon.vue';
 import Sidebar from './components/Sidebar.vue';
 import MobileDrawer from './components/MobileDrawer.vue';
 import FeriasView from './components/FeriasView.vue';
+import PontoView from './components/PontoView.vue';
+import CadernosView from './components/CadernosView.vue';
 import ChamadosView from './components/ChamadosView.vue';
 import HoleriteModal from './components/HoleriteModal.vue';
 import ConfirmarWhatsappModal from './components/ConfirmarWhatsappModal.vue';
@@ -1790,7 +1812,8 @@ function mascararCpf(cpf) {
 }
 
 // ==================== SISTEMA DE ROTAS & PERSISTÊNCIA ====================
-const ROTAS_VALIDAS = ['holerites', 'ferias', 'epis', 'chamados', 'perfil'];
+// Módulos liberados; os demais seguem desativados.
+const ROTAS_VALIDAS = ['holerites', 'ponto', 'cadernos'];
 
 function obterRotaValida() {
   if (typeof window === 'undefined') return 'holerites';
@@ -1912,6 +1935,16 @@ function exibirToast(msg) {
 function alternarMenuHolerite(id) {
   menuItemAbertoId.value = (menuItemAbertoId.value === id) ? null : id;
 }
+
+// Fecha o menu flutuante do histórico ao clicar fora dele
+// (os gatilhos e o próprio menu usam @click.stop)
+watch(menuItemAbertoId, (aberto) => {
+  if (aberto) {
+    setTimeout(() => document.addEventListener('click', fecharMenuHolerite, { once: true }));
+  } else {
+    document.removeEventListener('click', fecharMenuHolerite);
+  }
+});
 
 function fecharMenuHolerite() {
   menuItemAbertoId.value = null;
@@ -2202,7 +2235,9 @@ async function fazerLogin() {
 
     dadosEtapaSeguranca.value = data;
     respostaSelecionada.value = '';
-    etapaAtual.value = 'seguranca';
+    codigoToken.value = '';
+    // Com o serviço de token ativo, confirma pelo celular; senão, vai direto às perguntas
+    etapaAtual.value = data.token_sms?.ativo ? 'token' : 'seguranca';
   } catch (err) {
     mensagemErro.value = 'Erro de conexão com o servidor da Vila Boa Construções e Serviços.';
   } finally {
@@ -2211,6 +2246,42 @@ async function fazerLogin() {
 }
 
 // 2. Passo: Validar Resposta do Dado Pessoal Aleatório
+const codigoToken = ref('');
+
+async function validarToken() {
+  if (codigoToken.value.length !== 6 || carregando.value) return;
+  carregando.value = true;
+  mensagemErro.value = '';
+  try {
+    const res = await fetch('/api/login/token/validar', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        temp_token: dadosEtapaSeguranca.value.temp_token,
+        codigo: codigoToken.value
+      })
+    });
+    const data = await res.json();
+    if (!res.ok) {
+      mensagemErro.value = data.erro || 'Código inválido.';
+      return;
+    }
+    dadosEtapaTelefone.value = data;
+    editandoTelefone.value = false;
+    novoTelefoneInput.value = '';
+    etapaAtual.value = 'telefone';
+  } catch (err) {
+    mensagemErro.value = 'Falha ao validar o código.';
+  } finally {
+    carregando.value = false;
+  }
+}
+
+function responderPerguntas() {
+  mensagemErro.value = '';
+  etapaAtual.value = 'seguranca';
+}
+
 async function validarRespostaSeguranca() {
   if (!respostaSelecionada.value || bloqueioSegundos.value > 0) return;
 
@@ -2429,6 +2500,7 @@ async function carregarInformesRendimentos(token) {
 }
 
 async function abrirAbaIrpf() {
+  return; // Módulo desativado
   tipoDocumentoAtivo.value = 'irpf';
   if (informesRendimentos.value.length === 0) {
     const token = localStorage.getItem('vb_auth_token') || '';
@@ -2535,6 +2607,76 @@ function onWhatsappEnviado(dados) {
   }, 4000);
 }
 
+const resumoCiencia = computed(() => {
+  const total = holerites.value.length;
+  const confirmados = holerites.value.filter(h => h.aceite?.confirmado).length;
+  return { total, confirmados, percentual: total ? Math.round((confirmados / total) * 100) : 0 };
+});
+
+
+function rolarParaHistorico() {
+  document.getElementById('historico-demonstrativos')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+// Busca geral do portal: módulos, holerites e cadernos
+const buscaGlobal = ref('');
+const buscaGlobalAberta = ref(false);
+const cadernosBusca = ref(null);
+
+async function carregarCadernosBusca() {
+  if (cadernosBusca.value) return;
+  try {
+    const res = await fetch('/api/cadernos', { headers: { 'Authorization': `Bearer ${localStorage.getItem('vb_auth_token') || ''}` } });
+    const data = await res.json();
+    cadernosBusca.value = res.ok ? (data.cadernos || []) : [];
+  } catch (e) {
+    cadernosBusca.value = [];
+  }
+}
+
+const resultadosBusca = computed(() => {
+  const termo = buscaGlobal.value.trim().toLowerCase();
+  if (!termo) return [];
+  const bate = (...textos) => textos.some(t => (t || '').toString().toLowerCase().includes(termo));
+
+  const modulos = [
+    { titulo: 'Holerites & Salários', aba: 'holerites', icone: 'document', chaves: 'holerite demonstrativo salario pagamento folha' },
+    { titulo: 'Espelho de Ponto', aba: 'ponto', icone: 'calendar', chaves: 'ponto espelho marcacao jornada banco de horas assinatura' },
+    { titulo: 'Cadernos', aba: 'cadernos', icone: 'landmark', chaves: 'cadernos manual programa politica pdf' }
+  ]
+    .filter(m => bate(m.titulo, m.chaves))
+    .map(m => ({ ...m, categoria: 'Página do portal', tipo: 'aba' }));
+
+  const holeritesEncontrados = holerites.value
+    .filter(h => bate(`${h.mes_nome} ${h.ano}`, h.competencia, h.tipo_folha))
+    .slice(0, 6)
+    .map(h => ({ titulo: `${h.mes_nome} / ${h.ano}`, categoria: `Holerite · ${h.tipo_folha || 'Folha Mensal'}`, icone: 'document', tipo: 'holerite', holerite: h }));
+
+  const cadernosEncontrados = (cadernosBusca.value || [])
+    .filter(c => bate(c.titulo))
+    .slice(0, 6)
+    .map(c => ({ titulo: c.titulo, categoria: 'Caderno (PDF)', icone: 'landmark', tipo: 'caderno', caderno: c }));
+
+  return [...modulos, ...holeritesEncontrados, ...cadernosEncontrados];
+});
+
+const buscaCadernoInicial = ref('');
+
+function selecionarResultado(r) {
+  if (r.tipo === 'aba') navegarParaAba(r.aba);
+  if (r.tipo === 'holerite') abrirHolerite(r.holerite);
+  if (r.tipo === 'caderno') {
+    buscaCadernoInicial.value = r.caderno.titulo;
+    navegarParaAba('cadernos');
+  }
+  buscaGlobal.value = '';
+  buscaGlobalAberta.value = false;
+}
+
+function fecharBuscaGlobal() {
+  setTimeout(() => { buscaGlobalAberta.value = false; }, 120);
+}
+
 const focarCienciaModal = ref(false);
 
 function abrirHolerite(h, focarCiencia = false) {
@@ -2575,6 +2717,7 @@ function onHoleriteCienciaConfirmada(holeriteAtualizado) {
 }
 
 async function gerarPacoteRenda() {
+  return; // Módulo desativado
   if (gerandoPacoteRenda.value) return;
   gerandoPacoteRenda.value = true;
 

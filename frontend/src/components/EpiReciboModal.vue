@@ -1,7 +1,7 @@
 <template>
   <div v-if="entrega" class="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 bg-slate-900/70 backdrop-blur-sm transition-all">
     <div 
-      class="bg-white w-full max-w-xl lg:max-w-3xl max-h-[95vh] sm:max-h-[92vh] rounded-t-3xl sm:rounded-3xl shadow-2xl flex flex-col overflow-hidden animate-slide-up border border-slate-200"
+      class="bg-white w-full max-w-xl lg:max-w-3xl max-h-[95vh] sm:max-h-[92vh] rounded-t-3xl sm:rounded-2xl shadow-2xl flex flex-col overflow-hidden animate-slide-up border border-slate-200"
       @click.stop
     >
       <!-- Cabeçalho na Tela (Não sai na impressão) -->
@@ -11,14 +11,14 @@
             <AppIcon name="check" size="18" />
           </div>
           <div>
-            <h3 class="text-sm font-black text-slate-900">Ficha de EPI Assinada (NR-06)</h3>
+            <h3 class="text-sm font-semibold text-slate-900">Ficha de EPI Assinada (NR-06)</h3>
             <p class="text-xs text-slate-500">Documento Eletrônico Válido • Ref: {{ entrega.id }}</p>
           </div>
         </div>
 
         <button 
           @click="$emit('close')" 
-          class="w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-slate-100 hover:bg-slate-200 active:bg-slate-300 text-slate-500 hover:text-slate-800 flex items-center justify-center transition-all cursor-pointer active:scale-90 border border-slate-200/80 shadow-2xs"
+          class="w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-slate-100 hover:bg-slate-200 active:bg-slate-300 text-slate-500 hover:text-slate-800 flex items-center justify-center transition-all cursor-pointer active:scale-90 border border-slate-200 shadow-2xs"
         >
           <AppIcon name="x" size="14" />
         </button>
@@ -32,7 +32,7 @@
           <div class="flex items-center space-x-3">
             <img src="/img/logo-horizontal.png" alt="Vila Boa" class="h-8 w-auto object-contain" />
             <div class="border-l border-slate-300 pl-3">
-              <h2 class="text-xs sm:text-sm font-black text-slate-900 uppercase">
+              <h2 class="text-xs sm:text-sm font-semibold text-slate-900 uppercase">
                 Ficha de Controle e Fornecimento de EPI
               </h2>
               <p class="text-[10px] text-slate-500">Atendimento à NR-06 do Ministério do Trabalho e Emprego</p>
@@ -167,7 +167,7 @@
       <div class="p-4 bg-slate-50 border-t border-slate-100 flex gap-2.5 no-print">
         <button 
           @click="imprimir" 
-          class="flex-1 py-3 px-4 bg-[#ba2e45] hover:bg-[#9c2337] active:scale-[0.98] text-white font-bold rounded-2xl text-xs sm:text-sm flex items-center justify-center gap-2 shadow-md transition cursor-pointer"
+          class="flex-1 py-3 px-4 bg-[#9c2337] hover:bg-[#831b2d] active:scale-[0.98] text-white font-bold rounded-2xl text-xs sm:text-sm flex items-center justify-center gap-2 shadow-md transition cursor-pointer"
         >
           <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
@@ -186,6 +186,7 @@
 </template>
 
 <script setup>
+import { usarFecharComEsc } from '../utils/fecharComEsc.js';
 import AppIcon from './AppIcon.vue';
 
 const props = defineProps({
@@ -195,7 +196,8 @@ const props = defineProps({
   }
 });
 
-defineEmits(['close']);
+const emit = defineEmits(['close']);
+usarFecharComEsc(() => emit('close'));
 
 function imprimir() {
   window.print();

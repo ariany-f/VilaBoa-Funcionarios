@@ -1,19 +1,19 @@
 <template>
   <div v-if="entrega" class="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 bg-slate-900/70 backdrop-blur-sm transition-all">
     <div 
-      class="bg-white w-full max-w-xl lg:max-w-2xl max-h-[95vh] sm:max-h-[92vh] rounded-t-3xl sm:rounded-3xl shadow-2xl flex flex-col overflow-hidden animate-slide-up border border-slate-200"
+      class="bg-white w-full max-w-xl lg:max-w-2xl max-h-[95vh] sm:max-h-[92vh] rounded-t-3xl sm:rounded-2xl shadow-2xl flex flex-col overflow-hidden animate-slide-up border border-slate-200"
       @click.stop
     >
       <!-- Cabeçalho -->
       <div class="px-5 py-4 border-b border-slate-100 flex items-center justify-between bg-slate-50">
         <div class="flex items-center space-x-3">
-          <div class="w-10 h-10 rounded-2xl bg-rose-50 text-[#ba2e45] border border-rose-200 flex items-center justify-center font-bold text-lg">
+          <div class="w-10 h-10 rounded-2xl bg-rose-50 text-[#9c2337] border border-rose-200 flex items-center justify-center font-bold text-lg">
             <AppIcon name="shield-check" size="20" />
           </div>
           <div>
             <div class="flex items-center gap-2">
-              <h3 class="text-sm font-black text-slate-900">Termo de Recebimento de EPI</h3>
-              <span class="text-[10px] bg-rose-100 text-[#ba2e45] font-bold px-2 py-0.5 rounded">NR-06</span>
+              <h3 class="text-sm font-semibold text-slate-900">Termo de Recebimento de EPI</h3>
+              <span class="text-[10px] bg-rose-100 text-[#9c2337] font-bold px-2 py-0.5 rounded">NR-06</span>
             </div>
             <p class="text-xs text-slate-500">Ref: {{ entrega.id }} • {{ entrega.data_entrega_formatada }}</p>
           </div>
@@ -21,7 +21,7 @@
 
         <button 
           @click="$emit('close')" 
-          class="w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-slate-100 hover:bg-slate-200 active:bg-slate-300 text-slate-500 hover:text-slate-800 flex items-center justify-center transition-all cursor-pointer active:scale-90 border border-slate-200/80 shadow-2xs"
+          class="w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-slate-100 hover:bg-slate-200 active:bg-slate-300 text-slate-500 hover:text-slate-800 flex items-center justify-center transition-all cursor-pointer active:scale-90 border border-slate-200 shadow-2xs"
         >
           <AppIcon name="x" size="14" />
         </button>
@@ -80,7 +80,7 @@
 
         <!-- Termo de Responsabilidade Legal (NR-06) -->
         <div class="p-3.5 bg-rose-50/60 border border-rose-200 rounded-2xl space-y-1.5">
-          <div class="flex items-center gap-1.5 text-xs font-bold text-[#ba2e45] uppercase tracking-wider">
+          <div class="flex items-center gap-1.5 text-xs font-bold text-[#9c2337] uppercase tracking-wider">
             <AppIcon name="document" size="14" />
             <span>Termo de Ciência e Compromisso Legal (NR-06 / CLT)</span>
           </div>
@@ -99,7 +99,7 @@
             <button 
               type="button" 
               @click="limparAssinatura" 
-              class="text-xs text-[#ba2e45] hover:text-[#9c2337] font-bold hover:underline cursor-pointer"
+              class="text-xs text-[#9c2337] hover:text-[#831b2d] font-bold hover:underline cursor-pointer"
             >
               Limpar / Assinar Novamente
             </button>
@@ -147,7 +147,7 @@
         <button 
           @click="confirmarAssinatura" 
           :disabled="carregando || !assinou"
-          class="flex-1 py-3.5 px-4 bg-[#ba2e45] hover:bg-[#9c2337] disabled:opacity-50 active:scale-[0.98] text-white font-bold rounded-2xl text-xs sm:text-sm flex items-center justify-center gap-2 shadow-md transition cursor-pointer"
+          class="flex-1 py-3.5 px-4 bg-[#9c2337] hover:bg-[#831b2d] disabled:opacity-50 active:scale-[0.98] text-white font-bold rounded-2xl text-xs sm:text-sm flex items-center justify-center gap-2 shadow-md transition cursor-pointer"
         >
           <span v-if="carregando" class="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
           <AppIcon v-else name="check" size="16" />
@@ -165,6 +165,7 @@
 </template>
 
 <script setup>
+import { usarFecharComEsc } from '../utils/fecharComEsc.js';
 import { ref, onMounted, nextTick } from 'vue';
 import AppIcon from './AppIcon.vue';
 
@@ -176,6 +177,7 @@ const props = defineProps({
 });
 
 const emit = defineEmits(['close', 'assinado']);
+usarFecharComEsc(() => emit('close'));
 
 const signatureCanvas = ref(null);
 const assinou = ref(false);
@@ -196,7 +198,7 @@ function initCanvas() {
   canvas.height = rect.height * 2;
   ctx = canvas.getContext('2d');
   ctx.scale(2, 2);
-  ctx.strokeStyle = '#1F133A';
+  ctx.strokeStyle = '#141414';
   ctx.lineWidth = 2.5;
   ctx.lineCap = 'round';
   ctx.lineJoin = 'round';

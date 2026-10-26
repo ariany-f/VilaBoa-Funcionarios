@@ -3,11 +3,11 @@
     <div class="max-w-2xl w-full mx-auto space-y-6">
       
       <!-- Cabeçalho Institucional -->
-      <div class="bg-white rounded-3xl p-5 border border-slate-200 shadow-sm flex items-center justify-between">
+      <div class="bg-white rounded-2xl p-5 border border-slate-200 shadow-sm flex items-center justify-between">
         <div class="flex items-center space-x-3">
           <img src="/img/logo-vilaboa-color.png" alt="Vila Boa" class="h-8 w-auto object-contain" />
           <div class="border-l border-slate-200 pl-3">
-            <h1 class="text-xs sm:text-sm font-black text-slate-900 leading-none">
+            <h1 class="text-xs sm:text-sm font-semibold text-slate-900 leading-none">
               Validador Oficial de Autenticidade
             </h1>
             <span class="text-[10px] text-slate-500 font-medium">
@@ -18,20 +18,20 @@
 
         <button 
           @click="irParaLogin" 
-          class="text-xs font-bold text-[#ba2e45] hover:text-[#9c2337] bg-rose-50 border border-rose-200 px-3 py-1.5 rounded-xl transition cursor-pointer"
+          class="text-xs font-bold text-[#9c2337] hover:text-[#831b2d] bg-rose-50 border border-rose-200 px-3 py-1.5 rounded-xl transition cursor-pointer"
         >
           Acessar Portal →
         </button>
       </div>
 
       <!-- Estado 1: Carregando Validação -->
-      <div v-if="carregando" class="bg-white rounded-3xl p-12 text-center space-y-3 border border-slate-200 shadow-sm">
-        <div class="w-8 h-8 border-3 border-[#ba2e45] border-t-transparent rounded-full animate-spin mx-auto"></div>
+      <div v-if="carregando" class="bg-white rounded-2xl p-12 text-center space-y-3 border border-slate-200 shadow-sm">
+        <div class="w-8 h-8 border-3 border-[#9c2337] border-t-transparent rounded-full animate-spin mx-auto"></div>
         <p class="text-xs font-bold text-slate-700">Auditando autenticidade digital nos registros da Vila Boa...</p>
       </div>
 
       <!-- Estado 2: Documento Autêntico e Válido -->
-      <div v-else-if="resultado && resultado.valido" class="bg-white rounded-3xl p-6 sm:p-8 border-2 border-emerald-500 shadow-lg space-y-6 animate-slide-up">
+      <div v-else-if="resultado && resultado.valido" class="bg-white rounded-2xl p-6 sm:p-8 border-2 border-emerald-500 shadow-lg space-y-6 animate-slide-up">
         
         <!-- Selo de Verificação Positivo -->
         <div class="bg-emerald-50 border border-emerald-200 rounded-2xl p-5 flex items-start sm:items-center gap-4">
@@ -45,7 +45,7 @@
               </span>
               <span class="text-[11px] text-emerald-800 font-mono">Status: AUTÊNTICO</span>
             </div>
-            <h2 class="text-base sm:text-lg font-black text-emerald-950 mt-1">
+            <h2 class="text-base sm:text-lg font-semibold text-emerald-950 mt-1">
               Documento Autêntico e Válido
             </h2>
             <p class="text-xs text-emerald-900 mt-0.5 leading-relaxed">
@@ -62,19 +62,19 @@
           </h3>
 
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
-            <div class="p-3 bg-slate-50 rounded-2xl border border-slate-200/80">
+            <div class="p-3 bg-slate-50 rounded-2xl border border-slate-200">
               <span class="text-[10px] text-slate-400 font-bold uppercase block">Colaborador Titular</span>
               <span class="font-bold text-slate-900 text-sm block">{{ resultado.colaborador.nome }}</span>
               <span class="text-slate-500">Matrícula: {{ resultado.colaborador.matricula }} • CPF: {{ resultado.colaborador.cpf_mascarado }}</span>
             </div>
 
-            <div class="p-3 bg-slate-50 rounded-2xl border border-slate-200/80">
+            <div class="p-3 bg-slate-50 rounded-2xl border border-slate-200">
               <span class="text-[10px] text-slate-400 font-bold uppercase block">Cargo & Lotação</span>
               <span class="font-bold text-slate-900 text-sm block">{{ resultado.colaborador.cargo }}</span>
               <span class="text-slate-500">{{ resultado.colaborador.departamento }}</span>
             </div>
 
-            <div class="p-3 bg-slate-50 rounded-2xl border border-slate-200/80">
+            <div class="p-3 bg-slate-50 rounded-2xl border border-slate-200">
               <span class="text-[10px] text-slate-400 font-bold uppercase block">Competência / Folha</span>
               <span class="font-bold text-slate-900 text-sm block">Ref: {{ resultado.documento.competencia }}</span>
               <span class="text-slate-500">{{ resultado.documento.tipo_folha }} • Pagto: {{ resultado.documento.data_pagamento }}</span>
@@ -82,7 +82,7 @@
 
             <div class="p-3 bg-emerald-50/60 rounded-2xl border border-emerald-200">
               <span class="text-[10px] text-emerald-800 font-bold uppercase block">Salário Líquido Confirmado</span>
-              <span class="font-black text-emerald-700 text-base font-mono block">
+              <span class="font-semibold text-emerald-700 text-base font-mono block">
                 {{ formatCurrency(resultado.documento.salario_liquido) }}
               </span>
               <span class="text-[10px] text-emerald-800">Bruto: {{ formatCurrency(resultado.documento.total_proventos) }}</span>
@@ -91,7 +91,7 @@
         </div>
 
         <!-- Informações da Empregadora -->
-        <div class="bg-slate-50 p-4 rounded-2xl border border-slate-200/80 text-xs space-y-1">
+        <div class="bg-slate-50 p-4 rounded-2xl border border-slate-200 text-xs space-y-1">
           <span class="text-[10px] text-slate-400 font-bold uppercase block">Fonte Pagadora Certificada</span>
           <p class="font-bold text-slate-800">{{ resultado.empresa.razao_social }}</p>
           <p class="text-slate-600">CNPJ: {{ resultado.empresa.cnpj }} • {{ resultado.empresa.cidade }}</p>
@@ -112,7 +112,7 @@
           <button 
             type="button" 
             @click="imprimirLaudo"
-            class="flex-1 py-3 px-4 bg-[#ba2e45] hover:bg-[#9c2337] active:scale-[0.98] text-white font-bold rounded-xl text-xs flex items-center justify-center gap-2 shadow-sm transition cursor-pointer"
+            class="flex-1 py-3 px-4 bg-[#9c2337] hover:bg-[#831b2d] active:scale-[0.98] text-white font-bold rounded-xl text-xs flex items-center justify-center gap-2 shadow-sm transition cursor-pointer"
           >
             <AppIcon name="printer" size="16" />
             <span>Imprimir Certidão de Autenticidade</span>
@@ -128,7 +128,7 @@
       </div>
 
       <!-- Estado 3: Documento Inválido / Não Localizado -->
-      <div v-else class="bg-white rounded-3xl p-6 sm:p-8 border-2 border-rose-400 shadow-md space-y-5 animate-slide-up">
+      <div v-else class="bg-white rounded-2xl p-6 sm:p-8 border-2 border-rose-400 shadow-md space-y-5 animate-slide-up">
         <div class="bg-rose-50 border border-rose-200 rounded-2xl p-5 flex items-start gap-4">
           <div class="w-12 h-12 rounded-2xl bg-rose-600 text-white flex items-center justify-center shrink-0 shadow-md">
             <AppIcon name="alert-triangle" size="26" />
@@ -137,7 +137,7 @@
             <span class="text-[10px] uppercase font-bold tracking-wider text-rose-900 bg-rose-200/80 px-2 py-0.5 rounded-full">
               Falha de Validação
             </span>
-            <h2 class="text-base sm:text-lg font-black text-rose-950 mt-1">
+            <h2 class="text-base sm:text-lg font-semibold text-rose-950 mt-1">
               Documento Não Localizado
             </h2>
             <p class="text-xs text-rose-900 mt-0.5 leading-relaxed">

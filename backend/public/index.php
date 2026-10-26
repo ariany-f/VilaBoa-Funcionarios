@@ -47,6 +47,8 @@ require_once __DIR__ . '/../services/EpiService.php';
 require_once __DIR__ . '/../services/WhatsAppNotificationService.php';
 require_once __DIR__ . '/../controllers/FeriasController.php';
 require_once __DIR__ . '/../controllers/ChamadosController.php';
+require_once __DIR__ . '/../controllers/CadernosController.php';
+require_once __DIR__ . '/../controllers/PontoController.php';
 
 use App\Services\ColaboradorService;
 use App\Services\HoleriteService;
@@ -54,6 +56,8 @@ use App\Services\EpiService;
 use App\Services\WhatsAppNotificationService;
 use App\Controllers\FeriasController;
 use App\Controllers\ChamadosController;
+use App\Controllers\CadernosController;
+use App\Controllers\PontoController;
 
 $colaboradorService = new ColaboradorService();
 $holeriteService = new HoleriteService();
@@ -61,8 +65,14 @@ $epiService = new EpiService();
 $whatsAppService = new WhatsAppNotificationService();
 $feriasController = new FeriasController();
 $chamadosController = new ChamadosController();
+$cadernosController = new CadernosController();
+$pontoController = new PontoController();
 
 $tentativasSegurancaFile = dirname(__DIR__) . '/data/tentativas_seguranca.json';
+
+// Confirmação de login por token enviado ao celular.
+// Desativada até a infra liberar o serviço de envio; enquanto isso o login usa as perguntas de segurança.
+const TOKEN_SMS_ATIVO = false;
 
 function getTentativasSeguranca(string $file): array {
     if (!file_exists($file)) return [];
@@ -342,6 +352,19 @@ if ($method === 'GET' && $route === '/lgpd/termo') {
     exit;
 }
 
+// 2.1. Validação do token recebido no celular (alternativa às perguntas de segurança)
+if ($method === 'POST' && $route === '/login/token/validar') {
+    if (!TOKEN_SMS_ATIVO) {
+        http_response_code(503);
+        echo json_encode(['erro' => 'A confirmação por token ainda não está disponível. Responda às perguntas de segurança.'], JSON_UNESCAPED_UNICODE);
+        exit;
+    }
+    // Integração com o serviço de envio/validação de token: aguardando a infra.
+    http_response_code(501);
+    echo json_encode(['erro' => 'Serviço de token não configurado.'], JSON_UNESCAPED_UNICODE);
+    exit;
+}
+
 // 2. Passo 1: Login com CPF + Data de Nascimento
 if ($method === 'POST' && $route === '/login') {
     $cpf = $body['cpf'] ?? '';
@@ -463,10 +486,16 @@ if ($method === 'POST' && $route === '/login') {
         'resposta_hash' => $pergunta['resposta_esperada_hash']
     ], 600);
 
+    $telefoneDigitos = preg_replace('/\D/', '', $colaborador['telefone_atual'] ?? '');
+
     echo json_encode([
         'sucesso' => true,
         'etapa_necessaria' => 'verificacao_seguranca',
         'temp_token' => $tempToken,
+        'token_sms' => [
+            'ativo' => TOKEN_SMS_ATIVO,
+            'telefone_mascarado' => $telefoneDigitos ? '(**) *****-' . substr($telefoneDigitos, -4) : null
+        ],
         'colaborador' => [
             'id' => $colaborador['id'],
             'primeiro_nome' => explode(' ', $colaborador['nome'])[0],
@@ -978,6 +1007,64 @@ if ($method === 'GET' && $route === '/chamados') {
 if ($method === 'POST' && $route === '/chamados') {
     $resp = $chamadosController->abrirChamado($colaboradorLogado['id'], $colaboradorLogado['matricula'], $body);
     echo json_encode($resp, JSON_UNESCAPED_UNICODE);
+    exit;
+}
+
+// 17. Cadernos do colaborador (todos os PDFs de data/cadernos)
+if ($method === 'GET' && $route === '/cadernos') {
+    echo json_encode([
+        'sucesso' => true,
+        'cadernos' => $cadernosController->listar()
+    ], JSON_UNESCAPED_UNICODE);
+    exit;
+}
+
+if ($method === 'GET' && preg_match('#^/cadernos/arquivo$#', $route)) {
+    $caminho = $cadernosController->caminhoDoArquivo($_GET['nome'] ?? '');
+    if (!$caminho) {
+        http_response_code(404);
+        echo json_encode(['erro' => 'Caderno não encontrado.']);
+        exit;
+    }
+    header('Content-Type: application/pdf');
+    header('Content-Length: ' . filesize($caminho));
+    header('Content-Disposition: inline; filename="' . basename($caminho) . '"');
+    readfile($caminho);
+    exit;
+}
+
+// 18. Espelho de ponto com assinatura eletrônica
+if ($method === 'GET' && $route === '/ponto') {
+    echo json_encode([
+        'sucesso' => true,
+        'espelho' => $pontoController->getEspelho($colaboradorLogado['matricula'])
+    ], JSON_UNESCAPED_UNICODE);
+    exit;
+}
+
+if ($method === 'POST' && $route === '/ponto/assinar') {
+    $competencia = $body['competencia'] ?? '';
+    $assinaturaBase64 = $body['assinatura_base64'] ?? '';
+    if ($competencia === '' || $assinaturaBase64 === '') {
+        http_response_code(400);
+        echo json_encode(['erro' => 'Competência e assinatura são obrigatórias.']);
+        exit;
+    }
+
+    $espelho = $pontoController->assinar(
+        $colaboradorLogado,
+        $competencia,
+        $assinaturaBase64,
+        $_SERVER['HTTP_X_FORWARDED_FOR'] ?? $_SERVER['REMOTE_ADDR'] ?? '127.0.0.1',
+        $_SERVER['HTTP_USER_AGENT'] ?? 'Desconhecido'
+    );
+    if (!$espelho) {
+        http_response_code(400);
+        echo json_encode(['erro' => 'Não foi possível assinar este espelho de ponto.']);
+        exit;
+    }
+
+    echo json_encode(['sucesso' => true, 'espelho' => $espelho], JSON_UNESCAPED_UNICODE);
     exit;
 }
 

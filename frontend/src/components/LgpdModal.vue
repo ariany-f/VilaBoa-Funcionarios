@@ -2,7 +2,7 @@
   <div class="fixed inset-0 z-50 overflow-y-auto bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4">
     <!-- Card do Modal -->
     <div 
-      class="relative w-full max-w-2xl bg-white rounded-3xl shadow-2xl border border-slate-200/90 overflow-hidden flex flex-col max-h-[92vh] animate-in fade-in zoom-in-95 duration-200"
+      class="relative w-full max-w-2xl bg-white rounded-2xl shadow-2xl border border-slate-200/90 overflow-hidden flex flex-col max-h-[92vh] animate-in fade-in zoom-in-95 duration-200"
       role="dialog"
       aria-modal="true"
     >
@@ -21,7 +21,7 @@
                 Art. 464 CLT
               </span>
             </div>
-            <h3 class="font-black text-slate-900 text-base sm:text-lg leading-tight mt-0.5 truncate">
+            <h3 class="font-semibold text-slate-900 text-base sm:text-lg leading-tight mt-0.5 truncate">
               Segurança & Proteção de Dados (LGPD)
             </h3>
           </div>
@@ -41,8 +41,8 @@
       <!-- Conteúdo com Rolagem Suave -->
       <div class="p-5 overflow-y-auto space-y-4 text-xs sm:text-sm text-slate-600">
         <!-- Banner de Boas-Vindas da Política -->
-        <div class="bg-slate-50 border border-slate-200/80 rounded-2xl p-4 space-y-1.5">
-          <h4 class="font-extrabold text-slate-900 text-sm flex items-center gap-2">
+        <div class="bg-slate-50 border border-slate-200 rounded-2xl p-4 space-y-1.5">
+          <h4 class="font-semibold text-slate-900 text-sm flex items-center gap-2">
             <span>Compromisso com o Sigilo Funcional</span>
             <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
           </h4>
@@ -54,44 +54,44 @@
         <!-- Grade com 4 Pilares de Proteção -->
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <!-- Pilar 1: Criptografia e Não-Repúdio -->
-          <div class="bg-white p-3.5 rounded-2xl border border-slate-200/80 shadow-2xs space-y-1.5">
+          <div class="bg-white p-3.5 rounded-2xl border border-slate-200 shadow-2xs space-y-1.5">
             <div class="w-7 h-7 rounded-xl bg-slate-100 text-slate-700 flex items-center justify-center font-bold">
               <AppIcon name="lock" size="14" />
             </div>
-            <h5 class="font-extrabold text-slate-900 text-xs">Criptografia & Sessão HMAC</h5>
+            <h5 class="font-semibold text-slate-900 text-xs">Criptografia & Sessão HMAC</h5>
             <p class="text-[11px] text-slate-500 leading-relaxed">
               Tráfego protegido e tokens criptografados com <code>HMAC-SHA256</code>. Nenhuma senha trafega em texto aberto na rede.
             </p>
           </div>
 
           <!-- Pilar 2: Mascaramento LGPD -->
-          <div class="bg-white p-3.5 rounded-2xl border border-slate-200/80 shadow-2xs space-y-1.5">
+          <div class="bg-white p-3.5 rounded-2xl border border-slate-200 shadow-2xs space-y-1.5">
             <div class="w-7 h-7 rounded-xl bg-slate-100 text-slate-700 flex items-center justify-center font-bold">
               <AppIcon name="eye" size="14" />
             </div>
-            <h5 class="font-extrabold text-slate-900 text-xs">Mascaramento de Identificadores</h5>
+            <h5 class="font-semibold text-slate-900 text-xs">Mascaramento de Identificadores</h5>
             <p class="text-[11px] text-slate-500 leading-relaxed">
               No validador de QR Code para bancos e terceiros, seu CPF é anonimizado (ex: <code>123.***.***-45</code>). Ninguém tem acesso integral aos seus dados sem sua autorização.
             </p>
           </div>
 
           <!-- Pilar 3: Bases Legais Legítimas -->
-          <div class="bg-white p-3.5 rounded-2xl border border-slate-200/80 shadow-2xs space-y-1.5">
+          <div class="bg-white p-3.5 rounded-2xl border border-slate-200 shadow-2xs space-y-1.5">
             <div class="w-7 h-7 rounded-xl bg-slate-100 text-slate-700 flex items-center justify-center font-bold">
               <AppIcon name="document" size="14" />
             </div>
-            <h5 class="font-extrabold text-slate-900 text-xs">Bases Legais (Art. 7º LGPD)</h5>
+            <h5 class="font-semibold text-slate-900 text-xs">Bases Legais (Art. 7º LGPD)</h5>
             <p class="text-[11px] text-slate-500 leading-relaxed">
               Tratamento respaldado no <strong>Inciso II</strong> (cumprimento de obrigação legal trabalhista / eSocial) e <strong>Inciso V</strong> (execução do contrato de trabalho CLT).
             </p>
           </div>
 
           <!-- Pilar 4: Trilha de Auditoria Inviolável -->
-          <div class="bg-white p-3.5 rounded-2xl border border-slate-200/80 shadow-2xs space-y-1.5">
+          <div class="bg-white p-3.5 rounded-2xl border border-slate-200 shadow-2xs space-y-1.5">
             <div class="w-7 h-7 rounded-xl bg-slate-100 text-slate-700 flex items-center justify-center font-bold">
               <AppIcon name="shield-check" size="14" />
             </div>
-            <h5 class="font-extrabold text-slate-900 text-xs">Trilha de Auditoria & Não-Repúdio</h5>
+            <h5 class="font-semibold text-slate-900 text-xs">Trilha de Auditoria & Não-Repúdio</h5>
             <p class="text-[11px] text-slate-500 leading-relaxed">
               Assinaturas de recibo registram data/hora, IP de origem e hash criptográfico, conferindo validade jurídica irrefutável conforme o Art. 464 da CLT.
             </p>
@@ -99,8 +99,8 @@
         </div>
 
         <!-- Seção: Seus Direitos como Titular (Art. 18 LGPD) -->
-        <div class="bg-slate-50/70 border border-slate-200/80 rounded-2xl p-4 space-y-2">
-          <h4 class="font-extrabold text-slate-900 text-xs uppercase tracking-wider">
+        <div class="bg-slate-50/70 border border-slate-200 rounded-2xl p-4 space-y-2">
+          <h4 class="font-semibold text-slate-900 text-xs uppercase tracking-wider">
             Seus Direitos como Titular de Dados
           </h4>
           <ul class="text-[11px] text-slate-600 space-y-1.5 list-disc list-inside">
@@ -137,22 +137,10 @@
 </template>
 
 <script setup>
-import { onMounted, onUnmounted } from 'vue';
+import { usarFecharComEsc } from '../utils/fecharComEsc.js';
 import AppIcon from './AppIcon.vue';
 
 const emit = defineEmits(['close']);
 
-function handleKeyDown(e) {
-  if (e.key === 'Escape') {
-    emit('close');
-  }
-}
-
-onMounted(() => {
-  window.addEventListener('keydown', handleKeyDown);
-});
-
-onUnmounted(() => {
-  window.removeEventListener('keydown', handleKeyDown);
-});
+usarFecharComEsc(() => emit('close'));
 </script>

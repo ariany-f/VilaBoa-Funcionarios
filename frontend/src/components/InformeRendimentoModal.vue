@@ -1,7 +1,7 @@
 <template>
   <div v-if="informe" class="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 bg-slate-900/60 backdrop-blur-sm transition-all duration-300">
     <div 
-      class="bg-white w-full max-w-3xl lg:max-w-4xl max-h-[96vh] sm:max-h-[92vh] rounded-t-3xl sm:rounded-3xl shadow-2xl flex flex-col overflow-hidden animate-slide-up border border-slate-200"
+      class="bg-white w-full max-w-3xl lg:max-w-4xl max-h-[96vh] sm:max-h-[92vh] rounded-t-3xl sm:rounded-2xl shadow-2xl flex flex-col overflow-hidden animate-slide-up border border-slate-200"
       @click.stop
     >
       <!-- Cabeçalho do Modal -->
@@ -9,7 +9,7 @@
         <div class="flex items-center space-x-3">
           <img src="/img/logo-vilaboa-color.png" alt="Vila Boa" class="h-7 w-auto object-contain" />
           <div class="border-l border-slate-200 pl-3">
-            <h3 class="text-xs sm:text-sm font-black text-slate-800">
+            <h3 class="text-xs sm:text-sm font-semibold text-slate-800">
               Informe de Rendimentos IRPF {{ informe.exercicio }}
             </h3>
             <p class="text-[10px] text-slate-500">
@@ -20,7 +20,7 @@
 
         <button 
           @click="$emit('close')" 
-          class="w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-slate-100 hover:bg-slate-200 active:bg-slate-300 text-slate-500 hover:text-slate-800 flex items-center justify-center transition-all cursor-pointer active:scale-90 border border-slate-200/80 shadow-2xs"
+          class="w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-slate-100 hover:bg-slate-200 active:bg-slate-300 text-slate-500 hover:text-slate-800 flex items-center justify-center transition-all cursor-pointer active:scale-90 border border-slate-200 shadow-2xs"
           aria-label="Fechar"
         >
           <AppIcon name="x" size="14" />
@@ -35,7 +35,7 @@
           <p class="text-[10px] font-bold tracking-wider text-slate-600 uppercase">
             Ministério da Fazenda • Secretaria Especial da Receita Federal do Brasil
           </p>
-          <h2 class="text-xs sm:text-sm font-black uppercase text-slate-900 tracking-tight">
+          <h2 class="text-xs sm:text-sm font-semibold uppercase text-slate-900 tracking-tight">
             Comprovante de Rendimentos Pagos e de Retenção de Imposto de Renda na Fonte
           </h2>
           <div class="inline-flex items-center gap-4 text-[11px] font-bold text-slate-800 bg-slate-100 px-3 py-1 rounded border border-slate-300">
@@ -117,8 +117,8 @@
               </span>
             </div>
             <div class="p-2 flex justify-between items-center bg-rose-50/50">
-              <span class="text-[11px] font-bold text-[#ba2e45]">05. Imposto sobre a renda retido na fonte (IRRF)</span>
-              <span class="font-mono font-black text-[#ba2e45]">
+              <span class="text-[11px] font-bold text-[#9c2337]">05. Imposto sobre a renda retido na fonte (IRRF)</span>
+              <span class="font-mono font-semibold text-[#9c2337]">
                 {{ formatCurrency(informe.rendimentos_tributaveis.imposto_retido_fonte) }}
               </span>
             </div>
@@ -211,7 +211,7 @@
       <div class="p-3 bg-slate-50 border-t border-slate-200 flex flex-wrap gap-2">
         <button 
           @click="imprimirInforme" 
-          class="flex-1 py-3 px-4 bg-[#ba2e45] hover:bg-[#9c2337] active:scale-[0.98] text-white font-bold rounded-xl text-xs sm:text-sm flex items-center justify-center gap-2 shadow-sm transition cursor-pointer"
+          class="flex-1 py-3 px-4 bg-[#9c2337] hover:bg-[#831b2d] active:scale-[0.98] text-white font-bold rounded-xl text-xs sm:text-sm flex items-center justify-center gap-2 shadow-sm transition cursor-pointer"
         >
           <AppIcon name="printer" size="16" />
           <span>Salvar / Imprimir Informe IRPF (PDF)</span>
@@ -229,6 +229,7 @@
 </template>
 
 <script setup>
+import { usarFecharComEsc } from '../utils/fecharComEsc.js';
 import { formatCurrency } from '../utils/masks.js';
 import AppIcon from './AppIcon.vue';
 
@@ -239,7 +240,8 @@ defineProps({
   }
 });
 
-defineEmits(['close']);
+const emit = defineEmits(['close']);
+usarFecharComEsc(() => emit('close'));
 
 function imprimirInforme() {
   window.print();

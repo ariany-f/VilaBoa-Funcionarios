@@ -17,18 +17,7 @@
       <!-- Topo: Identidade da Empresa e Botão Fechar -->
       <div class="p-4 border-b border-slate-100 flex items-center justify-between bg-slate-50/60 shrink-0">
         <div class="flex items-center space-x-2.5 min-w-0">
-          <div class="w-9 h-9 rounded-xl bg-white border border-slate-200/80 flex items-center justify-center font-black text-xs text-[#ba2e45] shadow-2xs shrink-0">
-            VB
-          </div>
-          <div class="min-w-0">
-            <div class="flex items-center gap-1.5 leading-none">
-              <span class="text-xs font-black text-slate-900 tracking-tight truncate">Vila Boa</span>
-              <span class="text-[9px] bg-rose-50 text-[#ba2e45] border border-rose-200/80 font-bold px-1.5 py-0.2 rounded-md uppercase">
-                Portal
-              </span>
-            </div>
-            <span class="text-[10px] text-slate-400 font-medium block truncate mt-0.5">Construções e Serviços</span>
-          </div>
+          <img src="/img/logo-vilaboa-color.png" alt="Vila Boa Construções e Serviços" class="h-8 w-auto max-w-[170px] object-contain" />
         </div>
 
         <!-- Botão Fechar Estilo Glass Bubble Nativo -->
@@ -47,16 +36,16 @@
       <div class="flex-1 overflow-y-auto p-4 space-y-4">
         
         <!-- Cartão do Colaborador Logado (Visual Fintech) -->
-        <div class="p-3.5 rounded-2xl bg-slate-50 border border-slate-200/80 flex items-center space-x-3 shadow-2xs">
+        <div class="p-3.5 rounded-2xl bg-slate-50 border border-slate-200 flex items-center space-x-3 shadow-2xs">
           <div class="relative shrink-0">
-            <div class="w-11 h-11 rounded-2xl bg-white border border-slate-200 flex items-center justify-center font-black text-sm text-[#ba2e45] shadow-2xs">
+            <div class="w-11 h-11 rounded-2xl bg-white border border-slate-200 flex items-center justify-center font-semibold text-sm text-[#9c2337] shadow-2xs">
               {{ colaborador?.nome ? colaborador.nome.slice(0, 2).toUpperCase() : 'VB' }}
             </div>
             <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 border-2 border-white absolute -bottom-0.5 -right-0.5 shadow-[0_0_6px_rgba(16,185,129,0.8)]"></span>
           </div>
           <div class="overflow-hidden min-w-0 flex-1">
             <span class="text-[9px] font-bold text-slate-400 uppercase tracking-wider block">Colaborador</span>
-            <h4 class="text-xs font-black truncate text-slate-900 leading-tight">{{ colaborador?.nome || 'Usuário' }}</h4>
+            <h4 class="text-xs font-semibold truncate text-slate-900 leading-tight">{{ colaborador?.nome || 'Usuário' }}</h4>
             <span class="text-[10px] text-slate-500 font-medium block truncate mt-0.5">
               {{ colaborador?.cargo || 'Colaborador' }}
             </span>
@@ -70,34 +59,36 @@
           </span>
 
           <nav class="space-y-1 text-xs">
-            <!-- Item 1: Holerites -->
+            <!-- Módulos liberados -->
             <button
+              v-for="modulo in modulos"
+              :key="modulo.id"
               type="button"
-              @click="navegar('holerites')"
+              @click="navegar(modulo.id)"
               class="w-full flex items-center justify-between p-3 rounded-2xl transition cursor-pointer group active:scale-[0.98]"
-              :class="abaAtiva === 'holerites' ? 'bg-[#ba2e45] text-white shadow-xs font-bold' : 'text-slate-700 hover:bg-slate-50 border border-transparent hover:border-slate-200/80 font-semibold'"
+              :class="abaAtiva === modulo.id ? 'bg-[#9c2337] text-white shadow-xs font-bold' : 'text-slate-700 hover:bg-slate-50 border border-transparent hover:border-slate-200 font-semibold'"
             >
               <div class="flex items-center space-x-3 min-w-0">
                 <div 
                   class="w-8 h-8 rounded-xl flex items-center justify-center transition shrink-0"
-                  :class="abaAtiva === 'holerites' ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-600 group-hover:text-[#ba2e45] group-hover:bg-rose-50'"
+                  :class="abaAtiva === modulo.id ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-600 group-hover:text-[#9c2337] group-hover:bg-rose-50'"
                 >
-                  <AppIcon name="document" size="16" />
+                  <AppIcon :name="modulo.icone" size="16" />
                 </div>
                 <div class="text-left min-w-0">
-                  <span class="block truncate leading-tight">Holerites & Folha</span>
+                  <span class="block truncate leading-tight">{{ modulo.rotulo }}</span>
                   <span 
                     class="text-[10px] block mt-0.5 font-normal truncate"
-                    :class="abaAtiva === 'holerites' ? 'text-white/80' : 'text-slate-400'"
+                    :class="abaAtiva === modulo.id ? 'text-white/80' : 'text-slate-400'"
                   >
-                    Demonstrativos de pagamento
+                    {{ modulo.descricao }}
                   </span>
                 </div>
               </div>
               <AppIcon 
                 name="chevron-right" 
                 size="14" 
-                :class="abaAtiva === 'holerites' ? 'text-white/70' : 'text-slate-300 group-hover:text-slate-500'" 
+                :class="abaAtiva === modulo.id ? 'text-white/70' : 'text-slate-300 group-hover:text-slate-500'" 
               />
             </button>
           </nav>
@@ -142,7 +133,7 @@
         <button
           type="button"
           @click="solicitarLogout"
-          class="w-full py-2.5 px-4 rounded-xl bg-white hover:bg-rose-50 border border-slate-200/90 hover:border-rose-200 text-slate-700 hover:text-[#ba2e45] text-xs font-bold transition flex items-center justify-center gap-2 cursor-pointer active:scale-[0.98] shadow-2xs"
+          class="w-full py-2.5 px-4 rounded-xl bg-white hover:bg-rose-50 border border-slate-200/90 hover:border-rose-200 text-slate-700 hover:text-[#9c2337] text-xs font-bold transition flex items-center justify-center gap-2 cursor-pointer active:scale-[0.98] shadow-2xs"
           title="Encerrar sessão no dispositivo"
         >
           <AppIcon name="log-out" size="15" class="text-rose-500" />
@@ -181,6 +172,12 @@ const props = defineProps({
 });
 
 const emit = defineEmits(['close', 'selecionar', 'logout', 'gerar-pacote', 'abrir-lgpd']);
+
+const modulos = [
+  { id: 'holerites', rotulo: 'Holerites & Folha', descricao: 'Demonstrativos de pagamento', icone: 'document' },
+  { id: 'ponto', rotulo: 'Espelho de Ponto', descricao: 'Marcações e assinatura do mês', icone: 'calendar' },
+  { id: 'cadernos', rotulo: 'Cadernos', descricao: 'Manuais e programas da empresa', icone: 'landmark' }
+];
 
 function navegar(aba) {
   emit('selecionar', aba);

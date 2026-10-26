@@ -1,7 +1,7 @@
 <template>
   <div v-if="holerite" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs transition-all duration-300">
     <div 
-      class="bg-white w-full max-w-md rounded-3xl shadow-2xl flex flex-col overflow-hidden animate-scale-in border border-slate-200/90 text-left"
+      class="bg-white w-full max-w-md rounded-2xl shadow-2xl flex flex-col overflow-hidden animate-scale-in border border-slate-200/90 text-left"
       @click.stop
     >
       <!-- Cabeçalho do Modal -->
@@ -11,7 +11,7 @@
             <AppIcon name="whatsapp" size="20" />
           </div>
           <div class="min-w-0">
-            <h3 class="text-sm font-black text-slate-900 leading-tight">Enviar para WhatsApp</h3>
+            <h3 class="text-sm font-semibold text-slate-900 leading-tight">Enviar para WhatsApp</h3>
             <span class="text-[11px] text-slate-500 font-medium block truncate mt-0.5">
               {{ holerite.mes_nome }} / {{ holerite.ano }} · {{ holerite.tipo_folha || 'Folha Mensal' }}
             </span>
@@ -32,9 +32,9 @@
       <div class="p-5 space-y-4 text-xs">
         
         <!-- Bloco de Conferência do Telefone Cadastrado -->
-        <div class="bg-slate-50 rounded-2xl p-4 border border-slate-200/80 space-y-2">
+        <div class="bg-slate-50 rounded-2xl p-4 border border-slate-200 space-y-2">
           <div class="flex items-center justify-between">
-            <span class="text-[10px] uppercase font-black tracking-wider text-slate-400">
+            <span class="text-[10px] uppercase font-semibold tracking-wider text-slate-400">
               Número Cadastrado no Sistema
             </span>
             <span class="inline-flex items-center gap-1 text-[10px] font-bold text-emerald-800 bg-emerald-50 border border-emerald-200/80 px-2 py-0.5 rounded-full">
@@ -44,14 +44,14 @@
           </div>
 
           <div v-if="!editandoNumero" class="flex items-center justify-between pt-1">
-            <div class="text-lg sm:text-xl font-black text-slate-900 font-mono tracking-tight">
+            <div class="text-lg sm:text-xl font-semibold text-slate-900 font-mono tracking-tight">
               {{ telefoneExibicao }}
             </div>
 
             <button 
               type="button" 
               @click="iniciarEdicaoNumero"
-              class="text-xs font-bold text-[#ba2e45] hover:text-[#9c2337] hover:underline cursor-pointer flex items-center gap-1"
+              class="text-xs font-bold text-[#9c2337] hover:text-[#831b2d] hover:underline cursor-pointer flex items-center gap-1"
             >
               <AppIcon name="edit" size="12" />
               <span>Alterar</span>
@@ -120,7 +120,7 @@
           type="button"
           @click="confirmarEEnviar"
           :disabled="!telefoneValido"
-          class="h-11 px-5 rounded-xl bg-[#25D366] hover:bg-[#20bd5a] active:scale-95 text-white font-extrabold text-xs shadow-md shadow-[#25D366]/20 transition-all flex items-center gap-2 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+          class="h-11 px-5 rounded-xl bg-[#25D366] hover:bg-[#20bd5a] active:scale-95 text-white font-semibold text-xs shadow-md shadow-[#25D366]/20 transition-all flex items-center gap-2 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
         >
           <AppIcon name="whatsapp" size="16" />
           <span>Confirmar e Enviar para WhatsApp</span>
@@ -131,6 +131,7 @@
 </template>
 
 <script setup>
+import { usarFecharComEsc } from '../utils/fecharComEsc.js';
 import { ref, computed } from 'vue';
 import AppIcon from './AppIcon.vue';
 import { maskPhone } from '../utils/masks.js';
@@ -151,6 +152,7 @@ const props = defineProps({
 });
 
 const emit = defineEmits(['close', 'enviado']);
+usarFecharComEsc(() => emit('close'));
 
 // Estado de edição do telefone
 const editandoNumero = ref(false);

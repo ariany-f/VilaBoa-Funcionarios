@@ -1,7 +1,7 @@
 <template>
   <div class="space-y-6 animate-slide-up">
     <!-- Banner Superior de Férias (Apenas Consulta - Sólido Corporativo) -->
-    <div class="bg-[#1f133a] border-l-4 border-[#ba2e45] text-white rounded-3xl p-6 sm:p-7 shadow-sm flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+    <div class="bg-[#141414] border-l-4 border-[#9c2337] text-white rounded-2xl p-6 sm:p-7 shadow-sm flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
       <div class="space-y-1.5">
         <div class="flex items-center gap-2">
           <span class="text-xs bg-white/10 text-white font-bold px-2.5 py-0.5 rounded-full uppercase tracking-wider border border-white/10">
@@ -9,7 +9,7 @@
           </span>
           <span class="text-xs text-rose-200">Painel de Consulta</span>
         </div>
-        <h2 class="text-xl sm:text-2xl font-black tracking-tight">Consulta de Férias & Saldos</h2>
+        <h2 class="text-xl sm:text-2xl font-semibold tracking-tight">Consulta de Férias & Saldos</h2>
         <p class="text-xs text-slate-300 max-w-xl leading-relaxed">
           Acompanhe seu saldo de dias de descanso, o período aquisitivo vigente, prazos legais de concessão e o histórico de férias usufruídas.
         </p>
@@ -18,7 +18,7 @@
       <!-- Saldo Destaque -->
       <div class="bg-black/30 px-5 py-3.5 rounded-2xl border border-white/10 text-center self-stretch sm:self-auto shrink-0">
         <span class="text-[10px] text-slate-300 uppercase font-bold block">Saldo Disponível</span>
-        <div class="text-3xl font-black text-amber-300 font-mono">
+        <div class="text-3xl font-semibold text-amber-300 font-mono">
           {{ ferias?.dias_saldo ?? 30 }} Dias
         </div>
         <span class="text-[9px] text-slate-300 block mt-0.5">Limite: {{ ferias?.periodo_aquisitivo_atual?.limite_concessivo }}</span>
@@ -29,7 +29,7 @@
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
       
       <!-- Coluna 1: Período Aquisitivo Vigente + Comunicado de Consulta -->
-      <div class="bg-white p-5 rounded-3xl border border-slate-200 shadow-sm space-y-4">
+      <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm space-y-4">
         <div class="flex items-center justify-between">
           <h3 class="text-xs font-bold uppercase tracking-wider text-slate-400">Período Aquisitivo</h3>
           <span class="text-[10px] bg-slate-100 text-slate-600 px-2 py-0.5 rounded-full font-bold">Vigente</span>
@@ -46,7 +46,7 @@
           </div>
           <div class="flex justify-between py-1 border-b border-slate-100">
             <span class="text-slate-500">Limite de Concessão:</span>
-            <strong class="text-[#ba2e45]">{{ ferias?.periodo_aquisitivo_atual?.limite_concessivo }}</strong>
+            <strong class="text-[#9c2337]">{{ ferias?.periodo_aquisitivo_atual?.limite_concessivo }}</strong>
           </div>
           <div class="flex justify-between py-1">
             <span class="text-slate-500">Situação:</span>
@@ -72,7 +72,7 @@
       <div class="lg:col-span-2 space-y-4">
         
         <!-- Card de Programação de Férias Agendada (se houver no cadastro) -->
-        <div v-if="ferias?.solicitacao_atual" class="bg-emerald-50/70 border border-emerald-200 rounded-3xl p-5 sm:p-6 space-y-3">
+        <div v-if="ferias?.solicitacao_atual" class="bg-emerald-50/70 border border-emerald-200 rounded-2xl p-5 sm:p-6 space-y-3">
           <div class="flex items-center justify-between">
             <div class="flex items-center gap-2">
               <span class="w-2 h-2 rounded-full bg-emerald-600"></span>
@@ -94,7 +94,7 @@
             </div>
             <div>
               <span class="text-slate-400 block text-[10px] uppercase font-bold">Abono Pecuniário</span>
-              <strong class="text-[#ba2e45] text-sm">{{ ferias.solicitacao_atual.dias_abono }} Dias Vendidos</strong>
+              <strong class="text-[#9c2337] text-sm">{{ ferias.solicitacao_atual.dias_abono }} Dias Vendidos</strong>
             </div>
             <div>
               <span class="text-slate-400 block text-[10px] uppercase font-bold">Retorno à Obra</span>
@@ -108,7 +108,7 @@
         </div>
 
         <!-- Se não houver programação agendada no momento -->
-        <div v-else class="bg-white rounded-3xl p-5 border border-slate-200 shadow-sm flex items-start gap-3">
+        <div v-else class="bg-white rounded-2xl p-5 border border-slate-200 shadow-sm flex items-start gap-3">
           <AppIcon name="calendar" size="22" class="text-slate-400 mt-0.5" />
           <div>
             <h4 class="text-xs font-bold text-slate-800">Nenhuma escala futura agendada no momento</h4>
@@ -119,7 +119,7 @@
         </div>
 
         <!-- Histórico de Períodos Anteriores Gozados -->
-        <div class="bg-white rounded-3xl p-5 sm:p-6 border border-slate-200 shadow-sm space-y-3">
+        <div class="bg-white rounded-2xl p-5 sm:p-6 border border-slate-200 shadow-sm space-y-3">
           <div class="flex items-center justify-between">
             <h3 class="text-sm font-bold text-slate-900">Histórico de Férias Gozadas</h3>
             <span class="text-xs text-slate-400 font-medium">Registros Anteriores</span>
