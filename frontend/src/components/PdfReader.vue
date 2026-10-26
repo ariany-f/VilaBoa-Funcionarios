@@ -86,7 +86,14 @@
         </aside>
 
         <!-- Páginas -->
-        <main ref="area" class="relative flex-1 min-w-0 overflow-auto" @scroll.passive="aoRolar">
+        <main
+          ref="area"
+          class="relative flex-1 min-w-0 overflow-auto"
+          @scroll.passive="aoRolar"
+          @wheel.passive="marcarInteracao"
+          @touchstart.passive="marcarInteracao"
+          @pointerdown="marcarInteracao"
+        >
           <div v-if="carregando" class="h-full flex flex-col items-center justify-center text-white/60 text-sm gap-3">
             <span class="w-8 h-8 border-2 border-white/20 border-t-white rounded-full animate-spin"></span>
             Abrindo documento...
@@ -168,7 +175,12 @@ const carregando = ref(true);
 const erro = ref('');
 const totalPaginas = ref(0);
 const paginaAtual = ref(1);
-const maiorPaginaVista = ref(1);
+const maiorPaginaVista = ref(0);
+// Só conta páginas depois que a pessoa mexe no documento (rolar, tocar, teclado, navegação)
+let interagiu = false;
+function marcarInteracao() {
+  interagiu = true;
+}
 const zoom = ref(1);
 const larguraBase = ref(800);
 const alturas = ref({});
@@ -265,14 +277,17 @@ function aoRolar() {
       break;
     }
   }
-  // A página conta como lida quando vira a página atual; chegar ao fim do documento conta todas
-  maiorPaginaVista.value = Math.max(maiorPaginaVista.value, paginaAtual.value);
-  if (el.scrollTop + el.clientHeight >= el.scrollHeight - 24) {
-    maiorPaginaVista.value = totalPaginas.value;
-  }
+  if (!interagiu) return;
+  // Página lida = já passou dela, ou o fim dela apareceu na tela; chegar ao fim do documento conta todas
+  let lidas = paginaAtual.value - 1;
+  const p = paginas[paginaAtual.value];
+  if (p && p.offsetTop + p.offsetHeight <= el.scrollTop + el.clientHeight + 4) lidas = paginaAtual.value;
+  if (el.scrollTop + el.clientHeight >= el.scrollHeight - 24) lidas = totalPaginas.value;
+  maiorPaginaVista.value = Math.max(maiorPaginaVista.value, lidas);
 }
 
 function irParaPagina(n) {
+  marcarInteracao();
   if (!n || n < 1 || n > totalPaginas.value) return;
   paginas[n]?.scrollIntoView({ behavior: 'smooth', block: 'start' });
 }
@@ -335,6 +350,7 @@ function voltar() {
 
 function teclas(e) {
   if (e.target.tagName === 'INPUT') return;
+  marcarInteracao();
   if (['ArrowRight', 'ArrowDown', 'PageDown', ' '].includes(e.key)) { avancar(); e.preventDefault(); }
   if (['ArrowLeft', 'ArrowUp', 'PageUp'].includes(e.key)) { voltar(); e.preventDefault(); }
   if ((e.ctrlKey || e.metaKey) && (e.key === '+' || e.key === '=')) { alterarZoom(0.25); e.preventDefault(); }

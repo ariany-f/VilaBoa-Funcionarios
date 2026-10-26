@@ -1098,12 +1098,19 @@ if ($method === 'POST' && $route === '/ponto/assinar') {
 
 // 17.1. Confirmação de leitura de caderno ("li e estou ciente")
 if ($method === 'POST' && $route === '/cadernos/confirmar-leitura') {
-    $leitura = $cadernosController->confirmarLeitura(
-        $colaboradorLogado,
-        $body['arquivo'] ?? '',
-        $_SERVER['HTTP_X_FORWARDED_FOR'] ?? $_SERVER['REMOTE_ADDR'] ?? '127.0.0.1',
-        $_SERVER['HTTP_USER_AGENT'] ?? 'Desconhecido'
-    );
+    try {
+        $leitura = $cadernosController->confirmarLeitura(
+            $colaboradorLogado,
+            $body['arquivo'] ?? '',
+            $_SERVER['HTTP_X_FORWARDED_FOR'] ?? $_SERVER['REMOTE_ADDR'] ?? '127.0.0.1',
+            $_SERVER['HTTP_USER_AGENT'] ?? 'Desconhecido'
+        );
+    } catch (\RuntimeException $e) {
+        error_log('[cadernos] ' . $e->getMessage() . ' Verifique a permissão de escrita em backend/data.');
+        http_response_code(500);
+        echo json_encode(['erro' => $e->getMessage() . ' Avise o RH.'], JSON_UNESCAPED_UNICODE);
+        exit;
+    }
     if (!$leitura) {
         http_response_code(404);
         echo json_encode(['erro' => 'Caderno não encontrado.']);

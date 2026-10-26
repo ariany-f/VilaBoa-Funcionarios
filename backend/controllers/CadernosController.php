@@ -89,7 +89,11 @@ class CadernosController
         $hashArquivo = hash_file('sha256', $caminho);
         $chave = $this->chave($colaborador['matricula'], basename($caminho), $hashArquivo);
 
-        $fp = fopen($this->leiturasFile, 'c+');
+        $fp = @fopen($this->leiturasFile, 'c+');
+        if (!$fp) {
+            // Normalmente falta permissão de escrita do servidor web em backend/data
+            throw new \RuntimeException('Não foi possível gravar a leitura no servidor.');
+        }
         flock($fp, LOCK_EX);
         $leituras = json_decode(stream_get_contents($fp), true) ?: [];
 
