@@ -1525,6 +1525,25 @@
       @enviado="onWhatsappEnviado"
     />
 
+    <!-- Aviso: troca de telefone depende do líder da equipe -->
+    <div v-if="avisoAlteracaoTelefone" class="fixed inset-0 z-[70] bg-black/50 flex items-end sm:items-center justify-center p-0 sm:p-4">
+      <div class="w-full sm:max-w-md bg-white rounded-t-2xl sm:rounded-2xl p-6 space-y-4 text-center safe-bottom">
+        <div class="w-14 h-14 rounded-2xl bg-slate-100 text-slate-600 flex items-center justify-center mx-auto">
+          <AppIcon name="phone" size="24" />
+        </div>
+        <h3 class="text-lg font-semibold text-slate-900">Pedido de troca de telefone</h3>
+        <p class="text-sm text-slate-600 leading-relaxed">
+          Foi gerada uma tarefa de confirmação para trocar seu telefone para
+          <strong class="text-slate-900">{{ avisoAlteracaoTelefone.telefone_novo }}</strong>.
+          Procure o <strong class="text-slate-900">líder da sua equipe</strong> para concluir a alteração.
+        </p>
+        <p class="text-xs text-slate-500">Enquanto isso, continuamos usando o número atual. Protocolo {{ avisoAlteracaoTelefone.protocolo }}</p>
+        <button type="button" @click="seguirDepoisDoAviso" class="w-full h-12 rounded-full bg-[#9c2337] hover:bg-[#831b2d] text-white font-semibold text-sm cursor-pointer">
+          Entendi, continuar
+        </button>
+      </div>
+    </div>
+
     <ResumoColaboradorModal
       v-if="colaboradorResumo"
       :colaborador="colaboradorResumo"
@@ -2146,6 +2165,12 @@ async function fazerLogin() {
 const codigoToken = ref('');
 // Com token: CPF → telefone (etapa 2) → código (etapa 3)
 const fluxoToken = ref(false);
+const avisoAlteracaoTelefone = ref(null);
+
+function seguirDepoisDoAviso() {
+  avisoAlteracaoTelefone.value = null;
+  etapaAtual.value = 'token';
+}
 
 async function validarToken() {
   if (codigoToken.value.length !== 6 || carregando.value) return;
@@ -2273,6 +2298,11 @@ async function enviarConfirmacaoTelefone(telefone) {
     if (data.etapa_necessaria === 'token') {
       dadosEtapaSeguranca.value = data;
       codigoToken.value = '';
+      // Pediu número novo: avisa sobre a tarefa do líder antes de seguir para o código
+      if (data.alteracao_telefone) {
+        avisoAlteracaoTelefone.value = data.alteracao_telefone;
+        return;
+      }
       etapaAtual.value = 'token';
       return;
     }

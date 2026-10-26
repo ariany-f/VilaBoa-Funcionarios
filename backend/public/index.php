@@ -749,6 +749,16 @@ if ($method === 'POST' && $route === '/confirm-phone') {
     }
 
     $colaboradorId = (int)$sessao['colaborador_id'];
+    $colaboradorAtual = $colaboradorService->findById($colaboradorId);
+
+    // Número diferente do cadastro: abre solicitação para o líder concluir e mantém o número atual
+    $solicitacaoTelefone = null;
+    if ($colaboradorAtual && $digitos !== preg_replace('/\D/', '', $colaboradorAtual['telefone_atual'] ?? '')) {
+        $solicitacaoTelefone = $colaboradorService->solicitarAlteracaoTelefone($colaboradorAtual, $telefone);
+        registrarAuditoriaLgpd('TELEFONE_ALTERACAO_SOLICITADA', $colaboradorAtual['matricula'], ['protocolo' => $solicitacaoTelefone['protocolo']]);
+        $telefone = $colaboradorAtual['telefone_atual'];
+    }
+
     $colaboradorAtualizado = $colaboradorService->confirmarTelefone($colaboradorId, $telefone);
 
     if (!$colaboradorAtualizado) {
@@ -763,6 +773,7 @@ if ($method === 'POST' && $route === '/confirm-phone') {
         echo json_encode([
             'sucesso' => true,
             'etapa_necessaria' => 'token',
+            'alteracao_telefone' => $solicitacaoTelefone ? ['protocolo' => $solicitacaoTelefone['protocolo'], 'telefone_novo' => $solicitacaoTelefone['telefone_novo']] : null,
             'temp_token' => gerarToken(['etapa' => 'token_sms', 'colaborador_id' => $colaboradorAtualizado['id']], 600),
             'perguntas_ativas' => PERGUNTAS_SEGURANCA_ATIVAS,
             'token_sms' => [
