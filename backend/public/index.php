@@ -81,8 +81,36 @@ $rhController = new RhController($colaboradorService, $holeriteService, $pontoCo
 $tentativasSegurancaFile = dirname(__DIR__) . '/data/tentativas_seguranca.json';
 
 // Confirmação de login por token enviado ao celular.
-// Desativada até a infra liberar o serviço de envio; enquanto isso o login usa as perguntas de segurança.
-const TOKEN_SMS_ATIVO = false;
+// Enquanto a infra não libera o serviço de envio, vale um código fixo para todos (TOKEN_FIXO).
+// Quando o envio real existir, troque a validação em /login/token/validar.
+const TOKEN_SMS_ATIVO = true;
+const TOKEN_FIXO = '123456';
+
+// Perguntas de segurança (alternativa "não tenho acesso ao celular"). Desativadas por enquanto.
+const PERGUNTAS_SEGURANCA_ATIVAS = false;
+
+/** Resposta de identidade validada: libera o passo obrigatório de confirmação do telefone. */
+function responderIdentidadeValidada(array $colaborador): void
+{
+    $phoneToken = gerarToken([
+        'etapa' => 'confirmacao_telefone',
+        'colaborador_id' => $colaborador['id']
+    ], 900);
+
+    echo json_encode([
+        'sucesso' => true,
+        'etapa_necessaria' => 'confirmacao_telefone',
+        'phone_token' => $phoneToken,
+        'mensagem' => 'Identidade validada com sucesso!',
+        'colaborador' => [
+            'id' => $colaborador['id'],
+            'nome' => $colaborador['nome'],
+            'telefone_atual' => $colaborador['telefone_atual'],
+            'telefone_confirmado_em' => $colaborador['telefone_confirmado_em']
+        ]
+    ], JSON_UNESCAPED_UNICODE);
+    exit;
+}
 
 function getTentativasSeguranca(string $file): array {
     if (!file_exists($file)) return [];
@@ -369,10 +397,30 @@ if ($method === 'POST' && $route === '/login/token/validar') {
         echo json_encode(['erro' => 'A confirmação por token ainda não está disponível. Responda às perguntas de segurança.'], JSON_UNESCAPED_UNICODE);
         exit;
     }
-    // Integração com o serviço de envio/validação de token: aguardando a infra.
-    http_response_code(501);
-    echo json_encode(['erro' => 'Serviço de token não configurado.'], JSON_UNESCAPED_UNICODE);
-    exit;
+
+    $sessao = validarToken($body['temp_token'] ?? '');
+    if (!$sessao || ($sessao['etapa'] ?? '') !== 'seguranca') {
+        http_response_code(401);
+        echo json_encode(['erro' => 'Sessão expirada. Faça login novamente.'], JSON_UNESCAPED_UNICODE);
+        exit;
+    }
+
+    // Código fixo até a infra liberar o serviço de envio por SMS/WhatsApp
+    if (!hash_equals(TOKEN_FIXO, preg_replace('/\D/', '', (string)($body['codigo'] ?? '')))) {
+        registrarAuditoriaLgpd('LOGIN_TOKEN_INVALIDO', null, ['colaborador_id' => $sessao['colaborador_id']]);
+        http_response_code(400);
+        echo json_encode(['erro' => 'Código incorreto. Confira e digite de novo.'], JSON_UNESCAPED_UNICODE);
+        exit;
+    }
+
+    $colaborador = $colaboradorService->findById((int)$sessao['colaborador_id']);
+    if (!$colaborador) {
+        http_response_code(404);
+        echo json_encode(['erro' => 'Colaborador não encontrado.']);
+        exit;
+    }
+    registrarAuditoriaLgpd('LOGIN_TOKEN_VALIDADO', $colaborador['matricula']);
+    responderIdentidadeValidada($colaborador);
 }
 
 // 2. Passo 1: Login com CPF + Data de Nascimento
@@ -502,6 +550,7 @@ if ($method === 'POST' && $route === '/login') {
         'sucesso' => true,
         'etapa_necessaria' => 'verificacao_seguranca',
         'temp_token' => $tempToken,
+        'perguntas_ativas' => PERGUNTAS_SEGURANCA_ATIVAS,
         'token_sms' => [
             'ativo' => TOKEN_SMS_ATIVO,
             'telefone_mascarado' => $telefoneDigitos ? '(**) *****-' . substr($telefoneDigitos, -4) : null
@@ -524,6 +573,11 @@ if ($method === 'POST' && $route === '/login') {
 
 // 3. Passo 2: Verificação do dado pessoal aleatório
 if ($method === 'POST' && $route === '/verify-security') {
+    if (!PERGUNTAS_SEGURANCA_ATIVAS) {
+        http_response_code(403);
+        echo json_encode(['erro' => 'A confirmação por perguntas está desativada. Use o código recebido no celular.'], JSON_UNESCAPED_UNICODE);
+        exit;
+    }
     $tempToken = $body['temp_token'] ?? '';
     $resposta = $body['resposta'] ?? '';
     $respostaHash = $body['resposta_hash'] ?? '';
@@ -634,25 +688,8 @@ if ($method === 'POST' && $route === '/verify-security') {
         exit;
     }
 
-    // Token para o passo OBRIGATÓRIO de telefone
-    $phoneToken = gerarToken([
-        'etapa' => 'confirmacao_telefone',
-        'colaborador_id' => $colaborador['id']
-    ], 900);
-
-    echo json_encode([
-        'sucesso' => true,
-        'etapa_necessaria' => 'confirmacao_telefone',
-        'phone_token' => $phoneToken,
-        'mensagem' => 'Identidade validada com sucesso!',
-        'colaborador' => [
-            'id' => $colaborador['id'],
-            'nome' => $colaborador['nome'],
-            'telefone_atual' => $colaborador['telefone_atual'],
-            'telefone_confirmado_em' => $colaborador['telefone_confirmado_em']
-        ]
-    ], JSON_UNESCAPED_UNICODE);
-    exit;
+    // Libera o passo OBRIGATÓRIO de telefone
+    responderIdentidadeValidada($colaborador);
 }
 
 // 4. Passo 3: OBJETIVO PRIMÁRIO - Confirmação/Atualização do Telefone

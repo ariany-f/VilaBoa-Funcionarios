@@ -26,7 +26,14 @@
     <!-- ===================== ACOMPANHAMENTO ===================== -->
     <template v-else-if="aba === 'acompanhamento'">
       <div class="grid sm:grid-cols-3 gap-4">
-        <div v-for="k in indicadores" :key="k.rotulo" class="bg-white rounded-2xl border border-slate-200 p-5 space-y-3">
+        <button
+          v-for="k in indicadores"
+          :key="k.rotulo"
+          type="button"
+          @click="k.abrir()"
+          class="text-left bg-white rounded-2xl border border-slate-200 hover:border-slate-300 p-5 space-y-3 cursor-pointer transition"
+          title="Ver detalhes"
+        >
           <div class="flex items-center justify-between">
             <span class="text-xs font-semibold uppercase tracking-wider text-slate-600">{{ k.rotulo }}</span>
             <span class="text-xs font-semibold text-slate-900">{{ k.feito }} de {{ k.total }}</span>
@@ -35,7 +42,7 @@
             <div class="h-full rounded-full bg-[#9c2337]" :style="{ width: (k.total ? Math.round((k.feito / k.total) * 100) : 0) + '%' }"></div>
           </div>
           <p class="text-xs text-slate-500">{{ k.descricao }}</p>
-        </div>
+        </button>
       </div>
 
       <div class="bg-white rounded-2xl border border-slate-200 p-5 sm:p-6">
@@ -73,21 +80,34 @@
                     <span class="block text-xs text-slate-400">{{ c.matricula }} · {{ c.cargo }}</span>
                   </td>
                   <td class="py-3 px-3">
-                    <span class="badge" :class="c.holerites.recebidos === c.holerites.total ? 'ok' : 'pendente'">{{ c.holerites.recebidos }} de {{ c.holerites.total }}</span>
+                    <button type="button" @click.stop="abrirHoleritesDoColaborador(c)" class="badge cursor-pointer" :class="c.holerites.recebidos === c.holerites.total ? 'ok' : 'pendente'" title="Ver holerites">
+                      {{ c.holerites.recebidos }} de {{ c.holerites.total }}
+                      <AppIcon name="chevron-right" size="12" class="ml-1" />
+                    </button>
                   </td>
                   <td class="py-3 px-3">
                     <span v-if="!c.ponto" class="text-xs text-slate-400">Sem espelho</span>
-                    <span v-else class="badge" :class="c.ponto.assinado_em ? 'ok' : 'pendente'">
+                    <button v-else type="button" @click.stop="abrirPontoDoColaborador(c)" class="badge cursor-pointer" :class="c.ponto.assinado_em ? 'ok' : 'pendente'" title="Ver espelhos">
                       {{ c.ponto.assinado_em ? 'Assinado' : 'Pendente' }} · {{ c.ponto.competencia }}
-                    </span>
+                      <AppIcon name="chevron-right" size="12" class="ml-1" />
+                    </button>
                   </td>
                   <td class="py-3 px-3">
-                    <span v-if="c.cadernos.obrigatorios_total" class="badge" :class="c.cadernos.obrigatorios_lidos === c.cadernos.obrigatorios_total ? 'ok' : 'pendente'">
-                      {{ c.cadernos.obrigatorios_lidos }} de {{ c.cadernos.obrigatorios_total }} obrigatórios
-                    </span>
-                    <span v-if="c.cadernos.opcionais_total" class="block text-[11px] text-slate-400 mt-1">
-                      {{ c.cadernos.opcionais_lidos }} de {{ c.cadernos.opcionais_total }} opcionais lidos
-                    </span>
+                    <button
+                      v-if="c.cadernos.obrigatorios_total || c.cadernos.opcionais_total"
+                      type="button"
+                      @click.stop="abrirLeiturasDoColaborador(c)"
+                      class="text-left cursor-pointer group"
+                      title="Ver quais cadernos leu"
+                    >
+                      <span v-if="c.cadernos.obrigatorios_total" class="badge group-hover:brightness-95" :class="c.cadernos.obrigatorios_lidos === c.cadernos.obrigatorios_total ? 'ok' : 'pendente'">
+                        {{ c.cadernos.obrigatorios_lidos }} de {{ c.cadernos.obrigatorios_total }} obrigatórios
+                        <AppIcon name="chevron-right" size="12" class="ml-1" />
+                      </span>
+                      <span v-if="c.cadernos.opcionais_total" class="block text-[11px] text-slate-400 mt-1 group-hover:text-slate-600">
+                        {{ c.cadernos.opcionais_lidos }} de {{ c.cadernos.opcionais_total }} opcionais lidos
+                      </span>
+                    </button>
                   </td>
                   <td class="py-3 pl-3 text-right" @click.stop>
                     <a
@@ -164,7 +184,8 @@
           <p v-if="mensagemCadernos" class="text-xs" :class="mensagemCadernosErro ? 'text-rose-700' : 'text-emerald-700'">{{ mensagemCadernos }}</p>
 
           <ul class="divide-y divide-slate-100 border-t border-slate-100">
-            <li v-for="cad in dados.cadernos" :key="cad.arquivo" class="py-3 flex items-center gap-3">
+            <li v-for="cad in dados.cadernos" :key="cad.arquivo" class="py-3">
+              <div class="flex items-center gap-3">
               <span class="w-8 h-10 rounded bg-[#9c2337] text-white text-[9px] font-semibold flex items-end justify-center pb-1 shrink-0">PDF</span>
               <span class="min-w-0 flex-1">
                 <span class="block text-sm font-medium text-slate-800 truncate">{{ cad.titulo }}</span>
@@ -172,15 +193,23 @@
                   {{ cad.categoria }} · {{ cad.obrigatorio ? 'Obrigatório' : 'Opcional' }} · {{ descreverPublico(cad) }}
                 </span>
               </span>
-              <span class="badge shrink-0" :class="cad.total_leram === cad.total_publico ? 'ok' : (cad.obrigatorio ? 'pendente' : 'neutro')">
+              <button
+                type="button"
+                @click="abrirLeiturasDoCaderno(cad)"
+                class="badge shrink-0 cursor-pointer"
+                :class="cad.total_leram === cad.total_publico ? 'ok' : (cad.obrigatorio ? 'pendente' : 'neutro')"
+                title="Ver quem leu e quem não leu"
+              >
                 {{ cad.total_leram }} de {{ cad.total_publico }} leram
-              </span>
+                <AppIcon name="chevron-right" size="12" class="ml-1" />
+              </button>
               <button v-if="pode(colaborador, 'rh_cadernos', 'editar')" type="button" @click="editarCaderno(cad)" class="w-8 h-8 rounded-lg text-slate-400 hover:bg-slate-100 hover:text-slate-800 flex items-center justify-center cursor-pointer shrink-0" title="Editar categoria e público" aria-label="Editar caderno">
                 <AppIcon name="edit" size="14" />
               </button>
               <button v-if="pode(colaborador, 'rh_cadernos', 'remover')" type="button" @click="removerCaderno(cad)" class="w-8 h-8 rounded-lg text-slate-400 hover:bg-rose-50 hover:text-rose-700 flex items-center justify-center cursor-pointer shrink-0" title="Remover caderno" aria-label="Remover caderno">
                 <AppIcon name="x" size="15" />
               </button>
+              </div>
             </li>
             <li v-if="!dados.cadernos.length" class="py-10 text-center text-sm text-slate-400">Nenhum caderno publicado.</li>
           </ul>
@@ -274,6 +303,7 @@
       <HoleriteModal
         v-if="holeriteAberto"
         :holerite="holeriteAberto"
+        consulta-rh
         :colaborador="dados.colaboradores.find(c => c.matricula === matriculaHolerite) || {}"
         @close="holeriteAberto = null"
       />
@@ -329,6 +359,45 @@
         </div>
       </div>
     </template>
+
+    <!-- Modal: quem leu / o que foi lido -->
+    <Teleport to="body">
+      <div v-if="modalLeitura" class="fixed inset-0 z-[60] bg-black/40 flex items-end sm:items-center justify-center p-0 sm:p-4" @click.self="modalLeitura = null">
+        <div class="w-full sm:max-w-lg bg-white rounded-t-2xl sm:rounded-2xl shadow-2xl max-h-[85vh] flex flex-col">
+          <div class="px-5 pt-5 pb-4 border-b border-slate-100 flex items-start justify-between gap-3">
+            <div class="min-w-0">
+              <h3 class="text-base font-semibold text-slate-900">{{ modalLeitura.titulo }}</h3>
+              <p class="text-xs text-slate-500 mt-0.5">{{ modalLeitura.subtitulo }}</p>
+            </div>
+            <button type="button" @click="modalLeitura = null" class="w-9 h-9 rounded-full hover:bg-slate-100 text-slate-500 flex items-center justify-center cursor-pointer shrink-0" aria-label="Fechar">
+              <AppIcon name="x" size="16" />
+            </button>
+          </div>
+
+          <div class="flex gap-1 px-5 pt-3">
+            <button
+              v-for="(g, i) in modalLeitura.grupos"
+              :key="g.rotulo"
+              type="button"
+              @click="grupoModal = i"
+              class="h-9 px-4 rounded-full text-xs font-semibold transition cursor-pointer"
+              :class="grupoModal === i ? 'bg-[#141414] text-white' : 'bg-slate-100 text-slate-600 hover:text-slate-900'"
+            >{{ g.rotulo }} ({{ g.itens.length }})</button>
+          </div>
+
+          <ul class="overflow-y-auto px-5 py-3 divide-y divide-slate-100">
+            <li v-for="(item, i) in modalLeitura.grupos[grupoModal].itens" :key="i" class="py-3 flex items-center justify-between gap-3">
+              <span class="min-w-0">
+                <span class="block text-sm font-medium text-slate-900 truncate">{{ item.nome }}</span>
+                <span class="block text-xs text-slate-400 truncate">{{ item.detalhe }}</span>
+              </span>
+              <span class="text-xs shrink-0" :class="item.data ? 'text-emerald-700' : 'text-amber-700'">{{ item.data || modalLeitura.rotuloPendente || 'Não leu' }}</span>
+            </li>
+            <li v-if="!modalLeitura.grupos[grupoModal].itens.length" class="py-8 text-center text-sm text-slate-400">{{ modalLeitura.grupos[grupoModal].vazio }}</li>
+          </ul>
+        </div>
+      </div>
+    </Teleport>
   </div>
 </template>
 
@@ -336,6 +405,7 @@
 import { ref, computed, watch, onMounted } from 'vue';
 import AppIcon from './AppIcon.vue';
 import { pode } from '../utils/permissoes.js';
+import { usarFecharComEsc } from '../utils/fecharComEsc.js';
 import PontoView from './PontoView.vue';
 import HoleriteModal from './HoleriteModal.vue';
 
@@ -376,6 +446,82 @@ function auth() {
   return { 'Authorization': `Bearer ${localStorage.getItem('vb_auth_token') || ''}` };
 }
 
+// Modal de leituras: { titulo, subtitulo, grupos: [{ rotulo, vazio, itens: [{ nome, detalhe, data }] }] }
+const modalLeitura = ref(null);
+const grupoModal = ref(0);
+usarFecharComEsc(() => { modalLeitura.value = null; }, () => !!modalLeitura.value);
+
+function abrirLeiturasDoCaderno(cad) {
+  const pessoa = (l) => ({ nome: l.nome, detalhe: `${l.matricula} · ${l.cargo}`, data: l.lido_em });
+  modalLeitura.value = {
+    titulo: cad.titulo,
+    subtitulo: `${cad.categoria} · ${cad.obrigatorio ? 'Leitura obrigatória' : 'Leitura opcional'} · ${cad.total_leram} de ${cad.total_publico} leram`,
+    grupos: [
+      { rotulo: 'Não leram', vazio: 'Todos leram.', itens: cad.leitores.filter((l) => !l.lido_em).map(pessoa) },
+      { rotulo: 'Leram', vazio: 'Ninguém leu ainda.', itens: cad.leitores.filter((l) => l.lido_em).map(pessoa) }
+    ]
+  };
+  grupoModal.value = cad.total_leram === cad.total_publico ? 1 : 0;
+}
+
+// Modal genérico: separa os colaboradores em "pendentes" e "em dia" para um indicador
+function abrirPorColaborador(titulo, subtitulo, emDia, resumoDe, considerar = () => true) {
+  const lista = dados.value.colaboradores.filter(considerar);
+  const pessoa = (c) => ({ nome: c.nome, detalhe: resumoDe(c), data: emDia(c) ? 'Em dia' : null });
+  modalLeitura.value = {
+    titulo,
+    subtitulo,
+    rotuloPendente: 'Pendente',
+    grupos: [
+      { rotulo: 'Pendentes', vazio: 'Ninguém pendente.', itens: lista.filter((c) => !emDia(c)).map(pessoa) },
+      { rotulo: 'Em dia', vazio: 'Ninguém em dia ainda.', itens: lista.filter(emDia).map(pessoa) }
+    ]
+  };
+  grupoModal.value = lista.every(emDia) ? 1 : 0;
+}
+
+function abrirHoleritesDoColaborador(c) {
+  const item = (h) => ({ nome: h.descricao, detalhe: h.recebido_em ? 'Recebido' : 'O colaborador ainda não abriu', data: h.recebido_em });
+  modalLeitura.value = {
+    titulo: c.nome,
+    subtitulo: `${c.matricula} · holerites de ${ano.value} · ${c.holerites.recebidos} de ${c.holerites.total} recebidos`,
+    rotuloPendente: 'Não recebido',
+    grupos: [
+      { rotulo: 'Não recebidos', vazio: 'Recebeu todos.', itens: c.holerites.detalhe.filter((h) => !h.recebido_em).map(item) },
+      { rotulo: 'Recebidos', vazio: 'Nenhum recebido ainda.', itens: c.holerites.detalhe.filter((h) => h.recebido_em).map(item) }
+    ]
+  };
+  grupoModal.value = c.holerites.recebidos === c.holerites.total ? 1 : 0;
+}
+
+function abrirPontoDoColaborador(c) {
+  const comps = c.ponto?.competencias || [];
+  const item = (p) => ({ nome: p.mes_nome, detalhe: p.assinado_em ? 'Assinado' : 'Falta assinar', data: p.assinado_em });
+  modalLeitura.value = {
+    titulo: c.nome,
+    subtitulo: `${c.matricula} · espelhos de ponto`,
+    rotuloPendente: 'Falta assinar',
+    grupos: [
+      { rotulo: 'Falta assinar', vazio: 'Todos assinados.', itens: comps.filter((p) => !p.assinado_em).map(item) },
+      { rotulo: 'Assinados', vazio: 'Nenhum assinado ainda.', itens: comps.filter((p) => p.assinado_em).map(item) }
+    ]
+  };
+  grupoModal.value = comps.every((p) => p.assinado_em) ? 1 : 0;
+}
+
+function abrirLeiturasDoColaborador(c) {
+  const doc = (d) => ({ nome: d.titulo, detalhe: `${d.categoria} · ${d.obrigatorio ? 'Obrigatório' : 'Opcional'}`, data: d.lido_em });
+  const lista = c.cadernos.detalhe;
+  modalLeitura.value = {
+    titulo: c.nome,
+    subtitulo: `${c.matricula} · ${c.cadernos.obrigatorios_lidos} de ${c.cadernos.obrigatorios_total} obrigatórios · ${c.cadernos.opcionais_lidos} de ${c.cadernos.opcionais_total} opcionais`,
+    grupos: [
+      { rotulo: 'Não leu', vazio: 'Leu todos os cadernos.', itens: lista.filter((d) => !d.lido_em).map(doc) },
+      { rotulo: 'Leu', vazio: 'Ainda não leu nenhum caderno.', itens: lista.filter((d) => d.lido_em).map(doc) }
+    ]
+  };
+  grupoModal.value = lista.every((d) => d.lido_em) ? 1 : 0;
+}
 const matriculaPonto = ref('');
 const matriculaHolerite = ref('');
 const anoHolerite = ref(anoAtual);
@@ -443,19 +589,22 @@ const indicadores = computed(() => {
       rotulo: 'Holerites recebidos',
       feito: cs.reduce((t, c) => t + c.holerites.recebidos, 0),
       total: cs.reduce((t, c) => t + c.holerites.total, 0),
-      descricao: `Demonstrativos de ${ano.value} abertos ou enviados ao WhatsApp.`
+      descricao: `Demonstrativos de ${ano.value} abertos ou enviados ao WhatsApp.`,
+      abrir: () => abrirPorColaborador('Holerites recebidos', `Demonstrativos de ${ano.value}`, (c) => c.holerites.recebidos === c.holerites.total, (c) => `${c.holerites.recebidos} de ${c.holerites.total} recebidos`)
     },
     {
       rotulo: 'Espelhos assinados',
       feito: comPonto.filter((c) => c.ponto.assinado_em).length,
       total: comPonto.length,
-      descricao: 'Espelhos de ponto da competência atual.'
+      descricao: 'Espelhos de ponto da competência atual.',
+      abrir: () => abrirPorColaborador('Espelhos assinados', 'Competência mais recente de cada colaborador', (c) => !!c.ponto?.assinado_em, (c) => (c.ponto ? `${c.ponto.mes_nome} · ${c.ponto.assinado_em ? 'assinado em ' + c.ponto.assinado_em : 'falta assinar'}` : 'Sem espelho'), (c) => !!c.ponto)
     },
     {
       rotulo: 'Cadernos obrigatórios',
       feito: cs.reduce((t, c) => t + c.cadernos.obrigatorios_lidos, 0),
       total: cs.reduce((t, c) => t + c.cadernos.obrigatorios_total, 0),
-      descricao: `Leituras obrigatórias confirmadas. Opcionais lidas: ${cs.reduce((t, c) => t + c.cadernos.opcionais_lidos, 0)} de ${cs.reduce((t, c) => t + c.cadernos.opcionais_total, 0)}.`
+      descricao: `Leituras obrigatórias confirmadas. Opcionais lidas: ${cs.reduce((t, c) => t + c.cadernos.opcionais_lidos, 0)} de ${cs.reduce((t, c) => t + c.cadernos.opcionais_total, 0)}.`,
+      abrir: () => abrirPorColaborador('Cadernos obrigatórios', 'Leituras obrigatórias de cada colaborador', (c) => c.cadernos.obrigatorios_lidos === c.cadernos.obrigatorios_total, (c) => `${c.cadernos.obrigatorios_lidos} de ${c.cadernos.obrigatorios_total} lidos`)
     }
   ];
 });

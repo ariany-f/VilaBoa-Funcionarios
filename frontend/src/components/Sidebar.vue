@@ -46,9 +46,15 @@
     <div class="flex-1 overflow-y-auto py-4 px-3 space-y-1.5 min-h-0 custom-scrollbar">
       
       <!-- Módulos liberados -->
+      <template v-for="(modulo, i) in modulos" :key="modulo.id">
+      <!-- Subtítulos: área do colaborador e área do RH -->
+      <span
+        v-if="!recolhida && temRh && (i === 0 || (modulo.somenteRh && !modulos[i - 1].somenteRh))"
+        class="block px-3 pb-1 text-[10px] font-semibold uppercase tracking-wider text-slate-400"
+        :class="i === 0 ? 'pt-1' : 'pt-5'"
+      >{{ modulo.somenteRh ? 'Portal do RH' : 'Meu portal' }}</span>
+      <div v-else-if="recolhida && temRh && modulo.somenteRh && !modulos[i - 1]?.somenteRh" class="mx-3 my-2 border-t border-slate-200"></div>
       <button
-        v-for="modulo in modulos"
-        :key="modulo.id"
         type="button"
         @click="$emit('selecionar', modulo.id)"
         class="relative w-full flex items-center px-3 py-3 rounded-xl text-xs font-bold transition-all duration-150 cursor-pointer group"
@@ -77,6 +83,7 @@
           class="absolute top-2 right-2 w-2 h-2 rounded-full bg-[#9c2337]"
         ></span>
       </button>
+      </template>
 
       <!-- Bloco Informativo de Conformidade (Apenas quando expandida) -->
       <div v-if="!recolhida" class="pt-6 px-1">
@@ -185,6 +192,7 @@ const todosModulos = [
 
 // O Painel do RH só aparece para perfis com o menu do RH
 const modulos = computed(() => todosModulos.filter(m => !m.somenteRh || temMenu(props.colaborador, '/rh')));
+const temRh = computed(() => modulos.value.some(m => m.somenteRh));
 </script>
 
 <style scoped>

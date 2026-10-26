@@ -232,7 +232,7 @@
           {{ carregando ? 'Validando...' : 'Confirmar código' }}
         </button>
 
-        <button type="button" @click="responderPerguntas" class="w-full text-xs font-semibold text-slate-500 hover:text-slate-900 transition cursor-pointer">
+        <button v-if="dadosEtapaSeguranca.perguntas_ativas" type="button" @click="responderPerguntas" class="w-full text-xs font-semibold text-slate-500 hover:text-slate-900 transition cursor-pointer">
           Não tenho acesso ao meu celular
         </button>
       </div>

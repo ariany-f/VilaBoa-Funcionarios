@@ -55,7 +55,8 @@ class RhController
                 'ponto' => $espelho ? [
                     'competencia' => $espelho['competencia'],
                     'mes_nome' => $espelho['mes_nome'],
-                    'assinado_em' => $espelho['assinatura']['data_hora'] ?? null
+                    'assinado_em' => $espelho['assinatura']['data_hora'] ?? null,
+                    'competencias' => $this->ponto->competencias($c['matricula'])
                 ] : null,
                 'cadernos' => $this->resumoCadernos($c, $cadernos, $lidos)
             ];
@@ -76,7 +77,13 @@ class RhController
                     'publico' => $cad['publico'],
                     'valores' => $cad['valores'],
                     'total_publico' => count($publico),
-                    'total_leram' => count($leram)
+                    'total_leram' => count($leram),
+                    'leitores' => array_values(array_map(fn($c) => [
+                        'matricula' => $c['matricula'],
+                        'nome' => $c['nome'],
+                        'cargo' => $c['cargo'],
+                        'lido_em' => $leituras[$c['matricula']][$cad['arquivo']]['data_hora'] ?? null
+                    ], $publico))
                 ];
             }, $cadernos),
             'categorias' => CadernosController::CATEGORIAS,

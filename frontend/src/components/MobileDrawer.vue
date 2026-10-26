@@ -60,9 +60,13 @@
 
           <nav class="space-y-1 text-xs">
             <!-- Módulos liberados -->
+            <template v-for="(modulo, i) in modulos" :key="modulo.id">
+            <span
+              v-if="temRh && (i === 0 || (modulo.somenteRh && !modulos[i - 1].somenteRh))"
+              class="block px-2 pb-1 text-[10px] font-bold uppercase tracking-wider text-slate-400"
+              :class="i === 0 ? '' : 'pt-3'"
+            >{{ modulo.somenteRh ? 'Portal do RH' : 'Meu portal' }}</span>
             <button
-              v-for="modulo in modulos"
-              :key="modulo.id"
               type="button"
               @click="navegar(modulo.id)"
               class="w-full flex items-center justify-between p-3 rounded-2xl transition cursor-pointer group active:scale-[0.98]"
@@ -96,6 +100,7 @@
                 :class="abaAtiva === modulo.id ? 'text-white/70' : 'text-slate-300 group-hover:text-slate-500'" 
               />
             </button>
+            </template>
           </nav>
         </div>
 
@@ -193,6 +198,7 @@ const todosModulos = [
 
 // O Painel do RH só aparece para perfis com o menu do RH
 const modulos = computed(() => todosModulos.filter(m => !m.somenteRh || temMenu(props.colaborador, '/rh')));
+const temRh = computed(() => modulos.value.some(m => m.somenteRh));
 
 function navegar(aba) {
   emit('selecionar', aba);
