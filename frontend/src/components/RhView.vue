@@ -329,6 +329,10 @@
             <input v-model="formPonto.saldo" type="text" placeholder="+14h 30m" class="w-full h-10 px-3 rounded-lg border border-slate-200 bg-slate-50 text-sm outline-none" />
           </label>
           <label class="sm:col-span-2 text-xs font-medium text-slate-700 space-y-1.5">
+            <span>Link de assinatura no Autentique</span>
+            <input v-model="formPonto.link" type="url" placeholder="https://painel.autentique.com.br/..." class="w-full h-10 px-3 rounded-lg border border-slate-200 bg-slate-50 text-sm outline-none" />
+          </label>
+          <label class="sm:col-span-2 text-xs font-medium text-slate-700 space-y-1.5">
             <span>Arquivo CSV</span>
             <input ref="campoCsv" type="file" accept=".csv,text/csv" required class="block w-full text-sm text-slate-600 file:mr-3 file:h-9 file:px-4 file:rounded-full file:border-0 file:bg-slate-100 file:text-slate-700 file:font-semibold file:cursor-pointer" />
           </label>
@@ -440,7 +444,7 @@ const enviando = ref(false);
 const mensagemCadernos = ref('');
 const mensagemCadernosErro = ref(false);
 
-const formPonto = ref({ matricula: '', saldo: '' });
+const formPonto = ref({ matricula: '', saldo: '', link: '' });
 const campoCsv = ref(null);
 const importando = ref(false);
 const mensagemPonto = ref('');
@@ -708,6 +712,7 @@ async function importarPonto() {
   const fd = new FormData();
   fd.append('matricula', formPonto.value.matricula);
   fd.append('saldo_banco', formPonto.value.saldo);
+  fd.append('link_assinatura', formPonto.value.link);
   fd.append('arquivo', arquivo);
   try {
     const res = await fetch('/api/rh/ponto', { method: 'POST', headers: auth(), body: fd });

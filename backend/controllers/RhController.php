@@ -121,7 +121,7 @@ class RhController
      * data;entrada1;saida1;entrada2;saida2;ocorrencia   (data em dd/mm/aaaa, horas em hh:mm)
      * A jornada de referência para o saldo diário é de 8 horas.
      */
-    public function importarPonto(string $matricula, string $saldoBanco, string $csv): array
+    public function importarPonto(string $matricula, string $saldoBanco, string $csv, string $linkAssinatura = ''): array
     {
         if (!$this->colaboradorExiste($matricula)) {
             return ['erro' => 'Matrícula não encontrada.'];
@@ -180,7 +180,9 @@ class RhController
                 'horas_compensadas' => '00h 00m',
                 'limite_compensacao' => "31/12/$ano"
             ],
-            'dias' => $dias
+            'dias' => $dias,
+            // Documento do espelho no Autentique, onde o colaborador assina
+            'link_assinatura' => filter_var($linkAssinatura, FILTER_VALIDATE_URL) ? $linkAssinatura : null
         ]);
 
         return ['sucesso' => true, 'competencia' => $competencia, 'dias' => count($dias)];

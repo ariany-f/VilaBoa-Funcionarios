@@ -196,7 +196,7 @@
           <button @click="voltarParaLogin" class="text-slate-400 hover:text-slate-700 text-xs font-semibold flex items-center gap-1 transition cursor-pointer">
             ← Voltar para o início
           </button>
-          <span class="text-xs font-bold text-[#9c2337]">Etapa 2 de 3</span>
+          <span class="text-xs font-bold text-[#9c2337]">Etapa 3 de 3</span>
         </div>
 
         <div class="text-center space-y-2">
@@ -352,7 +352,7 @@
             <span class="text-xs font-bold text-[#9c2337] uppercase tracking-wider">Ação Obrigatória</span>
           </div>
           <div class="flex items-center gap-1.5">
-            <span class="text-xs font-bold text-[#9c2337]">Etapa 3 de 3</span>
+            <span class="text-xs font-bold text-[#9c2337]">Etapa {{ fluxoToken ? '2' : '3' }} de 3</span>
             <div class="flex gap-1">
               <span class="w-4 h-1.5 rounded-full bg-[#9c2337]"></span>
               <span class="w-4 h-1.5 rounded-full bg-[#9c2337]"></span>
@@ -2122,8 +2122,19 @@ async function fazerLogin() {
     dadosEtapaSeguranca.value = data;
     respostaSelecionada.value = '';
     codigoToken.value = '';
-    // Com o serviço de token ativo, confirma pelo celular; senão, vai direto às perguntas
-    etapaAtual.value = data.token_sms?.ativo ? 'token' : 'seguranca';
+    fluxoToken.value = !!data.token_sms?.ativo;
+    if (data.token_sms?.ativo) {
+      // 1º confirma o telefone; o código vem depois, para o número confirmado
+      dadosEtapaTelefone.value = {
+        phone_token: data.phone_token,
+        colaborador: { nome: data.colaborador?.primeiro_nome, ...data.telefone }
+      };
+      editandoTelefone.value = false;
+      novoTelefoneInput.value = '';
+      etapaAtual.value = 'telefone';
+    } else {
+      etapaAtual.value = 'seguranca';
+    }
   } catch (err) {
     mensagemErro.value = 'Erro de conexão com o servidor da Vila Boa Construções e Serviços.';
   } finally {
@@ -2133,6 +2144,8 @@ async function fazerLogin() {
 
 // 2. Passo: Validar Resposta do Dado Pessoal Aleatório
 const codigoToken = ref('');
+// Com token: CPF → telefone (etapa 2) → código (etapa 3)
+const fluxoToken = ref(false);
 
 async function validarToken() {
   if (codigoToken.value.length !== 6 || carregando.value) return;
@@ -2152,10 +2165,7 @@ async function validarToken() {
       mensagemErro.value = data.erro || 'Código inválido.';
       return;
     }
-    dadosEtapaTelefone.value = data;
-    editandoTelefone.value = false;
-    novoTelefoneInput.value = '';
-    etapaAtual.value = 'telefone';
+    await concluirLogin(data);
   } catch (err) {
     mensagemErro.value = 'Falha ao validar o código.';
   } finally {
@@ -2260,23 +2270,30 @@ async function enviarConfirmacaoTelefone(telefone) {
       return;
     }
 
-    // Salva token final de acesso
-    localStorage.setItem('vb_auth_token', data.auth_token);
-    usuarioLogado.value = data.colaborador;
+    if (data.etapa_necessaria === 'token') {
+      dadosEtapaSeguranca.value = data;
+      codigoToken.value = '';
+      etapaAtual.value = 'token';
+      return;
+    }
 
-    // Carrega todos os módulos
-    await carregarTodosModulos(data.auth_token);
-
-    // Abre o Dashboard na rota ativa
-    const destino = obterRotaValida();
-    navegarParaAba(destino, false);
-    etapaAtual.value = 'dashboard';
-    irParaDestino();
+    await concluirLogin(data);
   } catch (err) {
     mensagemErro.value = 'Erro ao registrar confirmação do telefone.';
   } finally {
     carregando.value = false;
   }
+}
+
+// Login concluído: guarda o acesso, carrega os módulos e abre o painel
+async function concluirLogin(data) {
+  localStorage.setItem('vb_auth_token', data.auth_token);
+  usuarioLogado.value = data.colaborador;
+  await carregarTodosModulos(data.auth_token);
+  const destino = obterRotaValida();
+  navegarParaAba(destino, false);
+  etapaAtual.value = 'dashboard';
+  irParaDestino();
 }
 
 // Carregamento dos módulos integrados

@@ -352,7 +352,8 @@
           "saldo": "+00:04",
           "tipo": "Trabalhado"
         }
-      ]
+      ],
+      "link_assinatura": "https://painel.autentique.com.br/"
     },
     "09/2026": {
       "competencia": "09/2026",
@@ -695,7 +696,8 @@
           "saldo": "+00:04",
           "tipo": "Trabalhado"
         }
-      ]
+      ],
+      "link_assinatura": "https://painel.autentique.com.br/"
     },
     "10/2026": {
       "competencia": "10/2026",
@@ -950,7 +952,8 @@
           "saldo": "+00:59",
           "tipo": "Trabalhado (Hoje)"
         }
-      ]
+      ],
+      "link_assinatura": "https://painel.autentique.com.br/"
     }
   },
   "VB-2085": {
@@ -1306,7 +1309,8 @@
           "saldo": "+00:09",
           "tipo": "Trabalhado"
         }
-      ]
+      ],
+      "link_assinatura": "https://painel.autentique.com.br/"
     },
     "09/2026": {
       "competencia": "09/2026",
@@ -1649,7 +1653,8 @@
           "saldo": "-00:11",
           "tipo": "Trabalhado"
         }
-      ]
+      ],
+      "link_assinatura": "https://painel.autentique.com.br/"
     },
     "10/2026": {
       "competencia": "10/2026",
@@ -1948,7 +1953,8 @@
           "saldo": "+01:02",
           "tipo": "Trabalhado (Hoje)"
         }
-      ]
+      ],
+      "link_assinatura": "https://painel.autentique.com.br/"
     }
   },
   "VB-3042": {
@@ -2304,7 +2310,8 @@
           "saldo": "+00:12",
           "tipo": "Trabalhado"
         }
-      ]
+      ],
+      "link_assinatura": "https://painel.autentique.com.br/"
     },
     "09/2026": {
       "competencia": "09/2026",
@@ -2647,7 +2654,8 @@
           "saldo": "+00:10",
           "tipo": "Trabalhado"
         }
-      ]
+      ],
+      "link_assinatura": "https://painel.autentique.com.br/"
     },
     "10/2026": {
       "competencia": "10/2026",
@@ -2946,7 +2954,8 @@
           "saldo": "+01:02",
           "tipo": "Trabalhado (Hoje)"
         }
-      ]
+      ],
+      "link_assinatura": "https://painel.autentique.com.br/"
     }
   }
 }

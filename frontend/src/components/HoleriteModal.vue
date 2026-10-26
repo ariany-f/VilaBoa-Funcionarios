@@ -42,7 +42,7 @@
       <!-- Corpo com rolagem do Holerite (Área imprimível) -->
       <div class="p-4 sm:p-5 overflow-y-auto space-y-4 text-xs sm:text-sm printable-area">
                 <!-- GRADE DE 2 COLUNAS NO TOPO: VALOR LÍQUIDO + CONFIRMAÇÃO DE CIÊNCIA CLT -->
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-3.5 items-stretch">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-3.5 items-stretch no-print">
           
           <!-- Coluna 1: Valor Líquido do Demonstrativo (Estilo Fintech Executiva) -->
           <div class="bg-slate-50 p-4 sm:p-5 rounded-2xl border border-slate-200/90 flex flex-col justify-between space-y-3 shadow-2xs">

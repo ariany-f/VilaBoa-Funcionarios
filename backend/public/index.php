@@ -89,6 +89,37 @@ const TOKEN_FIXO = '123456';
 // Perguntas de segurança (alternativa "não tenho acesso ao celular"). Desativadas por enquanto.
 const PERGUNTAS_SEGURANCA_ATIVAS = false;
 
+/** Login concluído: entrega o token de acesso ao portal (válido por 30 dias). */
+function responderAcessoLiberado(array $colaborador, PermissaoService $permissaoService): void
+{
+    registrarAuditoriaLgpd('LOGIN_AUTENTICADO', $colaborador['matricula'], ['id' => $colaborador['id']]);
+    $authToken = gerarToken([
+        'etapa' => 'autenticado',
+        'colaborador_id' => $colaborador['id'],
+        'matricula' => $colaborador['matricula'],
+        'nome' => $colaborador['nome']
+    ], 86400 * 30);
+
+    echo json_encode([
+        'sucesso' => true,
+        'mensagem' => 'Acesso liberado!',
+        'auth_token' => $authToken,
+        'colaborador' => [
+            'id' => $colaborador['id'],
+            'nome' => $colaborador['nome'],
+            'matricula' => $colaborador['matricula'],
+            'cpf' => $colaborador['cpf_formatado'],
+            'cargo' => $colaborador['cargo'],
+            'departamento' => $colaborador['departamento'],
+            'telefone_atual' => $colaborador['telefone_atual'],
+            'telefone_confirmado_em' => $colaborador['telefone_confirmado_em'],
+            'permissoes' => $permissaoService->matrizDoColaborador($colaborador),
+            'menus' => $permissaoService->menusDoColaborador($colaborador)
+        ]
+    ], JSON_UNESCAPED_UNICODE);
+    exit;
+}
+
 /** Resposta de identidade validada: libera o passo obrigatório de confirmação do telefone. */
 function responderIdentidadeValidada(array $colaborador): void
 {
@@ -399,7 +430,7 @@ if ($method === 'POST' && $route === '/login/token/validar') {
     }
 
     $sessao = validarToken($body['temp_token'] ?? '');
-    if (!$sessao || ($sessao['etapa'] ?? '') !== 'seguranca') {
+    if (!$sessao || ($sessao['etapa'] ?? '') !== 'token_sms') {
         http_response_code(401);
         echo json_encode(['erro' => 'Sessão expirada. Faça login novamente.'], JSON_UNESCAPED_UNICODE);
         exit;
@@ -420,7 +451,7 @@ if ($method === 'POST' && $route === '/login/token/validar') {
         exit;
     }
     registrarAuditoriaLgpd('LOGIN_TOKEN_VALIDADO', $colaborador['matricula']);
-    responderIdentidadeValidada($colaborador);
+    responderAcessoLiberado($colaborador, $permissaoService);
 }
 
 // 2. Passo 1: Login com CPF + Data de Nascimento
@@ -551,6 +582,12 @@ if ($method === 'POST' && $route === '/login') {
         'etapa_necessaria' => 'verificacao_seguranca',
         'temp_token' => $tempToken,
         'perguntas_ativas' => PERGUNTAS_SEGURANCA_ATIVAS,
+        // Fluxo com token: 1º confirma o telefone, 2º recebe o código nele
+        'phone_token' => TOKEN_SMS_ATIVO ? gerarToken(['etapa' => 'confirmacao_telefone', 'colaborador_id' => $colaborador['id']], 900) : null,
+        'telefone' => [
+            'telefone_atual' => $colaborador['telefone_atual'],
+            'telefone_confirmado_em' => $colaborador['telefone_confirmado_em']
+        ],
         'token_sms' => [
             'ativo' => TOKEN_SMS_ATIVO,
             'telefone_mascarado' => $telefoneDigitos ? '(**) *****-' . substr($telefoneDigitos, -4) : null
@@ -720,33 +757,27 @@ if ($method === 'POST' && $route === '/confirm-phone') {
         exit;
     }
 
-    // Token final completo de acesso ao portal (válido por 30 dias)
-    registrarAuditoriaLgpd('LOGIN_AUTENTICADO', $colaboradorAtualizado['matricula'], ['id' => $colaboradorAtualizado['id']]);
-    $authToken = gerarToken([
-        'etapa' => 'autenticado',
-        'colaborador_id' => $colaboradorAtualizado['id'],
-        'matricula' => $colaboradorAtualizado['matricula'],
-        'nome' => $colaboradorAtualizado['nome']
-    ], 86400 * 30);
+    if (TOKEN_SMS_ATIVO) {
+        // Próximo passo: código enviado para o telefone que acabou de ser confirmado
+        $digitos = preg_replace('/\D/', '', $colaboradorAtualizado['telefone_atual'] ?? '');
+        echo json_encode([
+            'sucesso' => true,
+            'etapa_necessaria' => 'token',
+            'temp_token' => gerarToken(['etapa' => 'token_sms', 'colaborador_id' => $colaboradorAtualizado['id']], 600),
+            'perguntas_ativas' => PERGUNTAS_SEGURANCA_ATIVAS,
+            'token_sms' => [
+                'ativo' => true,
+                'telefone_mascarado' => $digitos ? '(**) *****-' . substr($digitos, -4) : null
+            ],
+            'colaborador' => [
+                'id' => $colaboradorAtualizado['id'],
+                'primeiro_nome' => explode(' ', $colaboradorAtualizado['nome'])[0]
+            ]
+        ], JSON_UNESCAPED_UNICODE);
+        exit;
+    }
 
-    echo json_encode([
-        'sucesso' => true,
-        'mensagem' => 'Telefone confirmado com sucesso!',
-        'auth_token' => $authToken,
-        'colaborador' => [
-            'id' => $colaboradorAtualizado['id'],
-            'nome' => $colaboradorAtualizado['nome'],
-            'matricula' => $colaboradorAtualizado['matricula'],
-            'cpf' => $colaboradorAtualizado['cpf_formatado'],
-            'cargo' => $colaboradorAtualizado['cargo'],
-            'departamento' => $colaboradorAtualizado['departamento'],
-            'telefone_atual' => $colaboradorAtualizado['telefone_atual'],
-            'telefone_confirmado_em' => $colaboradorAtualizado['telefone_confirmado_em'],
-            'permissoes' => $permissaoService->matrizDoColaborador($colaboradorAtualizado),
-            'menus' => $permissaoService->menusDoColaborador($colaboradorAtualizado)
-        ]
-    ], JSON_UNESCAPED_UNICODE);
-    exit;
+    responderAcessoLiberado($colaboradorAtualizado, $permissaoService);
 }
 
 // 5. Autenticação para rotas protegidas
@@ -1236,7 +1267,7 @@ if (str_starts_with($route, '/rh/')) {
             ? file_get_contents($_FILES['arquivo']['tmp_name'])
             : '';
         if (!mb_check_encoding($csv, 'UTF-8')) $csv = mb_convert_encoding($csv, 'UTF-8', 'Windows-1252');
-        $resp = $rhController->importarPonto($_POST['matricula'] ?? '', trim($_POST['saldo_banco'] ?? ''), $csv);
+        $resp = $rhController->importarPonto($_POST['matricula'] ?? '', trim($_POST['saldo_banco'] ?? ''), $csv, trim($_POST['link_assinatura'] ?? ''));
         if (!empty($resp['erro'])) http_response_code(400);
         else registrarAuditoriaLgpd('RH_PONTO_IMPORTADO', $colaboradorLogado['matricula'], ['matricula' => $_POST['matricula'], 'competencia' => $resp['competencia']]);
         echo json_encode($resp, JSON_UNESCAPED_UNICODE);
