@@ -56,47 +56,14 @@
           </div>
 
           <!-- Coluna 2: Confirmação de Ciência e Recebimento CLT (Pendente ou Confirmada) -->
-          <!-- CASO PENDENTE: Ação Imediata para Assinar ao Lado do Valor Líquido -->
+          <!-- CASO PENDENTE: recebimento sendo registrado automaticamente ao abrir -->
           <div 
             v-if="!holerite.aceite?.confirmado" 
             id="secao-ciencia"
-            class="bg-amber-50/80 border-2 border-amber-300/90 rounded-2xl p-4 flex flex-col justify-between space-y-2.5 shadow-2xs transition-all duration-300"
+            class="bg-slate-50 border border-slate-200 rounded-2xl p-4 flex items-center gap-2.5 text-slate-700 text-xs font-medium"
           >
-            <div class="space-y-1.5">
-              <div class="flex items-center justify-between">
-                <div class="flex items-center gap-1.5">
-                  <div class="w-5 h-5 rounded-full bg-amber-500 text-white flex items-center justify-center shrink-0">
-                    <AppIcon name="shield-check" size="12" />
-                  </div>
-                  <span class="text-[10px] uppercase font-black text-amber-950 tracking-wider">Ação Requerida</span>
-                </div>
-                <span class="text-[9px] font-black uppercase text-amber-950 bg-amber-200/90 border border-amber-400 px-2 py-0.5 rounded-full">
-                  Pendente CLT
-                </span>
-              </div>
-
-              <h4 class="text-xs sm:text-sm font-black text-amber-950 leading-tight">
-                Confirmação de Ciência e Recebimento
-              </h4>
-              <p class="text-[11px] text-amber-900/90 leading-snug">
-                Confirme o recebimento deste holerite para registrar a ciência oficial perante o DP e eSocial.
-              </p>
-
-              <div v-if="erroCiencia" class="p-1.5 rounded-lg bg-rose-100 border border-rose-300 text-rose-800 text-[10px] font-medium">
-                {{ erroCiencia }}
-              </div>
-            </div>
-
-            <button 
-              type="button"
-              @click="confirmarCiencia"
-              :disabled="enviandoCiencia"
-              class="w-full h-11 px-4 bg-emerald-700 hover:bg-emerald-800 active:scale-[0.98] disabled:opacity-50 text-white font-bold rounded-xl text-xs sm:text-sm flex items-center justify-center gap-2 shadow-xs transition cursor-pointer shrink-0"
-            >
-              <span v-if="enviandoCiencia" class="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
-              <AppIcon v-else name="check" size="15" />
-              <span>{{ enviandoCiencia ? 'Registrando...' : 'Confirmar Ciência do Holerite' }}</span>
-            </button>
+            <span class="w-3.5 h-3.5 border-2 border-slate-400 border-t-transparent rounded-full animate-spin shrink-0"></span>
+            <span>Registrando recebimento do holerite...</span>
           </div>
 
           <!-- CASO JÁ CONFIRMADO: Selo de Validade Digital CLT -->
@@ -512,41 +479,6 @@ const badgeTipoFolhaClasse = computed(() => {
   return 'bg-slate-100 text-slate-800 border-slate-300';
 });
 
-const enviandoCiencia = ref(false);
-const erroCiencia = ref('');
-
-async function confirmarCiencia() {
-  if (!props.holerite?.id || enviandoCiencia.value) return;
-
-  enviandoCiencia.value = true;
-  erroCiencia.value = '';
-
-  try {
-    const token = localStorage.getItem('vb_auth_token') || '';
-    const res = await fetch('/api/holerites/aceitar', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`
-      },
-      body: JSON.stringify({
-        holerite_id: props.holerite.id
-      })
-    });
-
-    const data = await res.json();
-    if (!res.ok) {
-      erroCiencia.value = data.erro || 'Não foi possível registrar a confirmação de ciência.';
-      return;
-    }
-
-    emit('ciencia-confirmada', data.holerite);
-  } catch (err) {
-    erroCiencia.value = 'Falha de comunicação ao registrar ciência com o servidor.';
-  } finally {
-    enviandoCiencia.value = false;
-  }
-}
 
 function compartilharNoWhatsapp() {
   if (!props.holerite) return;

@@ -2527,6 +2527,8 @@ function abrirModalWhatsapp(h) {
 }
 
 function onWhatsappEnviado(dados) {
+  const h = holerites.value.find(x => x.id === dados?.holeriteId);
+  if (h) registrarRecebimento(h);
   toastMensagem.value = 'Demonstrativo enviado para o WhatsApp com sucesso!';
   setTimeout(() => {
     toastMensagem.value = '';
@@ -2538,10 +2540,34 @@ const focarCienciaModal = ref(false);
 function abrirHolerite(h, focarCiencia = false) {
   focarCienciaModal.value = focarCiencia;
   holeriteSelecionado.value = h;
+  registrarRecebimento(h);
+}
+
+// Registra automaticamente a ciência/recebimento ao abrir ou enviar para o WhatsApp
+const registrandoRecebimento = new Set();
+async function registrarRecebimento(h) {
+  if (!h?.id || h.aceite?.confirmado || registrandoRecebimento.has(h.id)) return;
+  registrandoRecebimento.add(h.id);
+  try {
+    const token = localStorage.getItem('vb_auth_token') || '';
+    const res = await fetch('/api/holerites/aceitar', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+      body: JSON.stringify({ holerite_id: h.id })
+    });
+    const data = await res.json();
+    if (res.ok && data.holerite) onHoleriteCienciaConfirmada(data.holerite);
+  } catch (e) {
+    console.error('Falha ao registrar recebimento do holerite:', e);
+  } finally {
+    registrandoRecebimento.delete(h.id);
+  }
 }
 
 function onHoleriteCienciaConfirmada(holeriteAtualizado) {
-  holeriteSelecionado.value = holeriteAtualizado;
+  if (holeriteSelecionado.value?.id === holeriteAtualizado.id) {
+    holeriteSelecionado.value = holeriteAtualizado;
+  }
   const idx = holerites.value.findIndex(h => h.id === holeriteAtualizado.id);
   if (idx !== -1) {
     holerites.value[idx] = holeriteAtualizado;

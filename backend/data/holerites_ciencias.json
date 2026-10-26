@@ -1,1 +1,15 @@
-{}
+{
+    "VB-3042_HOL-202609-VB-3042": {
+        "confirmado": true,
+        "matricula": "VB-3042",
+        "holerite_id": "HOL-202609-VB-3042",
+        "competencia": "09\/2026",
+        "data_hora": "26\/10\/2026 às 16:05:13",
+        "timestamp": "2026-10-26T16:05:13+01:00",
+        "ip": "127.0.0.1",
+        "user_agent": "Mozilla\/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit\/537.36 (KHTML, like Gecko) Chrome\/155.0.0.0 Safari\/537.36 Edg\/155.0.0.0",
+        "hash_comprovante": "2D96517752A3EFEBA506E5E538ACFD92375D86CA8CE5BF8A008A756F73AD86DC",
+        "base_legal": "Art. 464, Parágrafo Único da CLT c\/c Portaria MTP nº 671\/2021",
+        "termo": "Declaro para os devidos fins de direito ter tomado conhecimento e recebido integralmente o demonstrativo de pagamento referente à competência 09\/2026 emitido pela Vila Boa Construções e Serviços LTDA."
+    }
+}
