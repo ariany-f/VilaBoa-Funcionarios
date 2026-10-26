@@ -41,6 +41,8 @@ if ($apiPos === false) {
 // Todas as rotas /api respondem em JSON
 header('Content-Type: application/json; charset=utf-8');
 
+require_once __DIR__ . '/../config/dados_iniciais.php';
+prepararDadosIniciais();
 require_once __DIR__ . '/../database/Banco.php';
 require_once __DIR__ . '/../services/ColaboradorService.php';
 require_once __DIR__ . '/../services/PermissaoService.php';

@@ -6,6 +6,8 @@
  * Uso: php backend/scripts/sincronizar_permissoes.php
  */
 
+require_once dirname(__DIR__) . '/config/dados_iniciais.php';
+prepararDadosIniciais();
 require_once dirname(__DIR__) . '/database/Banco.php';
 require_once dirname(__DIR__) . '/services/PermissaoService.php';
 

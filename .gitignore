@@ -32,3 +32,7 @@ yarn-debug.log*
 yarn-error.log*
 tmp/
 temp/
+
+# Dados gravados pelo portal (produção). Os exemplos versionados ficam em backend/data/exemplos
+backend/data/*
+!backend/data/exemplos/
