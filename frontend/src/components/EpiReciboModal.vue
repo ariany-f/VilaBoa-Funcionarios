@@ -7,7 +7,7 @@
       <!-- Cabeçalho na Tela (Não sai na impressão) -->
       <div class="px-5 py-4 border-b border-slate-100 flex items-center justify-between bg-slate-50 no-print">
         <div class="flex items-center space-x-3">
-          <div class="w-10 h-10 rounded-2xl bg-emerald-50 text-emerald-700 border border-emerald-200 flex items-center justify-center font-bold text-lg">
+          <div class="w-10 h-10 rounded-2xl bg-slate-100 text-slate-600 border border-slate-200 flex items-center justify-center font-bold text-lg">
             <AppIcon name="check" size="18" />
           </div>
           <div>

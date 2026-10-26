@@ -1,0 +1,15 @@
+[
+    {
+        "id": 1,
+        "name": "Juliana Silveira Ramos",
+        "profile_image": null,
+        "email": "juliana.ramos@vilaboaconstrucoes.com.br",
+        "password": "",
+        "recovery_code": null,
+        "recovery_code_expires": null,
+        "cellphone": null,
+        "cpf": "98765432111",
+        "created": "2026-10-26 00:00:00",
+        "modified": "2026-10-26 00:00:00"
+    }
+]

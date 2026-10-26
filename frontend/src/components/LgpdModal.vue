@@ -9,7 +9,7 @@
       <!-- Cabeçalho com Glass Bubble Close Button Nativo -->
       <div class="sticky top-0 bg-white/95 backdrop-blur-md px-5 py-4 border-b border-slate-100 flex items-center justify-between z-10 shrink-0">
         <div class="flex items-center space-x-3 min-w-0">
-          <div class="w-10 h-10 rounded-2xl bg-emerald-50 text-emerald-700 border border-emerald-200/80 flex items-center justify-center shrink-0 shadow-2xs">
+          <div class="w-10 h-10 rounded-2xl bg-slate-100 text-slate-600 border border-slate-200 flex items-center justify-center shrink-0 shadow-2xs">
             <AppIcon name="shield-check" size="20" />
           </div>
           <div class="min-w-0">

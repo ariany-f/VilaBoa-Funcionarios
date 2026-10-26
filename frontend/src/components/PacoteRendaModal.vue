@@ -153,7 +153,7 @@
             </div>
             <div class="space-y-1 text-center sm:text-left min-w-0 flex-1">
               <div class="flex items-center justify-center sm:justify-start gap-1.5 font-bold text-slate-900 uppercase tracking-tight text-xs">
-                <AppIcon name="shield-check" size="15" class="text-emerald-700 shrink-0" />
+                <AppIcon name="shield-check" size="15" class="text-slate-500 shrink-0" />
                 <span>Validação Digital Oficial via QR Code</span>
               </div>
               <p class="text-slate-600 text-[11px] leading-relaxed">
@@ -258,11 +258,11 @@
             <div class="text-[9px] text-slate-400 flex flex-col sm:flex-row sm:items-center justify-between gap-1 pt-1 font-mono">
               <span class="truncate">Autenticação: {{ h.autenticacao_digital.substring(0, 32) }}...</span>
               <span v-if="h.aceite?.confirmado" class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[9px] font-bold bg-emerald-50 text-emerald-800 border border-emerald-200/80 font-sans shrink-0">
-                <AppIcon name="check" size="10" class="text-emerald-600" />
+                <AppIcon name="check" size="10" class="text-slate-500" />
                 <span>Sim (Confirmado em {{ h.aceite.data_hora }})</span>
               </span>
               <span v-else class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[9px] font-bold bg-amber-50 text-amber-900 border border-amber-200/80 font-sans shrink-0">
-                <AppIcon name="alert-triangle" size="10" class="text-amber-700" />
+                <AppIcon name="alert-triangle" size="10" class="text-slate-500" />
                 <span>Não (Pendente de Ciência)</span>
               </span>
             </div>

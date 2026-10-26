@@ -7,7 +7,7 @@
       <!-- Cabeçalho do Modal -->
       <div class="p-5 border-b border-slate-100 flex items-center justify-between bg-slate-50/70">
         <div class="flex items-center space-x-3 min-w-0">
-          <div class="w-10 h-10 rounded-2xl bg-emerald-50 border border-emerald-200/80 flex items-center justify-center text-emerald-600 shadow-2xs shrink-0">
+          <div class="w-10 h-10 rounded-2xl bg-slate-100 border border-slate-200 flex items-center justify-center text-slate-600 shadow-2xs shrink-0">
             <AppIcon name="whatsapp" size="20" />
           </div>
           <div class="min-w-0">
@@ -65,7 +65,7 @@
               @input="onInputTelefone"
               type="tel" 
               placeholder="(00) 00000-0000"
-              class="w-full h-10 px-3 text-sm font-mono font-bold bg-white border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#25D366]/40 focus:border-[#25D366]"
+              class="w-full h-10 px-3 text-sm font-mono font-bold bg-white border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#1DA851]/40 focus:border-[#1DA851]"
             />
             <div class="flex items-center justify-end gap-2">
               <button 
@@ -120,7 +120,7 @@
           type="button"
           @click="confirmarEEnviar"
           :disabled="!telefoneValido"
-          class="h-11 px-5 rounded-xl bg-[#25D366] hover:bg-[#20bd5a] active:scale-95 text-white font-semibold text-xs shadow-md shadow-[#25D366]/20 transition-all flex items-center gap-2 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+          class="h-11 px-5 rounded-xl bg-[#1DA851] hover:bg-[#178F44] active:scale-95 text-white font-semibold text-xs shadow-md shadow-[#1DA851]/20 transition-all flex items-center gap-2 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
         >
           <AppIcon name="whatsapp" size="16" />
           <span>Confirmar e Enviar para WhatsApp</span>

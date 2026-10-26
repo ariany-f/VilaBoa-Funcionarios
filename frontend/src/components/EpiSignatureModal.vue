@@ -7,7 +7,7 @@
       <!-- Cabeçalho -->
       <div class="px-5 py-4 border-b border-slate-100 flex items-center justify-between bg-slate-50">
         <div class="flex items-center space-x-3">
-          <div class="w-10 h-10 rounded-2xl bg-rose-50 text-[#9c2337] border border-rose-200 flex items-center justify-center font-bold text-lg">
+          <div class="w-10 h-10 rounded-2xl bg-slate-100 text-slate-600 border border-slate-200 flex items-center justify-center font-bold text-lg">
             <AppIcon name="shield-check" size="20" />
           </div>
           <div>

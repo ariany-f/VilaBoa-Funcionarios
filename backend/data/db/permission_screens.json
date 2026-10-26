@@ -1,0 +1,46 @@
+[
+    {
+        "id": 1,
+        "slug": "rh_acompanhamento",
+        "name": "RH — Acompanhamento",
+        "description": "Painel com recebimentos de holerite, assinaturas de ponto e leituras de cadernos.",
+        "controller": null,
+        "position": 0,
+        "is_active": 1,
+        "created": "2026-10-26 17:01:50",
+        "modified": "2026-10-26 17:01:50"
+    },
+    {
+        "id": 2,
+        "slug": "rh_cadernos",
+        "name": "RH — Cadernos",
+        "description": "Publicação e configuração dos cadernos do colaborador.",
+        "controller": null,
+        "position": 1,
+        "is_active": 1,
+        "created": "2026-10-26 17:01:51",
+        "modified": "2026-10-26 17:01:51"
+    },
+    {
+        "id": 3,
+        "slug": "rh_ponto",
+        "name": "RH — Espelho de ponto",
+        "description": "Consulta dos espelhos de todos os colaboradores e importação de marcações.",
+        "controller": null,
+        "position": 2,
+        "is_active": 1,
+        "created": "2026-10-26 17:01:51",
+        "modified": "2026-10-26 17:01:51"
+    },
+    {
+        "id": 4,
+        "slug": "rh_holerites",
+        "name": "RH — Holerites",
+        "description": "Consulta dos holerites de todos os colaboradores.",
+        "controller": null,
+        "position": 3,
+        "is_active": 1,
+        "created": "2026-10-26 17:01:51",
+        "modified": "2026-10-26 17:01:51"
+    }
+]

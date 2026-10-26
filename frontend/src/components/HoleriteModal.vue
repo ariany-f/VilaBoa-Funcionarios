@@ -142,7 +142,7 @@
         <!-- Barra Didática "Entenda seu Holerite" (Apenas na tela) -->
         <div class="flex items-center justify-between text-[11px] text-slate-600 bg-slate-50 px-3 py-2 rounded-xl border border-slate-200 shadow-xs no-print">
           <span class="flex items-center gap-1.5 font-medium">
-            <AppIcon name="info" size="14" class="text-[#9c2337] shrink-0" />
+            <AppIcon name="info" size="14" class="text-slate-500 shrink-0" />
             <span><strong>Entenda seu Holerite:</strong> Toque em qualquer linha, desconto ou no FGTS para ver a explicação em linguagem simples.</span>
           </span>
         </div>
@@ -259,7 +259,7 @@
           </div>
           <div class="space-y-0.5 text-[10px] text-slate-500 min-w-0">
             <div class="flex items-center gap-1.5 font-bold text-slate-800 uppercase tracking-tight">
-              <AppIcon name="shield-check" size="13" class="text-emerald-700 shrink-0" />
+              <AppIcon name="shield-check" size="13" class="text-slate-500 shrink-0" />
               <span>Validação Oficial via QR Code</span>
             </div>
             <p class="text-slate-600 text-[10px] leading-tight">
@@ -392,7 +392,7 @@ const props = defineProps({
   }
 });
 
-const emit = defineEmits(['close', 'ciencia-confirmada']);
+const emit = defineEmits(['close', 'ciencia-confirmada', 'update:ocultarValores']);
 usarFecharComEsc(() => emit('close'));
 
 // QR Code Oficial de Validação para Bancos e Terceiros
@@ -434,7 +434,16 @@ onMounted(() => {
 
 // Tradutor Didático ("Entenda seu Holerite")
 // Valores começam ocultos quando o colaborador escondeu os dados no portal
-const valoresOcultos = ref(props.ocultarValores);
+// Segue o "ocultar valores" do portal; alterar aqui também altera no portal
+const valoresOcultosLocal = ref(props.ocultarValores);
+const valoresOcultos = computed({
+  get: () => valoresOcultosLocal.value,
+  set: (v) => {
+    valoresOcultosLocal.value = v;
+    emit('update:ocultarValores', v);
+  }
+});
+watch(() => props.ocultarValores, (v) => { valoresOcultosLocal.value = v; });
 function moeda(valor) {
   return valoresOcultos.value ? 'R$ ••••••' : formatCurrency(valor);
 }

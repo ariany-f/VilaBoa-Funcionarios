@@ -71,7 +71,7 @@
               <div class="flex items-center space-x-3 min-w-0">
                 <div 
                   class="w-8 h-8 rounded-xl flex items-center justify-center transition shrink-0"
-                  :class="abaAtiva === modulo.id ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-600 group-hover:text-[#9c2337] group-hover:bg-rose-50'"
+                  :class="abaAtiva === modulo.id ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-600 group-hover:text-slate-600 group-hover:bg-slate-100'"
                 >
                   <AppIcon :name="modulo.icone" size="16" />
                 </div>
@@ -81,7 +81,12 @@
                     class="text-[10px] block mt-0.5 font-normal truncate"
                     :class="abaAtiva === modulo.id ? 'text-white/80' : 'text-slate-400'"
                   >
-                    {{ modulo.descricao }}
+                    <template v-if="modulo.id === 'cadernos' && progressoCadernos?.total">
+                      <span :class="progressoCadernos.lidos === progressoCadernos.total ? 'text-emerald-600 font-semibold' : ''">
+                        {{ progressoCadernos.lidos === progressoCadernos.total ? '✓ Todos lidos' : progressoCadernos.lidos + ' de ' + progressoCadernos.total + ' lidos' }}
+                      </span>
+                    </template>
+                    <template v-else>{{ modulo.descricao }}</template>
                   </span>
                 </div>
               </div>
@@ -110,7 +115,7 @@
               class="w-full flex items-center justify-between p-3 rounded-2xl bg-white hover:bg-slate-50 border border-slate-200/60 transition cursor-pointer group active:scale-[0.98]"
             >
               <div class="flex items-center space-x-3 min-w-0">
-                <div class="w-8 h-8 rounded-xl bg-emerald-50 border border-emerald-200/60 flex items-center justify-center text-emerald-700 shrink-0">
+                <div class="w-8 h-8 rounded-xl bg-slate-100 border border-slate-200 flex items-center justify-center text-slate-600 shrink-0">
                   <AppIcon name="shield-check" size="15" />
                 </div>
                 <div class="text-left min-w-0">
@@ -136,7 +141,7 @@
           class="w-full py-2.5 px-4 rounded-xl bg-white hover:bg-rose-50 border border-slate-200/90 hover:border-rose-200 text-slate-700 hover:text-[#9c2337] text-xs font-bold transition flex items-center justify-center gap-2 cursor-pointer active:scale-[0.98] shadow-2xs"
           title="Encerrar sessão no dispositivo"
         >
-          <AppIcon name="log-out" size="15" class="text-rose-500" />
+          <AppIcon name="log-out" size="15" class="text-slate-500" />
           <span>Sair da Minha Conta</span>
         </button>
 
@@ -150,7 +155,9 @@
 </template>
 
 <script setup>
+import { computed } from 'vue';
 import AppIcon from './AppIcon.vue';
+import { temMenu } from '../utils/permissoes.js';
 
 const props = defineProps({
   aberto: {
@@ -168,16 +175,24 @@ const props = defineProps({
   episPendentes: {
     type: Number,
     default: 0
+  },
+  progressoCadernos: {
+    type: Object,
+    default: null
   }
 });
 
 const emit = defineEmits(['close', 'selecionar', 'logout', 'gerar-pacote', 'abrir-lgpd']);
 
-const modulos = [
+const todosModulos = [
   { id: 'holerites', rotulo: 'Holerites & Folha', descricao: 'Demonstrativos de pagamento', icone: 'document' },
   { id: 'ponto', rotulo: 'Espelho de Ponto', descricao: 'Marcações e assinatura do mês', icone: 'calendar' },
-  { id: 'cadernos', rotulo: 'Cadernos', descricao: 'Manuais e programas da empresa', icone: 'landmark' }
+  { id: 'cadernos', rotulo: 'Cadernos', descricao: 'Manuais e programas da empresa', icone: 'landmark' },
+  { id: 'rh', rotulo: 'Painel do RH', descricao: 'Recebimentos, assinaturas e leituras', icone: 'shield-check', somenteRh: true }
 ];
+
+// O Painel do RH só aparece para perfis com o menu do RH
+const modulos = computed(() => todosModulos.filter(m => !m.somenteRh || temMenu(props.colaborador, '/rh')));
 
 function navegar(aba) {
   emit('selecionar', aba);

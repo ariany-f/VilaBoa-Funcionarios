@@ -1,0 +1,13 @@
+[
+    {
+        "id": 1,
+        "name": "Painel do RH",
+        "url": "/rh",
+        "parent_id": null,
+        "position": 1,
+        "icon": "shield-check",
+        "allow_delete": 0,
+        "created": "2026-10-26 00:00:00",
+        "modified": "2026-10-26 00:00:00"
+    }
+]

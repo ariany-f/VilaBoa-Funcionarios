@@ -1,0 +1,32 @@
+{
+    "Manual do Colaborador.pdf": {
+        "categoria": "Manuais",
+        "obrigatorio": true,
+        "publico": "todos",
+        "valores": []
+    },
+    "Programa de Prevenção ao Álcool e Drogas.pdf": {
+        "categoria": "Programas",
+        "obrigatorio": true,
+        "publico": "todos",
+        "valores": []
+    },
+    "Código de Conduta e Ética.pdf": {
+        "categoria": "Políticas",
+        "obrigatorio": true,
+        "publico": "todos",
+        "valores": []
+    },
+    "Política de Segurança do Trabalho.pdf": {
+        "categoria": "Segurança do Trabalho",
+        "obrigatorio": true,
+        "publico": "departamentos",
+        "valores": ["Obras & Infraestrutura", "Engenharia & Canteiro"]
+    },
+    "Política de Privacidade e LGPD.pdf": {
+        "categoria": "Políticas",
+        "obrigatorio": false,
+        "publico": "todos",
+        "valores": []
+    }
+}

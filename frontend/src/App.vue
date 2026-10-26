@@ -75,7 +75,7 @@
 
             <!-- Mensagem de Alerta/Erro -->
             <div v-if="mensagemErro" class="p-3.5 rounded-2xl bg-rose-50 border border-rose-200 text-rose-700 text-xs flex items-start gap-2 animate-shake">
-              <AppIcon name="alert-triangle" size="16" class="text-[#9c2337] shrink-0 mt-0.5" />
+              <AppIcon name="alert-triangle" size="16" class="text-slate-500 shrink-0 mt-0.5" />
               <span class="font-medium">{{ mensagemErro }}</span>
             </div>
 
@@ -200,7 +200,7 @@
         </div>
 
         <div class="text-center space-y-2">
-          <div class="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-rose-50 text-[#9c2337] border border-rose-200/80">
+          <div class="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-slate-100 text-slate-600 border border-slate-200">
             <AppIcon name="phone" size="24" />
           </div>
           <h2 class="text-xl sm:text-2xl font-semibold text-slate-800">Confirme pelo celular</h2>
@@ -260,7 +260,7 @@
         </div>
 
         <div class="text-center space-y-2">
-          <div class="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-rose-50 text-[#9c2337] border border-rose-200/80 shadow-sm">
+          <div class="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-slate-100 text-slate-600 border border-slate-200 shadow-sm">
             <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
             </svg>
@@ -285,7 +285,7 @@
         <!-- Card de Bloqueio com Cronômetro Regressivo -->
         <div v-if="bloqueioSegundos > 0" class="p-4 rounded-2xl bg-amber-50 border border-amber-200 text-amber-950 space-y-2 text-center animate-pulse">
           <div class="flex items-center justify-center gap-1.5 font-bold text-xs text-amber-900">
-            <AppIcon name="lock" size="14" class="text-amber-800" />
+            <AppIcon name="lock" size="14" class="text-slate-500" />
             <span>Tentativa Temporariamente Travada</span>
           </div>
           <div class="text-3xl font-semibold font-mono text-[#9c2337]">
@@ -298,7 +298,7 @@
 
         <!-- Erro comum (se não estiver em bloqueio) -->
         <div v-else-if="mensagemErro" class="p-3 rounded-xl bg-rose-50 border border-rose-200 text-rose-700 text-xs font-medium flex items-start gap-1.5">
-          <AppIcon name="alert-triangle" size="14" class="text-rose-600 shrink-0 mt-0.5" />
+          <AppIcon name="alert-triangle" size="14" class="text-slate-500 shrink-0 mt-0.5" />
           <span>{{ mensagemErro }}</span>
         </div>
 
@@ -362,7 +362,7 @@
         </div>
 
         <div class="text-center space-y-2">
-          <div class="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-rose-50 border border-rose-200 text-[#9c2337] shadow-md">
+          <div class="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-slate-100 border border-slate-200 text-slate-600 shadow-md">
             <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
             </svg>
@@ -470,6 +470,7 @@
       
       <!-- SIDEBAR RETRÁTIL DESKTOP -->
       <Sidebar 
+        :progressoCadernos="progressoCadernos"
         :recolhida="sidebarRecolhida" 
         :abaAtiva="abaAtiva"
         :colaborador="usuarioLogado"
@@ -482,6 +483,7 @@
 
       <!-- DRAWER MÓVEL (SUPER APP FEEL) -->
       <MobileDrawer 
+        :progressoCadernos="progressoCadernos"
         :aberto="drawerMobileAberto"
         :abaAtiva="abaAtiva"
         :colaborador="usuarioLogado"
@@ -528,6 +530,7 @@
 
             <!-- Lado Direito: Ações Rápidas em Pílulas / Botões Circulares -->
             <div class="flex items-center space-x-1.5 shrink-0">
+              <NotificacoesBotao :itens="notificacoes" @abrir="carregarPendencias" />
               <!-- Botão Ocultar / Mostrar Valores Salariais -->
               <button 
                 type="button"
@@ -598,22 +601,8 @@
 
             <!-- Ações da Direita no Desktop e Tablet -->
             <div class="flex items-center space-x-2 sm:space-x-3 shrink-0">
-              <!-- Pendências de ciência com contador (estilo NewRocket) -->
-              <button
-                type="button"
-                @click="navegarParaAba('holerites'); filtroStatusCiencia = 'pendente'; paginaAtual = 1; rolarParaHistorico()"
-                class="relative w-9 h-9 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center transition border border-white/20 cursor-pointer active:scale-95"
-                :title="resumoCiencia.total - resumoCiencia.confirmados + ' demonstrativo(s) pendente(s) de ciência'"
-                aria-label="Demonstrativos pendentes"
-              >
-                <AppIcon name="document" size="15" />
-                <span
-                  v-if="resumoCiencia.total - resumoCiencia.confirmados > 0"
-                  class="absolute -top-1 -right-1 min-w-[18px] h-[18px] px-1 rounded-full bg-[#9c2337] text-white text-[10px] font-semibold flex items-center justify-center ring-2 ring-[#141414]"
-                >
-                  {{ resumoCiencia.total - resumoCiencia.confirmados }}
-                </span>
-              </button>
+              <!-- Notificações: todas as pendências do colaborador -->
+              <NotificacoesBotao :itens="notificacoes" @abrir="carregarPendencias" />
 
               <!-- Botão Ocultar / Mostrar Valores Salariais (Disponível no Header Desktop/Tablet) -->
               <button 
@@ -679,7 +668,7 @@
                       @click="menuUsuarioAberto = false; fazerLogout()"
                       class="w-full px-4 py-2.5 text-left text-[#9c2337] hover:bg-rose-50 font-bold flex items-center gap-2.5 transition cursor-pointer"
                     >
-                      <AppIcon name="log-out" size="15" class="text-[#9c2337]" />
+                      <AppIcon name="log-out" size="15" class="text-slate-500" />
                       <span>Sair da Conta</span>
                     </button>
                   </div>
@@ -702,7 +691,7 @@
                 <div class="absolute -right-20 -top-20 w-80 h-80 bg-[#9c2337]/30 rounded-full blur-3xl pointer-events-none"></div>
 
                 <!-- Identificação do colaborador -->
-                <div class="flex flex-wrap items-center justify-between gap-x-4 gap-y-1 relative z-10 text-xs text-white/60">
+                <div class="hidden sm:flex flex-wrap items-center justify-between gap-x-4 gap-y-1 relative z-10 text-xs text-white/60">
                   <span class="text-sm font-semibold text-white">{{ usuarioLogado?.nome }}</span>
                   <span class="flex flex-wrap items-center gap-x-3 gap-y-1">
                     <span>{{ usuarioLogado?.cargo }}</span>
@@ -711,71 +700,38 @@
                   </span>
                 </div>
 
-                <!-- Topo do Card: Identificação da Folha + Status de Ciência CLT -->
-                <div class="flex items-center justify-between border-b border-white/10 pb-3.5 flex-wrap gap-2.5 relative z-10">
+                <!-- Último holerite: título, situação e as duas ações principais -->
+                <div class="relative z-10 space-y-1.5 sm:border-t sm:border-white/10 sm:pt-4">
+                  <span class="text-xs text-white/60 font-medium">Seu último holerite</span>
                   <div class="flex items-center gap-2.5 flex-wrap">
-                    <span class="inline-flex items-center gap-2 text-[10px] sm:text-[11px] font-semibold uppercase tracking-wider text-white bg-white/10 border border-white/15 px-3.5 py-1.5 rounded-full shadow-2xs">
-                      <span class="w-2 h-2 rounded-full bg-rose-300"></span>
-                      <span>Demonstrativo Mais Recente</span>
-                    </span>
-
-                    <!-- Indicador Discreto de Ciência CLT -->
-                    <span 
-                      v-if="holerites[0].aceite?.confirmado" 
-                      class="inline-flex items-center gap-1.5 text-[11px] font-bold text-white bg-white/10 border border-white/15 px-3 py-1.5 rounded-full shadow-2xs"
-                    >
-                      <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
-                      <span>Ciência registrada</span>
-                    </span>
-                    <span 
-                      v-else 
-                      class="inline-flex items-center gap-1.5 text-[11px] font-bold text-white/90 bg-white/10 border border-white/15 px-3 py-1.5 rounded-full shadow-2xs"
-                    >
-                      <span class="w-1.5 h-1.5 rounded-full bg-amber-500"></span>
-                      <span>Pendente de ciência</span>
-                    </span>
+                    <h3 class="text-3xl font-semibold text-white tracking-tight leading-tight">
+                      {{ holerites[0].mes_nome }} / {{ holerites[0].ano }}
+                    </h3>
+                    <span
+                      class="text-xs font-semibold px-3 py-1 rounded-full"
+                      :class="holerites[0].aceite?.confirmado ? 'bg-emerald-500/15 text-emerald-300' : 'bg-amber-400/15 text-amber-300'"
+                    >{{ holerites[0].aceite?.confirmado ? '✓ Visto' : 'Novo' }}</span>
                   </div>
+                  <p class="text-sm text-white/70">{{ holerites[0].tipo_folha || 'Folha Mensal' }} · pago em {{ holerites[0].data_pagamento }}</p>
                 </div>
 
-                <!-- Miolo do Card: Competência e Ação de Enviar para WhatsApp (Sem valor salarial) -->
-                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-5 relative z-10">
-                  <div class="space-y-1">
-                    <div class="flex items-center gap-2.5">
-                      <h3 class="text-2xl sm:text-3xl font-semibold text-white tracking-tight leading-tight">
-                        {{ holerites[0].mes_nome }} / {{ holerites[0].ano }}
-                      </h3>
-                      <span class="text-xs font-bold text-white/80 bg-white/10 border border-white/15 px-3 py-1 rounded-xl">
-                        {{ holerites[0].tipo_folha || 'Folha Mensal' }}
-                      </span>
-                    </div>
-
-                    <p class="text-xs sm:text-[13px] text-white/70 font-medium">
-                      Pago em {{ holerites[0].data_pagamento }} · Autenticação Art. 464 CLT
-                    </p>
-                  </div>
-
-                  <!-- Botões de Ação: Enviar para WhatsApp (Primário) + Abrir na Tela (Secundário) -->
-                  <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5">
-                    <button 
-                      type="button"
-                      @click="abrirModalWhatsapp(holerites[0])"
-                      class="h-12 px-6 rounded-full bg-[#25D366] hover:bg-[#20bd5a] active:scale-[0.98] text-white font-semibold text-sm  transition-all duration-200 flex items-center justify-center gap-2.5 cursor-pointer"
-                      title="Enviar demonstrativo para o WhatsApp do colaborador"
-                    >
-                      <AppIcon name="whatsapp" size="18" />
-                      <span>Enviar para WhatsApp</span>
-                    </button>
-
-                    <button 
-                      type="button"
-                      @click="abrirHolerite(holerites[0], !holerites[0].aceite?.confirmado)"
-                      class="h-12 px-4 rounded-full bg-[#9c2337] hover:bg-[#831b2d] text-white active:scale-[0.98] font-semibold text-xs flex items-center justify-center gap-2 transition cursor-pointer"
-                      title="Visualizar demonstrativo na tela"
-                    >
-                      <AppIcon name="document" size="15" />
-                      <span>Abrir na Tela</span>
-                    </button>
-                  </div>
+                <div class="relative z-10 grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <button
+                    type="button"
+                    @click="abrirHolerite(holerites[0], !holerites[0].aceite?.confirmado)"
+                    class="h-14 sm:h-12 rounded-2xl sm:rounded-full bg-[#9c2337] hover:bg-[#831b2d] text-white active:scale-[0.98] font-semibold text-base sm:text-sm flex items-center justify-center gap-2 transition cursor-pointer"
+                  >
+                    <AppIcon name="eye" size="18" />
+                    <span>Ver holerite</span>
+                  </button>
+                  <button
+                    type="button"
+                    @click="abrirModalWhatsapp(holerites[0])"
+                    class="h-14 sm:h-12 rounded-2xl sm:rounded-full bg-[#1DA851] hover:bg-[#178F44] active:scale-[0.98] text-white font-semibold text-base sm:text-sm flex items-center justify-center gap-2 transition cursor-pointer"
+                  >
+                    <AppIcon name="whatsapp" size="18" />
+                    <span>Mandar no WhatsApp</span>
+                  </button>
                 </div>
               </div>
 
@@ -919,122 +875,45 @@
                   <p class="text-xs font-medium">Carregando dados da folha {{ anoReferencia }}...</p>
                 </div>
 
-                <!-- VISUALIZAÇÃO MOBILE (md:hidden): FEED DE CARDS MINIMALISTAS COM MENU FLUTUANTE -->
+                <!-- CELULAR: um cartão por holerite, com botões grandes e diretos -->
                 <div v-else-if="holeritesPaginados.length > 0" class="md:hidden space-y-3">
-                  <div 
-                    v-for="h in holeritesPaginados" 
+                  <div
+                    v-for="h in holeritesPaginados"
                     :key="h.id"
-                    @click="abrirHolerite(h)"
-                    class="bg-white rounded-2xl p-4 sm:p-5 border border-slate-200 shadow-none hover:border-[#9c2337]/40 hover:shadow-xs active:bg-slate-50/50 transition-all cursor-pointer space-y-3 relative"
-                    :class="menuItemAbertoId === h.id ? 'z-30 relative ring-2 ring-[#9c2337]/20 shadow-lg' : ''"
+                    class="bg-white rounded-2xl p-4 border border-slate-200 space-y-3"
                   >
-                    <!-- Linha 1: Dados da Competência & Salário Líquido -->
-                    <div class="flex items-center justify-between gap-3">
-                      <div class="flex items-center space-x-3 min-w-0">
-                        <div class="w-12 h-12 rounded-2xl bg-slate-100/90 border border-slate-200/70 flex flex-col items-center justify-center shrink-0 shadow-2xs">
-                          <span class="text-[10px] font-semibold uppercase text-slate-500 tracking-wider leading-none">{{ h.mes_nome.slice(0, 3) }}</span>
-                          <span class="text-xs font-semibold text-slate-900 leading-tight mt-0.5">{{ h.ano.toString().slice(-2) }}</span>
-                        </div>
-                        <div class="min-w-0">
-                          <h4 class="font-semibold text-slate-900 text-sm leading-tight truncate">
-                            {{ h.mes_nome }} de {{ h.ano }}
-                          </h4>
-                          <span class="text-[11px] text-slate-400 font-medium block mt-0.5 truncate">
-                            Pago em {{ h.data_pagamento }} · {{ h.tipo_folha || 'Folha Mensal' }}
-                          </span>
-                        </div>
+                    <button type="button" @click="abrirHolerite(h)" class="w-full flex items-center gap-3 text-left cursor-pointer">
+                      <div class="w-12 h-12 rounded-xl bg-slate-100 flex flex-col items-center justify-center shrink-0">
+                        <span class="text-sm font-semibold uppercase text-[#9c2337] leading-none">{{ h.mes_nome.slice(0, 3) }}</span>
+                        <span class="text-[11px] font-semibold text-slate-900 leading-tight mt-0.5">{{ h.ano }}</span>
                       </div>
-
-                    </div>
-
-                    <!-- Linha 2: Status de Ciência CLT & Ações -->
-                    <div class="flex items-center justify-between gap-2 pt-2.5 border-t border-slate-100 text-xs">
-                      <div class="flex items-center gap-1.5">
-                        <span 
-                          v-if="h.aceite?.confirmado" 
-                          class="h-6 px-2.5 rounded-full text-[10px] font-bold text-slate-600 bg-slate-100/90 border border-slate-200 inline-flex items-center gap-1.5 shadow-2xs"
-                        >
-                          <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
-                          <span>Ciência OK</span>
-                        </span>
-                        <span 
-                          v-else 
-                          class="h-6 px-2.5 rounded-full text-[10px] font-bold text-slate-500 bg-slate-100/90 border border-slate-200 inline-flex items-center gap-1.5 shadow-2xs"
-                        >
-                          <span class="w-1.5 h-1.5 rounded-full bg-amber-500"></span>
-                          <span>Pendente</span>
-                        </span>
+                      <div class="min-w-0 flex-1">
+                        <h4 class="font-semibold text-slate-900 text-base leading-tight">{{ h.mes_nome }} de {{ h.ano }}</h4>
+                        <span class="text-xs text-slate-500 block mt-0.5">{{ h.tipo_folha || 'Folha Mensal' }} · pago em {{ h.data_pagamento }}</span>
                       </div>
+                      <span
+                        class="shrink-0 text-[11px] font-semibold px-2.5 py-1 rounded-full"
+                        :class="h.aceite?.confirmado ? 'bg-emerald-50 text-emerald-700' : 'bg-amber-50 text-amber-700'"
+                      >{{ h.aceite?.confirmado ? '✓ Visto' : 'Novo' }}</span>
+                    </button>
 
-                      <!-- Ações Touch: Enviar WhatsApp + Abrir + Menu Flutuante Kebab -->
-                      <div class="flex items-center gap-1.5" @click.stop>
-                        <button 
-                          type="button" 
-                          @click="abrirModalWhatsapp(h)"
-                          class="h-8 px-3 rounded-xl bg-[#25D366] hover:bg-[#20bd5a] active:scale-95 text-white font-bold text-xs inline-flex items-center gap-1.5 shadow-2xs transition-all cursor-pointer"
-                          title="Enviar demonstrativo para WhatsApp"
-                        >
-                          <AppIcon name="whatsapp" size="13" />
-                          <span>Enviar</span>
-                        </button>
-
-                        <button 
-                          type="button" 
-                          @click="abrirHolerite(h)"
-                          class="h-8 px-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 active:scale-95 text-slate-700 font-bold text-xs inline-flex items-center gap-1 transition-all cursor-pointer shadow-2xs"
-                          title="Visualizar demonstrativo na tela"
-                        >
-                          <AppIcon name="eye" size="13" />
-                          <span>Abrir</span>
-                        </button>
-
-                        <!-- Menu Flutuante Kebab no Mobile -->
-                        <div class="relative">
-                          <button 
-                            type="button" 
-                            @click="alternarMenuHolerite(h.id)"
-                            class="w-8 h-8 rounded-xl bg-slate-100 hover:bg-slate-200 active:scale-95 text-slate-600 flex items-center justify-center border border-slate-200 transition-all cursor-pointer shadow-2xs"
-                            title="Mais opções do demonstrativo"
-                            :aria-expanded="menuItemAbertoId === h.id"
-                          >
-                            <AppIcon name="more-vertical" size="14" />
-                          </button>
-
-                          <!-- Menu Flutuante Popover Mobile -->
-                          <div 
-                            v-if="menuItemAbertoId === h.id" 
-                            class="absolute right-0 top-full mt-1.5 w-56 bg-white/98 backdrop-blur-md rounded-2xl shadow-xl shadow-slate-900/10 border border-slate-200/90 py-1.5 z-50 text-xs animate-scale-in select-none text-left"
-                          >
-
-                            <button 
-                              type="button"
-                              @click="abrirHolerite(h, false); fecharMenuHolerite()"
-                              class="w-full px-4 py-2.5 text-left text-slate-700 hover:bg-slate-50 hover:text-emerald-700 flex items-center gap-2.5 font-medium transition cursor-pointer"
-                            >
-                              <AppIcon name="shield-check" size="14" class="text-slate-400" />
-                              <span>Recibo & Autenticidade CLT</span>
-                            </button>
-
-                            <button 
-                              type="button"
-                              @click="abrirModalWhatsapp(h); fecharMenuHolerite()"
-                              class="w-full px-4 py-2.5 text-left text-slate-700 hover:bg-slate-50 hover:text-emerald-700 flex items-center gap-2.5 font-medium transition cursor-pointer"
-                            >
-                              <AppIcon name="share" size="14" class="text-slate-400" />
-                              <span>Compartilhar no WhatsApp</span>
-                            </button>
-
-                            <button 
-                              type="button"
-                              @click="copiarChaveAutenticacao(h)"
-                              class="w-full px-4 py-2.5 text-left text-slate-700 hover:bg-slate-50 hover:text-slate-900 flex items-center gap-2.5 font-medium transition cursor-pointer"
-                            >
-                              <AppIcon name="copy" size="14" class="text-slate-400" />
-                              <span>Copiar Chave Digital</span>
-                            </button>
-                          </div>
-                        </div>
-                      </div>
+                    <div class="grid grid-cols-2 gap-2">
+                      <button
+                        type="button"
+                        @click="abrirHolerite(h)"
+                        class="h-12 rounded-xl bg-[#141414] active:bg-black text-white font-semibold text-sm inline-flex items-center justify-center gap-2 cursor-pointer active:scale-[0.98] transition"
+                      >
+                        <AppIcon name="eye" size="17" />
+                        Ver holerite
+                      </button>
+                      <button
+                        type="button"
+                        @click="abrirModalWhatsapp(h)"
+                        class="h-12 rounded-xl bg-[#1DA851] active:bg-[#178F44] text-white font-semibold text-sm inline-flex items-center justify-center gap-2 cursor-pointer active:scale-[0.98] transition"
+                      >
+                        <AppIcon name="whatsapp" size="17" />
+                        WhatsApp
+                      </button>
                     </div>
                   </div>
                 </div>
@@ -1046,8 +925,8 @@
                       <tr class="text-[10px] font-semibold uppercase tracking-wider text-slate-400">
                         <th class="py-3.5 px-5">DEMONSTRATIVO / COMPETÊNCIA</th>
                         <th class="py-3.5 px-5">DATA PAGTO</th>
-                        <th class="py-3.5 px-5">CIÊNCIA CLT</th>
-                        <th class="py-3.5 px-5 text-right">AÇÕES</th>
+                        <th class="py-3.5 px-5">SITUAÇÃO</th>
+                        <th class="py-3.5 px-5 text-right"></th>
                       </tr>
                     </thead>
                     <tbody class="divide-y divide-slate-100 text-xs">
@@ -1086,7 +965,7 @@
                             class="h-6 px-3 rounded-full text-[11px] font-bold text-slate-600 bg-slate-100/90 border border-slate-200 inline-flex items-center gap-1.5 shadow-2xs"
                           >
                             <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
-                            <span>Confirmada</span>
+                            <span>Visto</span>
                           </span>
                           
                           <span 
@@ -1094,77 +973,29 @@
                             class="h-6 px-3 rounded-full text-[11px] font-bold text-slate-500 bg-slate-100/90 border border-slate-200 inline-flex items-center gap-1.5 shadow-2xs"
                           >
                             <span class="w-1.5 h-1.5 rounded-full bg-amber-500"></span>
-                            <span>Pendente</span>
+                            <span>Novo</span>
                           </span>
                         </td>
 
-                        <!-- Coluna 5: AÇÕES (Abrir Direto + Menu Flutuante Kebab) -->
-                        <td class="py-4 px-5 text-right" @click.stop>
-                          <div class="flex items-center justify-end space-x-2">
-                            <button 
-                              type="button"
-                              @click="abrirModalWhatsapp(h)"
-                              title="Enviar demonstrativo via WhatsApp"
-                              class="w-8 h-8 rounded-lg bg-slate-100 text-slate-500 hover:bg-[#25D366] hover:text-white active:scale-95 inline-flex items-center justify-center transition-all duration-150 cursor-pointer"
-                            >
-                              <AppIcon name="whatsapp" size="14" />
-                            </button>
-
-                            <button 
+                        <!-- Coluna 5: AÇÕES -->
+                        <td class="py-3 px-5 text-right" @click.stop>
+                          <div class="flex items-center justify-end gap-2">
+                            <button
                               type="button"
                               @click="abrirHolerite(h)"
-                              title="Visualizar Holerite"
-                              class="w-8 h-8 rounded-lg bg-slate-100 text-slate-500 hover:bg-slate-200 hover:text-slate-900 active:scale-95 inline-flex items-center justify-center transition-all duration-150 cursor-pointer"
+                              class="h-9 px-3.5 rounded-lg bg-slate-100 text-slate-700 hover:bg-slate-200 text-xs font-semibold inline-flex items-center gap-1.5 transition cursor-pointer"
                             >
                               <AppIcon name="eye" size="14" />
+                              Ver
                             </button>
-
-                            <!-- Menu Flutuante Kebab Dropdown -->
-                            <div class="relative inline-block text-left" @click.stop>
-                              <button 
-                                type="button" 
-                                @click="alternarMenuHolerite(h.id)"
-                                class="w-8 h-8 rounded-xl bg-slate-100 hover:bg-slate-200 active:scale-95 text-slate-600 flex items-center justify-center transition-all duration-150 cursor-pointer shadow-2xs"
-                                title="Mais opções do demonstrativo"
-                                :aria-expanded="menuItemAbertoId === h.id"
-                              >
-                                <AppIcon name="more-vertical" size="14" />
-                              </button>
-
-                              <!-- Dropdown Flutuante -->
-                              <div 
-                                v-if="menuItemAbertoId === h.id" 
-                                class="absolute right-0 top-full mt-1.5 w-56 bg-white/98 backdrop-blur-md rounded-2xl shadow-xl shadow-slate-900/10 border border-slate-200/90 py-1.5 z-50 text-xs animate-scale-in select-none text-left"
-                              >
-
-                                <button 
-                                  type="button"
-                                  @click="abrirHolerite(h, false); fecharMenuHolerite()"
-                                  class="w-full px-4 py-2.5 text-left text-slate-700 hover:bg-slate-50 hover:text-emerald-700 flex items-center gap-2.5 font-medium transition cursor-pointer"
-                                >
-                                  <AppIcon name="shield-check" size="14" class="text-slate-400" />
-                                  <span>Recibo & Autenticidade CLT</span>
-                                </button>
-
-                                <button 
-                                  type="button"
-                                  @click="abrirModalWhatsapp(h); fecharMenuHolerite()"
-                                  class="w-full px-4 py-2.5 text-left text-slate-700 hover:bg-slate-50 hover:text-emerald-700 flex items-center gap-2.5 font-medium transition cursor-pointer"
-                                >
-                                  <AppIcon name="share" size="14" class="text-slate-400" />
-                                  <span>Compartilhar no WhatsApp</span>
-                                </button>
-
-                                <button 
-                                  type="button"
-                                  @click="copiarChaveAutenticacao(h)"
-                                  class="w-full px-4 py-2.5 text-left text-slate-700 hover:bg-slate-50 hover:text-slate-900 flex items-center gap-2.5 font-medium transition cursor-pointer"
-                                >
-                                  <AppIcon name="copy" size="14" class="text-slate-400" />
-                                  <span>Copiar Chave Digital</span>
-                                </button>
-                              </div>
-                            </div>
+                            <button
+                              type="button"
+                              @click="abrirModalWhatsapp(h)"
+                              class="h-9 px-3.5 rounded-lg bg-slate-100 text-slate-700 hover:bg-[#1DA851] hover:text-white text-xs font-semibold inline-flex items-center gap-1.5 transition cursor-pointer"
+                            >
+                              <AppIcon name="whatsapp" size="14" />
+                              WhatsApp
+                            </button>
                           </div>
                         </td>
                       </tr>
@@ -1185,40 +1016,34 @@
                   </button>
                 </div>
 
-                <!-- RODAPÉ DE PAGINAÇÃO -->
-                <div class="flex items-center justify-between border-t border-slate-100 pt-4 text-xs text-slate-500 font-medium">
-                  <div>
-                    Página {{ paginaAtual }} de {{ totalPaginas }} · {{ holeritesFiltrados.length }} demonstrativo(s)
-                  </div>
-                  
-                  <div class="flex items-center gap-1.5">
-                    <button 
-                      type="button"
-                      @click="paginaAnterior"
-                      :disabled="paginaAtual === 1"
-                      title="Página anterior"
-                      class="w-8 h-8 rounded-xl border border-slate-200 flex items-center justify-center text-slate-600 hover:bg-slate-100 disabled:opacity-30 disabled:cursor-not-allowed transition cursor-pointer shadow-2xs"
-                    >
-                      <AppIcon name="chevron-left" size="13" />
-                    </button>
-
-                    <button 
-                      type="button"
-                      @click="proximaPagina"
-                      :disabled="paginaAtual === totalPaginas"
-                      title="Próxima página"
-                      class="w-8 h-8 rounded-xl border border-slate-200 flex items-center justify-center text-slate-600 hover:bg-slate-100 disabled:opacity-30 disabled:cursor-not-allowed transition cursor-pointer shadow-2xs"
-                    >
-                      <AppIcon name="chevron-right" size="13" />
-                    </button>
-                  </div>
+                <!-- PAGINAÇÃO -->
+                <div v-if="totalPaginas > 1" class="flex items-center justify-between gap-3 border-t border-slate-100 pt-4">
+                  <button
+                    type="button"
+                    @click="paginaAnterior"
+                    :disabled="paginaAtual === 1"
+                    class="h-11 px-4 rounded-xl border border-slate-200 text-sm font-semibold text-slate-700 inline-flex items-center gap-1.5 hover:bg-slate-50 disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer"
+                  >
+                    <AppIcon name="chevron-left" size="15" />
+                    Anterior
+                  </button>
+                  <span class="text-xs text-slate-500 text-center">Página {{ paginaAtual }} de {{ totalPaginas }}</span>
+                  <button
+                    type="button"
+                    @click="proximaPagina"
+                    :disabled="paginaAtual === totalPaginas"
+                    class="h-11 px-4 rounded-xl border border-slate-200 text-sm font-semibold text-slate-700 inline-flex items-center gap-1.5 hover:bg-slate-50 disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer"
+                  >
+                    Próxima
+                    <AppIcon name="chevron-right" size="15" />
+                  </button>
                 </div>
               </div>
             
             </div>
 
             <!-- PAINEL LATERAL (estilo NewRocket): ciência do ano, atalhos e documentos recentes -->
-            <aside class="space-y-6 xl:sticky xl:top-0">
+            <aside class="hidden md:block space-y-6 xl:sticky xl:top-0">
               <div class="bg-white rounded-2xl border border-slate-200 p-5 space-y-3">
                 <div class="flex items-center justify-between">
                   <h4 class="text-xs font-semibold uppercase tracking-wider text-slate-700">Recebidos em {{ anoReferencia }}</h4>
@@ -1258,8 +1083,11 @@
           <!-- ESPELHO DE PONTO COM ASSINATURA ELETRÔNICA -->
           <PontoView v-else-if="abaAtiva === 'ponto'" :colaborador="usuarioLogado" />
 
+          <!-- PAINEL DO RH (somente perfis com o menu do RH) -->
+          <RhView v-else-if="abaAtiva === 'rh' && temMenu(usuarioLogado, '/rh')" :colaborador="usuarioLogado" />
+
           <!-- CADERNOS DO COLABORADOR (PDFs) -->
-          <CadernosView v-else-if="abaAtiva === 'cadernos'" :key="buscaCadernoInicial" :buscaInicial="buscaCadernoInicial" />
+          <CadernosView v-else-if="abaAtiva === 'cadernos'" :key="buscaCadernoInicial" :buscaInicial="buscaCadernoInicial" @progresso="progressoCadernos = $event" />
 
           <!-- MÓDULO 2: GESTÃO & CONSULTA DE FÉRIAS -->
           <FeriasView v-else-if="abaAtiva === 'ferias'" :ferias="ferias" />
@@ -1387,7 +1215,7 @@
                   class="py-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 hover:bg-slate-50 p-3 rounded-2xl transition"
                 >
                   <div class="flex items-start space-x-3.5">
-                    <div class="w-11 h-11 rounded-2xl bg-emerald-50 text-emerald-700 border border-emerald-200 flex items-center justify-center font-bold text-lg shrink-0">
+                    <div class="w-11 h-11 rounded-2xl bg-slate-100 text-slate-600 border border-slate-200 flex items-center justify-center font-bold text-lg shrink-0">
                       <AppIcon name="check" size="18" />
                     </div>
                     <div>
@@ -1522,7 +1350,7 @@
                     class="text-[10px] bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-200 px-2.5 py-1 rounded-full font-bold cursor-pointer transition flex items-center gap-1 shadow-2xs"
                     title="Clique para abrir as informações de proteção LGPD"
                   >
-                    <AppIcon name="shield-check" size="11" class="text-emerald-600" />
+                    <AppIcon name="shield-check" size="11" class="text-slate-500" />
                     <span>LGPD Ativa</span>
                   </button>
                 </div>
@@ -1556,7 +1384,7 @@
                 <!-- Linha 5: Empregadora -->
                 <div class="p-4 flex items-center justify-between hover:bg-slate-50/60 transition bg-slate-50/30">
                   <div class="flex items-center space-x-3 min-w-0">
-                    <div class="w-9 h-9 rounded-xl bg-rose-50 text-[#9c2337] flex items-center justify-center shrink-0 border border-rose-200/60 font-semibold text-xs">
+                    <div class="w-9 h-9 rounded-xl bg-slate-100 text-slate-600 flex items-center justify-center shrink-0 border border-slate-200 font-semibold text-xs">
                       VB
                     </div>
                     <div class="min-w-0">
@@ -1635,7 +1463,7 @@
         <footer class="hidden md:flex h-9 shrink-0 bg-white border-t border-slate-200 px-6 items-center justify-between text-[11px] text-slate-500 select-none z-20">
           <span class="font-medium text-slate-600">Portal do Colaborador · Vila Boa Construções e Serviços</span>
           <span class="inline-flex items-center gap-1.5">
-            <AppIcon name="shield-check" size="12" class="text-emerald-600" />
+            <AppIcon name="shield-check" size="12" class="text-slate-500" />
             <span>Conformidade eSocial S-1210 · Art. 464 CLT</span>
           </span>
         </footer>
@@ -1702,7 +1530,7 @@
       :holerite="holeriteSelecionado" 
       :colaborador="usuarioLogado"
       :focarCiencia="focarCienciaModal"
-      :ocultarValores="ocultarValores"
+      v-model:ocultarValores="ocultarValores"
       @close="holeriteSelecionado = null; focarCienciaModal = false"
       @ciencia-confirmada="onHoleriteCienciaConfirmada"
     />
@@ -1746,7 +1574,7 @@
       v-if="toastMensagem" 
       class="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 bg-[#141414] text-white text-xs font-bold px-4 py-2.5 rounded-full shadow-2xl flex items-center gap-2 border border-white/10 animate-fade-in"
     >
-      <AppIcon name="check" size="14" class="text-emerald-400" />
+      <AppIcon name="check" size="14" class="text-white/70" />
       <span>{{ toastMensagem }}</span>
     </div>
 
@@ -1762,6 +1590,10 @@ import MobileDrawer from './components/MobileDrawer.vue';
 import FeriasView from './components/FeriasView.vue';
 import PontoView from './components/PontoView.vue';
 import CadernosView from './components/CadernosView.vue';
+import RhView from './components/RhView.vue';
+import NotificacoesBotao from './components/NotificacoesBotao.vue';
+import { temMenu } from './utils/permissoes.js';
+import { resumirProgresso } from './utils/progressoCadernos.js';
 import ChamadosView from './components/ChamadosView.vue';
 import HoleriteModal from './components/HoleriteModal.vue';
 import ConfirmarWhatsappModal from './components/ConfirmarWhatsappModal.vue';
@@ -1813,7 +1645,7 @@ function mascararCpf(cpf) {
 
 // ==================== SISTEMA DE ROTAS & PERSISTÊNCIA ====================
 // Módulos liberados; os demais seguem desativados.
-const ROTAS_VALIDAS = ['holerites', 'ponto', 'cadernos'];
+const ROTAS_VALIDAS = ['holerites', 'ponto', 'cadernos', 'rh'];
 
 function obterRotaValida() {
   if (typeof window === 'undefined') return 'holerites';
@@ -1843,6 +1675,7 @@ const abaAtiva = ref(obterRotaValida());
 
 function navegarParaAba(novaAba, atualizarHistorico = true) {
   if (!ROTAS_VALIDAS.includes(novaAba)) return;
+  if (novaAba === 'rh' && !temMenu(usuarioLogado.value, '/rh')) return;
   abaAtiva.value = novaAba;
   localStorage.setItem('vb_aba_ativa', novaAba);
 
@@ -1988,6 +1821,13 @@ const novoTelefoneInput = ref('');
 
 // Dados dos Módulos do Colaborador
 const usuarioLogado = ref(null);
+
+// Quem não tem acesso de RH e chega em #/rh volta para os holerites
+watch(() => [abaAtiva.value, usuarioLogado.value], () => {
+  if (abaAtiva.value === 'rh' && usuarioLogado.value && !temMenu(usuarioLogado.value, '/rh')) {
+    navegarParaAba('holerites', false);
+  }
+});
 const holerites = ref([]);
 const holeriteSelecionado = ref(null);
 const pacoteRenda = ref(null);
@@ -2400,9 +2240,76 @@ async function carregarTodosModulos(token) {
     carregarNotificacoesWhatsapp(token),
     carregarEpis(token),
     carregarFerias(token),
-    carregarChamados(token)
+    carregarChamados(token),
+    carregarProgressoCadernos(token),
+    carregarPontosPendentes(token)
   ]);
 }
+
+// Progresso de leitura dos cadernos exibido no menu lateral
+const progressoCadernos = ref(null);
+const cadernosPendentes = ref([]);
+async function carregarProgressoCadernos(token) {
+  try {
+    const res = await fetch('/api/cadernos', { headers: { 'Authorization': `Bearer ${token}` } });
+    const data = await res.json();
+    if (!res.ok) return;
+    const p = resumirProgresso(data.cadernos || []);
+    progressoCadernos.value = { lidos: p.lidos, total: p.total };
+    cadernosPendentes.value = (data.cadernos || []).filter((c) => c.obrigatorio && !c.leitura);
+  } catch (e) {
+    // o menu apenas fica sem o indicador
+  }
+}
+
+// Espelhos de ponto que ainda faltam assinar
+const pontosPendentes = ref([]);
+async function carregarPontosPendentes(token) {
+  try {
+    const res = await fetch('/api/ponto', { headers: { 'Authorization': `Bearer ${token}` } });
+    const data = await res.json();
+    if (res.ok) pontosPendentes.value = (data.competencias || []).filter((c) => !c.assinado_em);
+  } catch (e) {
+    // sem notificações de ponto
+  }
+}
+
+// Atualiza tudo ao abrir o sino
+function carregarPendencias() {
+  const token = localStorage.getItem('vb_auth_token') || '';
+  carregarProgressoCadernos(token);
+  carregarPontosPendentes(token);
+}
+
+// Notificações do cabeçalho: holerites novos, espelhos para assinar e cadernos para ler
+const notificacoes = computed(() => {
+  const lista = [];
+  const holeritesNovos = holerites.value.filter((h) => !h.aceite?.confirmado);
+  if (holeritesNovos.length) {
+    lista.push({
+      titulo: holeritesNovos.length === 1 ? 'Você tem 1 holerite novo' : `Você tem ${holeritesNovos.length} holerites novos`,
+      descricao: holeritesNovos.length === 1 ? `${holeritesNovos[0].mes_nome} de ${holeritesNovos[0].ano}` : `O mais recente é ${holeritesNovos[0].mes_nome} de ${holeritesNovos[0].ano}`,
+      icone: 'document',
+      cor: 'bg-rose-50 text-[#9c2337]',
+      acao: () => (holeritesNovos.length === 1 ? abrirHolerite(holeritesNovos[0]) : (navegarParaAba('holerites'), filtroStatusCiencia.value = 'pendente', paginaAtual.value = 1, setTimeout(rolarParaHistorico, 100)))
+    });
+  }
+  pontosPendentes.value.forEach((c) => lista.push({
+    titulo: 'Assine seu espelho de ponto',
+    descricao: c.mes_nome,
+    icone: 'pen-tool',
+    cor: 'bg-amber-50 text-amber-700',
+    acao: () => navegarParaAba('ponto')
+  }));
+  cadernosPendentes.value.forEach((c) => lista.push({
+    titulo: 'Leia o caderno',
+    descricao: c.titulo,
+    icone: 'landmark',
+    cor: 'bg-slate-100 text-slate-700',
+    acao: () => { buscaCadernoInicial.value = c.titulo; navegarParaAba('cadernos'); }
+  }));
+  return lista;
+});
 
 async function carregarNotificacoesWhatsapp(token) {
   try {

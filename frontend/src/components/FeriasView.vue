@@ -59,7 +59,7 @@
         <!-- Aviso Institucional: Consulta Exclusiva -->
         <div class="p-4 rounded-2xl bg-amber-50/80 border border-amber-200 text-amber-900 space-y-1.5">
           <div class="flex items-center gap-1.5 font-bold text-xs text-amber-950">
-            <AppIcon name="info" size="14" class="text-amber-800" />
+            <AppIcon name="info" size="14" class="text-slate-500" />
             <span>Programação no Canteiro</span>
           </div>
           <p class="text-[11px] leading-relaxed text-amber-900/90">

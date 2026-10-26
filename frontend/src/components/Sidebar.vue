@@ -51,12 +51,31 @@
         :key="modulo.id"
         type="button"
         @click="$emit('selecionar', modulo.id)"
-        class="w-full flex items-center px-3 py-3 rounded-xl text-xs font-bold transition-all duration-150 cursor-pointer group"
+        class="relative w-full flex items-center px-3 py-3 rounded-xl text-xs font-bold transition-all duration-150 cursor-pointer group"
         :class="abaAtiva === modulo.id ? 'bg-slate-100 text-[#9c2337]' : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'"
         :title="recolhida ? modulo.rotulo : ''"
       >
         <AppIcon :name="modulo.icone" size="18" :class="recolhida ? 'mx-auto' : 'mr-3 text-slate-400 group-hover:text-slate-700'" />
-        <span v-if="!recolhida" class="truncate flex-1 text-left">{{ modulo.rotulo }}</span>
+        <span v-if="!recolhida" class="flex-1 min-w-0 text-left">
+          <span class="block truncate">{{ modulo.rotulo }}</span>
+          <span v-if="modulo.id === 'cadernos' && progressoCadernos?.total" class="flex items-center gap-2 mt-1.5">
+            <span class="flex-1 h-1 rounded-full bg-slate-200 overflow-hidden">
+              <span
+                class="block h-full rounded-full transition-all duration-500"
+                :class="progressoCadernos.lidos === progressoCadernos.total ? 'bg-emerald-500' : 'bg-[#9c2337]'"
+                :style="{ width: Math.round((progressoCadernos.lidos / progressoCadernos.total) * 100) + '%' }"
+              ></span>
+            </span>
+            <span
+              class="text-[10px] font-semibold tabular-nums"
+              :class="progressoCadernos.lidos === progressoCadernos.total ? 'text-emerald-600' : 'text-slate-500'"
+            >{{ progressoCadernos.lidos === progressoCadernos.total ? '✓' : '' }} {{ progressoCadernos.lidos }}/{{ progressoCadernos.total }}</span>
+          </span>
+        </span>
+        <span
+          v-if="recolhida && modulo.id === 'cadernos' && progressoCadernos && progressoCadernos.lidos < progressoCadernos.total"
+          class="absolute top-2 right-2 w-2 h-2 rounded-full bg-[#9c2337]"
+        ></span>
       </button>
 
       <!-- Bloco Informativo de Conformidade (Apenas quando expandida) -->
@@ -128,9 +147,11 @@
 </template>
 
 <script setup>
+import { computed } from 'vue';
 import AppIcon from './AppIcon.vue';
+import { temMenu } from '../utils/permissoes.js';
 
-defineProps({
+const props = defineProps({
   recolhida: {
     type: Boolean,
     default: false
@@ -146,16 +167,24 @@ defineProps({
   episPendentes: {
     type: Number,
     default: 0
+  },
+  progressoCadernos: {
+    type: Object,
+    default: null
   }
 });
 
 defineEmits(['toggle', 'selecionar', 'logout', 'gerar-pacote']);
 
-const modulos = [
+const todosModulos = [
   { id: 'holerites', rotulo: 'Holerites & Salários', icone: 'document' },
   { id: 'ponto', rotulo: 'Espelho de Ponto', icone: 'calendar' },
-  { id: 'cadernos', rotulo: 'Cadernos', icone: 'landmark' }
+  { id: 'cadernos', rotulo: 'Cadernos', icone: 'landmark' },
+  { id: 'rh', rotulo: 'Painel do RH', descricao: 'Recebimentos, assinaturas e leituras', icone: 'shield-check', somenteRh: true }
 ];
+
+// O Painel do RH só aparece para perfis com o menu do RH
+const modulos = computed(() => todosModulos.filter(m => !m.somenteRh || temMenu(props.colaborador, '/rh')));
 </script>
 
 <style scoped>
