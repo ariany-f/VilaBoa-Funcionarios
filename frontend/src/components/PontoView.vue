@@ -207,6 +207,8 @@ const props = defineProps({
   colaborador: { type: Object, default: null },
   // Consulta do RH: espelho de outro colaborador, sem botão de assinar
   matricula: { type: String, default: '' },
+  // Competência vinda de um link de aviso (mm/aaaa)
+  competenciaInicial: { type: String, default: '' },
   somenteLeitura: { type: Boolean, default: false }
 });
 
@@ -406,6 +408,6 @@ async function carregar(competencia = '') {
 
 watch(() => props.matricula, () => carregar());
 
-onMounted(() => carregar());
+onMounted(() => carregar(props.competenciaInicial));
 
 </script>

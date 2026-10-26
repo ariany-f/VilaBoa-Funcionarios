@@ -48,6 +48,7 @@ class RhController
                         'descricao' => "{$h['mes_nome']} / {$h['ano']} · " . ($h['tipo_folha'] ?? 'Mensal')
                     ], $pendentesHolerite),
                     'detalhe' => array_map(fn($h) => [
+                        'id' => $h['id'],
                         'descricao' => "{$h['mes_nome']} / {$h['ano']} · " . ($h['tipo_folha'] ?? 'Mensal'),
                         'recebido_em' => $h['aceite']['data_hora'] ?? null
                     ], $hols)
@@ -82,6 +83,7 @@ class RhController
                         'matricula' => $c['matricula'],
                         'nome' => $c['nome'],
                         'cargo' => $c['cargo'],
+                        'telefone' => $c['telefone_atual'] ?? '',
                         'lido_em' => $leituras[$c['matricula']][$cad['arquivo']]['data_hora'] ?? null
                     ], $publico))
                 ];
@@ -105,6 +107,7 @@ class RhController
             'opcionais_total' => count($opcionais),
             'opcionais_lidos' => count(array_filter($opcionais, $foiLido)),
             'detalhe' => array_map(fn($cad) => [
+                'arquivo' => $cad['arquivo'],
                 'titulo' => $cad['titulo'],
                 'categoria' => $cad['categoria'],
                 'obrigatorio' => $cad['obrigatorio'],

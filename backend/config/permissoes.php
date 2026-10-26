@@ -20,7 +20,7 @@ return [
         'menu_url' => '/rh',
         'actions' => [
             ['slug' => 'visualizar', 'name' => 'Visualizar acompanhamento', 'group' => 'Tela'],
-            ['slug' => 'cobrar_pendencias', 'name' => 'Cobrar pendências pelo WhatsApp', 'group' => 'Linha'],
+            ['slug' => 'cobrar_pendencias', 'name' => 'Enviar avisos pelo WhatsApp', 'group' => 'Linha'],
         ],
     ],
     [

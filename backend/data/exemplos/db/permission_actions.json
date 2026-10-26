@@ -22,7 +22,7 @@
         "id": 2,
         "screen_id": 1,
         "slug": "cobrar_pendencias",
-        "name": "Cobrar pendências pelo WhatsApp",
+        "name": "Enviar avisos pelo WhatsApp",
         "description": null,
         "group_name": "Linha",
         "action_kind": "execute",

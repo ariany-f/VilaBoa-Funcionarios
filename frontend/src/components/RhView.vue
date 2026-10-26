@@ -69,7 +69,7 @@
                 <th class="py-3 px-3">Holerites recebidos</th>
                 <th class="py-3 px-3">Espelho de ponto</th>
                 <th class="py-3 px-3">Cadernos</th>
-                <th class="py-3 pl-3 text-right">Ações</th>
+                <th class="py-3 pl-3 text-right">Situação</th>
               </tr>
             </thead>
             <tbody class="divide-y divide-slate-100">
@@ -110,18 +110,8 @@
                     </button>
                   </td>
                   <td class="py-3 pl-3 text-right" @click.stop>
-                    <a
-                      v-if="temPendencia(c) && c.telefone && pode(colaborador, 'rh_acompanhamento', 'cobrar_pendencias')"
-                      :href="linkCobranca(c)"
-                      target="_blank"
-                      rel="noopener"
-                      class="inline-flex items-center gap-1.5 h-8 px-3 rounded-lg bg-slate-100 text-slate-700 hover:bg-[#1DA851] hover:text-white text-xs font-semibold transition"
-                      title="Enviar lembrete das pendências pelo WhatsApp"
-                    >
-                      <AppIcon name="whatsapp" size="13" />
-                      Cobrar
-                    </a>
-                    <span v-else-if="!temPendencia(c)" class="text-xs text-emerald-700 font-medium">Em dia</span>
+
+                    <span v-if="!temPendencia(c)" class="text-xs text-emerald-700 font-medium">Em dia</span>
                     <span v-else class="text-xs text-amber-700 font-medium">Pendente</span>
                   </td>
                 </tr>
@@ -391,7 +381,20 @@
                 <span class="block text-sm font-medium text-slate-900 truncate">{{ item.nome }}</span>
                 <span class="block text-xs text-slate-400 truncate">{{ item.detalhe }}</span>
               </span>
-              <span class="text-xs shrink-0" :class="item.data ? 'text-emerald-700' : 'text-amber-700'">{{ item.data || modalLeitura.rotuloPendente || 'Não leu' }}</span>
+              <span class="flex items-center gap-2 shrink-0">
+                <span class="text-xs" :class="item.data ? 'text-emerald-700' : 'text-amber-700'">{{ item.data || modalLeitura.rotuloPendente || 'Não leu' }}</span>
+                <a
+                  v-if="item.enviar"
+                  :href="item.enviar"
+                  target="_blank"
+                  rel="noopener"
+                  class="h-8 px-3 rounded-lg bg-[#1DA851] hover:bg-[#178F44] text-white text-xs font-semibold inline-flex items-center gap-1.5"
+                  title="Enviar aviso pelo WhatsApp com o link direto"
+                >
+                  <AppIcon name="whatsapp" size="13" />
+                  Avisar
+                </a>
+              </span>
             </li>
             <li v-if="!modalLeitura.grupos[grupoModal].itens.length" class="py-8 text-center text-sm text-slate-400">{{ modalLeitura.grupos[grupoModal].vazio }}</li>
           </ul>
@@ -406,6 +409,7 @@ import { ref, computed, watch, onMounted } from 'vue';
 import AppIcon from './AppIcon.vue';
 import { pode } from '../utils/permissoes.js';
 import { usarFecharComEsc } from '../utils/fecharComEsc.js';
+import { avisoCaderno, avisoPonto, avisoHolerite } from '../utils/avisosWhatsapp.js';
 import PontoView from './PontoView.vue';
 import HoleriteModal from './HoleriteModal.vue';
 
@@ -451,8 +455,12 @@ const modalLeitura = ref(null);
 const grupoModal = ref(0);
 usarFecharComEsc(() => { modalLeitura.value = null; }, () => !!modalLeitura.value);
 
+// Aviso individual pelo WhatsApp (só para quem tem a permissão e telefone cadastrado)
+const podeAvisar = computed(() => pode(props.colaborador, 'rh_acompanhamento', 'cobrar_pendencias'));
+const aviso = (pessoa, gerar) => (podeAvisar.value && pessoa.telefone ? gerar() : null);
+
 function abrirLeiturasDoCaderno(cad) {
-  const pessoa = (l) => ({ nome: l.nome, detalhe: `${l.matricula} · ${l.cargo}`, data: l.lido_em });
+  const pessoa = (l) => ({ nome: l.nome, detalhe: `${l.matricula} · ${l.cargo}`, data: l.lido_em, enviar: l.lido_em ? null : aviso(l, () => avisoCaderno(l, cad)) });
   modalLeitura.value = {
     titulo: cad.titulo,
     subtitulo: `${cad.categoria} · ${cad.obrigatorio ? 'Leitura obrigatória' : 'Leitura opcional'} · ${cad.total_leram} de ${cad.total_publico} leram`,
@@ -481,7 +489,7 @@ function abrirPorColaborador(titulo, subtitulo, emDia, resumoDe, considerar = ()
 }
 
 function abrirHoleritesDoColaborador(c) {
-  const item = (h) => ({ nome: h.descricao, detalhe: h.recebido_em ? 'Recebido' : 'O colaborador ainda não abriu', data: h.recebido_em });
+  const item = (h) => ({ nome: h.descricao, detalhe: h.recebido_em ? 'Recebido' : 'O colaborador ainda não abriu', data: h.recebido_em, enviar: h.recebido_em ? null : aviso(c, () => avisoHolerite(c, h)) });
   modalLeitura.value = {
     titulo: c.nome,
     subtitulo: `${c.matricula} · holerites de ${ano.value} · ${c.holerites.recebidos} de ${c.holerites.total} recebidos`,
@@ -496,7 +504,7 @@ function abrirHoleritesDoColaborador(c) {
 
 function abrirPontoDoColaborador(c) {
   const comps = c.ponto?.competencias || [];
-  const item = (p) => ({ nome: p.mes_nome, detalhe: p.assinado_em ? 'Assinado' : 'Falta assinar', data: p.assinado_em });
+  const item = (p) => ({ nome: p.mes_nome, detalhe: p.assinado_em ? 'Assinado' : 'Falta assinar', data: p.assinado_em, enviar: p.assinado_em ? null : aviso(c, () => avisoPonto(c, p)) });
   modalLeitura.value = {
     titulo: c.nome,
     subtitulo: `${c.matricula} · espelhos de ponto`,
@@ -510,7 +518,7 @@ function abrirPontoDoColaborador(c) {
 }
 
 function abrirLeiturasDoColaborador(c) {
-  const doc = (d) => ({ nome: d.titulo, detalhe: `${d.categoria} · ${d.obrigatorio ? 'Obrigatório' : 'Opcional'}`, data: d.lido_em });
+  const doc = (d) => ({ nome: d.titulo, detalhe: `${d.categoria} · ${d.obrigatorio ? 'Obrigatório' : 'Opcional'}`, data: d.lido_em, enviar: d.lido_em ? null : aviso(c, () => avisoCaderno(c, d)) });
   const lista = c.cadernos.detalhe;
   modalLeitura.value = {
     titulo: c.nome,
@@ -609,16 +617,6 @@ const indicadores = computed(() => {
   ];
 });
 
-function linkCobranca(c) {
-  const itens = [];
-  if (c.holerites.recebidos < c.holerites.total) itens.push(`• ${c.holerites.total - c.holerites.recebidos} holerite(s) para abrir`);
-  if (c.ponto && !c.ponto.assinado_em) itens.push(`• espelho de ponto de ${c.ponto.mes_nome} para assinar`);
-  const naoLidos = c.cadernos.detalhe.filter((d) => d.obrigatorio && !d.lido_em).map((d) => d.titulo);
-  if (naoLidos.length) itens.push(`• ler: ${naoLidos.join(', ')}`);
-  const texto = `Olá, ${c.nome.split(' ')[0]}! Você tem pendências no Portal do Colaborador da Vila Boa:\n${itens.join('\n')}\n\nAcesse: ${window.location.origin}${window.location.pathname}`;
-  const tel = c.telefone.replace(/\D/g, '');
-  return `https://api.whatsapp.com/send?phone=55${tel}&text=${encodeURIComponent(texto)}`;
-}
 
 const campoPdf = ref(null);
 const formVazio = () => ({ arquivo: '', categoria: 'Outros', obrigatorio: true, publico: 'todos', valores: [] });

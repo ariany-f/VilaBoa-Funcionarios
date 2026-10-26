@@ -158,9 +158,11 @@ import { resumirProgresso } from '../utils/progressoCadernos.js';
 import { apiFetch } from '../utils/api.js';
 
 const props = defineProps({
-  buscaInicial: { type: String, default: '' }
+  buscaInicial: { type: String, default: '' },
+  // Caderno vindo de um link de aviso: abre direto no leitor
+  abrirArquivo: { type: String, default: '' }
 });
-const emit = defineEmits(['progresso']);
+const emit = defineEmits(['progresso', 'aberto']);
 
 const cadernos = ref([]);
 const carregando = ref(true);
@@ -240,6 +242,11 @@ onMounted(async () => {
     const data = await res.json();
     if (!res.ok) throw new Error(data.erro);
     cadernos.value = data.cadernos || [];
+    const doLink = props.abrirArquivo && cadernos.value.find((c) => c.arquivo === props.abrirArquivo);
+    if (doLink) {
+      abrir(doLink);
+      emit('aberto');
+    }
   } catch (e) {
     erro.value = 'Não foi possível carregar os cadernos.';
   } finally {

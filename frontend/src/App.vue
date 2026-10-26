@@ -567,11 +567,11 @@
                 <AppIcon name="search" size="15" class="text-slate-400 ml-3 shrink-0" />
                 <input
                   v-model="buscaGlobal"
-                  @focus="buscaGlobalAberta = true; carregarCadernosBusca()"
+                  @focus="buscaGlobalAberta = true; carregarCadernosBusca(); carregarColaboradoresBusca()"
                   @blur="fecharBuscaGlobal"
                   @keydown.enter.prevent="resultadosBusca[0] && selecionarResultado(resultadosBusca[0])"
                   type="text"
-                  placeholder="Buscar no portal: holerites, cadernos, ponto..."
+                  :placeholder="temMenu(usuarioLogado, '/rh') ? 'Buscar colaborador, holerite, caderno...' : 'Buscar no portal: holerites, cadernos, ponto...'"
                   class="flex-1 min-w-0 h-full px-3 text-sm text-slate-800 placeholder-slate-400 outline-none"
                 />
               </div>
@@ -1081,13 +1081,13 @@
           </div>
 
           <!-- ESPELHO DE PONTO COM ASSINATURA ELETRÔNICA -->
-          <PontoView v-else-if="abaAtiva === 'ponto'" :colaborador="usuarioLogado" />
+          <PontoView v-else-if="abaAtiva === 'ponto'" :key="competenciaPontoInicial" :colaborador="usuarioLogado" :competenciaInicial="competenciaPontoInicial" />
 
           <!-- PAINEL DO RH (somente perfis com o menu do RH) -->
           <RhView v-else-if="abaAtiva === 'rh' && temMenu(usuarioLogado, '/rh')" :colaborador="usuarioLogado" />
 
           <!-- CADERNOS DO COLABORADOR (PDFs) -->
-          <CadernosView v-else-if="abaAtiva === 'cadernos'" :key="buscaCadernoInicial" :buscaInicial="buscaCadernoInicial" @progresso="progressoCadernos = $event" />
+          <CadernosView v-else-if="abaAtiva === 'cadernos'" :key="buscaCadernoInicial" :buscaInicial="buscaCadernoInicial" :abrirArquivo="cadernoParaAbrir" @aberto="cadernoParaAbrir = ''" @progresso="progressoCadernos = $event" />
 
           <!-- MÓDULO 2: GESTÃO & CONSULTA DE FÉRIAS -->
           <FeriasView v-else-if="abaAtiva === 'ferias'" :ferias="ferias" />
@@ -1525,6 +1525,15 @@
       @enviado="onWhatsappEnviado"
     />
 
+    <ResumoColaboradorModal
+      v-if="colaboradorResumo"
+      :colaborador="colaboradorResumo"
+      :ano="new Date().getFullYear()"
+      :pode-cobrar="podeRh('rh_acompanhamento', 'cobrar_pendencias')"
+      @close="colaboradorResumo = null"
+      @abrir-painel="colaboradorResumo = null; navegarParaAba('rh')"
+    />
+
     <HoleriteModal 
       v-if="holeriteSelecionado" 
       :holerite="holeriteSelecionado" 
@@ -1592,7 +1601,9 @@ import PontoView from './components/PontoView.vue';
 import CadernosView from './components/CadernosView.vue';
 import RhView from './components/RhView.vue';
 import NotificacoesBotao from './components/NotificacoesBotao.vue';
-import { temMenu } from './utils/permissoes.js';
+import { temMenu, pode } from './utils/permissoes.js';
+import { lerDestinoDaUrl } from './utils/avisosWhatsapp.js';
+import ResumoColaboradorModal from './components/ResumoColaboradorModal.vue';
 import { resumirProgresso } from './utils/progressoCadernos.js';
 import ChamadosView from './components/ChamadosView.vue';
 import HoleriteModal from './components/HoleriteModal.vue';
@@ -1821,6 +1832,41 @@ const novoTelefoneInput = ref('');
 
 // Dados dos Módulos do Colaborador
 const usuarioLogado = ref(null);
+const podeRh = (tela, acao) => pode(usuarioLogado.value, tela, acao);
+
+// Link de aviso do RH (?abrir=caderno:arquivo | ponto:mm/aaaa | holerite:id).
+// Guardado na sessão para sobreviver ao login e aberto assim que o painel carrega.
+const destinoLink = ref((() => {
+  const daUrl = lerDestinoDaUrl();
+  try {
+    if (daUrl) sessionStorage.setItem('vb_destino', JSON.stringify(daUrl));
+    return daUrl || JSON.parse(sessionStorage.getItem('vb_destino') || 'null');
+  } catch (e) {
+    return daUrl;
+  }
+})());
+const cadernoParaAbrir = ref('');
+const competenciaPontoInicial = ref('');
+
+function irParaDestino() {
+  const d = destinoLink.value;
+  if (!d) return;
+  destinoLink.value = null;
+  try { sessionStorage.removeItem('vb_destino'); } catch (e) { /* sem armazenamento */ }
+  window.history.replaceState({}, document.title, window.location.pathname + window.location.hash.split('?')[0]);
+
+  if (d.tipo === 'caderno') {
+    cadernoParaAbrir.value = d.valor;
+    navegarParaAba('cadernos');
+  } else if (d.tipo === 'ponto') {
+    competenciaPontoInicial.value = d.valor;
+    navegarParaAba('ponto');
+  } else if (d.tipo === 'holerite') {
+    navegarParaAba('holerites');
+    const h = holerites.value.find((x) => String(x.id) === String(d.valor));
+    if (h) abrirHolerite(h);
+  }
+}
 
 // Quem não tem acesso de RH e chega em #/rh volta para os holerites
 watch(() => [abaAtiva.value, usuarioLogado.value], () => {
@@ -2225,6 +2271,7 @@ async function enviarConfirmacaoTelefone(telefone) {
     const destino = obterRotaValida();
     navegarParaAba(destino, false);
     etapaAtual.value = 'dashboard';
+    irParaDestino();
   } catch (err) {
     mensagemErro.value = 'Erro ao registrar confirmação do telefone.';
   } finally {
@@ -2541,6 +2588,20 @@ async function carregarCadernosBusca() {
   }
 }
 
+// RH: colaboradores (resumo completo) para a busca geral
+const colaboradoresBusca = ref(null);
+const colaboradorResumo = ref(null);
+async function carregarColaboradoresBusca(forcar = false) {
+  if (!podeRh('rh_acompanhamento', 'visualizar') || (colaboradoresBusca.value && !forcar)) return;
+  try {
+    const res = await fetch(`/api/rh/resumo?ano=${new Date().getFullYear()}`, { headers: { 'Authorization': `Bearer ${localStorage.getItem('vb_auth_token') || ''}` } });
+    const data = await res.json();
+    colaboradoresBusca.value = res.ok ? (data.colaboradores || []) : [];
+  } catch (e) {
+    colaboradoresBusca.value = [];
+  }
+}
+
 const resultadosBusca = computed(() => {
   const termo = buscaGlobal.value.trim().toLowerCase();
   if (!termo) return [];
@@ -2564,7 +2625,12 @@ const resultadosBusca = computed(() => {
     .slice(0, 6)
     .map(c => ({ titulo: c.titulo, categoria: 'Caderno (PDF)', icone: 'landmark', tipo: 'caderno', caderno: c }));
 
-  return [...modulos, ...holeritesEncontrados, ...cadernosEncontrados];
+  const colaboradoresEncontrados = (colaboradoresBusca.value || [])
+    .filter(c => bate(c.nome, c.matricula, c.cargo, c.departamento))
+    .slice(0, 6)
+    .map(c => ({ titulo: c.nome, categoria: `Colaborador · ${c.matricula} · ${c.cargo}`, icone: 'user', tipo: 'colaborador', colaborador: c }));
+
+  return [...colaboradoresEncontrados, ...modulos, ...holeritesEncontrados, ...cadernosEncontrados];
 });
 
 const buscaCadernoInicial = ref('');
@@ -2572,6 +2638,7 @@ const buscaCadernoInicial = ref('');
 function selecionarResultado(r) {
   if (r.tipo === 'aba') navegarParaAba(r.aba);
   if (r.tipo === 'holerite') abrirHolerite(r.holerite);
+  if (r.tipo === 'colaborador') colaboradorResumo.value = r.colaborador;
   if (r.tipo === 'caderno') {
     buscaCadernoInicial.value = r.caderno.titulo;
     navegarParaAba('cadernos');
@@ -2771,6 +2838,7 @@ async function verificarSessaoExistente() {
         const rotaDestino = obterRotaValida();
         navegarParaAba(rotaDestino, false);
         etapaAtual.value = 'dashboard';
+        irParaDestino();
 
         // Se veio instrução para abrir holerite específico via link seguro do WhatsApp, abre imediatamente
         if (holeriteIdParaAbrir && holerites.value.length > 0) {
