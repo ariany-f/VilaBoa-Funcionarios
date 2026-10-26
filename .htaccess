@@ -6,6 +6,8 @@
     RewriteRule ^backend/controllers/ - [F,L]
     RewriteRule ^backend/services/ - [F,L]
     RewriteRule ^backend/scripts/ - [F,L]
+    RewriteRule ^backend/config/ - [F,L]
+    RewriteRule ^backend/database/ - [F,L]
     RewriteRule ^frontend/ - [F,L]
     RewriteRule ^\.git - [F,L]
 
