@@ -12,12 +12,20 @@ function prepararDadosIniciais(): void
         return;
     }
 
+    // Os PDFs de exemplo só entram na primeira instalação: depois disso o RH gerencia
+    // os cadernos, e um caderno excluído não pode voltar sozinho
+    $cadernosJaInstalados = is_dir($dados . '/cadernos');
+
     $itens = new RecursiveIteratorIterator(
         new RecursiveDirectoryIterator($exemplos, FilesystemIterator::SKIP_DOTS),
         RecursiveIteratorIterator::SELF_FIRST
     );
     foreach ($itens as $item) {
-        $destino = $dados . substr($item->getPathname(), strlen($exemplos));
+        $relativo = substr($item->getPathname(), strlen($exemplos));
+        if ($cadernosJaInstalados && preg_match('#^[\\\\/]cadernos[\\\\/]#', $relativo)) {
+            continue;
+        }
+        $destino = $dados . $relativo;
         if ($item->isDir()) {
             if (!is_dir($destino)) {
                 mkdir($destino, 0775, true);

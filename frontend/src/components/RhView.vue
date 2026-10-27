@@ -210,6 +210,9 @@
                 {{ cad.total_leram }} de {{ cad.total_publico }} leram
                 <AppIcon name="chevron-right" size="12" class="ml-1" />
               </button>
+              <button type="button" @click="verCaderno(cad)" class="w-8 h-8 rounded-lg text-slate-400 hover:bg-slate-100 hover:text-slate-800 flex items-center justify-center cursor-pointer shrink-0" title="Ver caderno" aria-label="Ver caderno">
+                <AppIcon name="eye" size="14" />
+              </button>
               <button v-if="pode(colaborador, 'rh_cadernos', 'editar')" type="button" @click="editarCaderno(cad)" class="w-8 h-8 rounded-lg text-slate-400 hover:bg-slate-100 hover:text-slate-800 flex items-center justify-center cursor-pointer shrink-0" title="Editar categoria e público" aria-label="Editar caderno">
                 <AppIcon name="edit" size="14" />
               </button>
@@ -882,6 +885,22 @@ async function salvarCaderno() {
     mensagemCadernos.value = e.message || 'Não foi possível salvar o caderno.';
   } finally {
     enviando.value = false;
+  }
+}
+
+// Abre o PDF numa aba nova (a aba é aberta já no clique para o navegador não bloquear)
+async function verCaderno(cad) {
+  const aba = window.open('', '_blank');
+  try {
+    const res = await fetch(`/api/rh/cadernos/arquivo?nome=${encodeURIComponent(cad.arquivo)}`, { headers: auth() });
+    if (!res.ok) throw new Error();
+    const url = URL.createObjectURL(await res.blob());
+    if (aba) aba.location.href = url;
+    else window.location.href = url;
+  } catch (e) {
+    aba?.close();
+    mensagemCadernosErro.value = true;
+    mensagemCadernos.value = 'Não foi possível abrir o caderno.';
   }
 }
 

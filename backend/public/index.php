@@ -963,6 +963,22 @@ if (str_starts_with($route, '/admin/') || str_starts_with($route, '/rh/')) {
         exit;
     }
 
+    // PDF do caderno para o RH conferir
+    if ($method === 'GET' && $route === '/rh/cadernos/arquivo') {
+        exigirPermissao($permissoesLogado, 'rh_cadernos', 'visualizar');
+        $caminho = $cadernosController->caminhoDoArquivo($_GET['nome'] ?? '');
+        if (!$caminho) {
+            http_response_code(404);
+            echo json_encode(['erro' => 'Caderno não encontrado.']);
+            exit;
+        }
+        header('Content-Type: application/pdf');
+        header('Content-Length: ' . filesize($caminho));
+        header('Content-Disposition: inline; filename="' . basename($caminho) . '"');
+        readfile($caminho);
+        exit;
+    }
+
     if ($method === 'POST' && $route === '/rh/cadernos/remover') {
         exigirPermissao($permissoesLogado, 'rh_cadernos', 'remover');
         $resultado = $cadernosController->remover($body['arquivo'] ?? '');
