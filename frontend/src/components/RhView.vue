@@ -63,11 +63,50 @@
             <select v-model="ano" @change="carregar" class="h-9 px-3 rounded-lg border border-slate-200 bg-slate-50 text-sm text-slate-700 outline-none">
               <option v-for="a in anos" :key="a" :value="a">{{ a }}</option>
             </select>
-            <input v-model="busca" type="text" placeholder="Buscar nome ou matrícula..." class="h-9 w-56 px-3 rounded-lg border border-slate-200 bg-slate-50 text-sm outline-none focus:bg-white focus:border-slate-400" />
+            <input v-model="busca" type="text" placeholder="Buscar nome ou matrícula..." class="h-9 w-full sm:w-56 px-3 rounded-lg border border-slate-200 bg-slate-50 text-sm outline-none focus:bg-white focus:border-slate-400" />
           </div>
         </div>
 
-        <div class="overflow-x-auto">
+        <!-- Celular: um cartão por colaborador, sem rolar para o lado -->
+        <ul class="md:hidden divide-y divide-slate-100">
+          <li v-for="c in colaboradoresFiltrados" :key="c.matricula" class="py-4 space-y-3">
+            <div class="flex items-start justify-between gap-3">
+              <span class="min-w-0">
+                <span class="block text-sm font-semibold text-slate-900 truncate">{{ c.nome }}</span>
+                <span class="block text-xs text-slate-400 truncate">{{ c.matricula }} · {{ c.cargo }}</span>
+              </span>
+              <a
+                v-if="temPendencia(c) && c.telefone && podeAvisar"
+                :href="cobrancaGeral(c)"
+                target="_blank"
+                rel="noopener"
+                class="shrink-0 inline-flex items-center gap-1.5 h-9 px-3 rounded-full bg-[#1DA851] text-white text-xs font-semibold active:scale-95 transition"
+              >
+                <AppIcon name="whatsapp" size="13" />
+                Cobrar
+              </a>
+              <span v-else-if="!temPendencia(c)" class="shrink-0 text-xs text-emerald-700 font-medium">Em dia</span>
+            </div>
+            <div class="grid gap-2">
+              <button v-if="mostraColuna('holerites')" type="button" @click="abrirHoleritesDoColaborador(c)" class="linha-status">
+                <span>Holerites</span>
+                <span class="badge" :class="c.holerites.recebidos === c.holerites.total ? 'ok' : 'pendente'">{{ c.holerites.recebidos }} de {{ c.holerites.total }}</span>
+              </button>
+              <button v-if="mostraColuna('ponto')" type="button" :disabled="!c.ponto" @click="c.ponto && abrirPontoDoColaborador(c)" class="linha-status">
+                <span>Espelho de ponto</span>
+                <span v-if="!c.ponto" class="text-xs text-slate-400">Sem espelho</span>
+                <span v-else class="badge" :class="c.ponto.assinado_em ? 'ok' : 'pendente'">{{ c.ponto.assinado_em ? 'Assinado' : 'Pendente' }} · {{ c.ponto.competencia }}</span>
+              </button>
+              <button v-if="mostraColuna('cadernos') && c.cadernos.obrigatorios_total" type="button" @click="abrirLeiturasDoColaborador(c)" class="linha-status">
+                <span>Cadernos</span>
+                <span class="badge" :class="c.cadernos.obrigatorios_lidos === c.cadernos.obrigatorios_total ? 'ok' : 'pendente'">{{ c.cadernos.obrigatorios_lidos }} de {{ c.cadernos.obrigatorios_total }} obrigatórios</span>
+              </button>
+            </div>
+          </li>
+          <li v-if="!colaboradoresFiltrados.length" class="py-10 text-center text-sm text-slate-400">Nenhum colaborador encontrado.</li>
+        </ul>
+
+        <div class="hidden md:block overflow-x-auto">
           <table class="w-full text-sm" :class="tipoFiltro === 'todos' ? 'min-w-[760px]' : 'min-w-[480px]'">
             <thead>
               <tr class="text-[10px] font-semibold uppercase tracking-wider text-slate-400 text-left">
@@ -354,7 +393,7 @@
                 <span class="badge" :class="h.aceite?.confirmado ? 'ok' : 'pendente'">{{ h.aceite?.confirmado ? 'Recebido' : 'Não recebido' }}</span>
                 <span v-if="h.aceite?.confirmado" class="hidden sm:block text-[10px] text-slate-400 mt-1">{{ h.aceite.data_hora }}</span>
               </span>
-              <AppIcon name="chevron-right" size="16" class="text-slate-300 shrink-0" />
+              <AppIcon name="chevron-right" size="16" class="hidden sm:block text-slate-300 shrink-0" />
             </button>
           </li>
         </ul>
@@ -371,8 +410,10 @@
 
     <!-- ===================== ESPELHO DE PONTO ===================== -->
     <template v-else-if="aba === 'ponto'">
+      <!-- Lista à esquerda; importação à direita, sempre à vista -->
+      <div class="grid gap-6 items-start" :class="pode(colaborador, 'rh_ponto', 'importar') ? 'xl:grid-cols-[minmax(0,1fr)_360px]' : ''">
       <!-- Lista de todos os espelhos (colaborador × competência) -->
-      <div class="bg-white rounded-2xl border border-slate-200 overflow-hidden">
+      <div class="bg-white rounded-2xl border border-slate-200 overflow-hidden min-w-0">
         <div class="p-5 sm:p-6 space-y-4 border-b border-slate-100">
           <div class="flex flex-col lg:flex-row lg:items-center gap-3">
             <div class="flex-1">
@@ -415,7 +456,7 @@
                 <span class="badge" :class="e.assinado_em ? 'ok' : 'pendente'">{{ e.assinado_em ? 'Assinado' : 'Falta assinar' }}</span>
                 <span v-if="e.assinado_em" class="hidden sm:block text-[10px] text-slate-400 mt-1">{{ e.assinado_em }}</span>
               </span>
-              <AppIcon name="chevron-right" size="16" class="text-slate-300 shrink-0" />
+              <AppIcon name="chevron-right" size="16" class="hidden sm:block text-slate-300 shrink-0" />
             </button>
           </li>
         </ul>
@@ -426,7 +467,7 @@
         <PontoView :key="espelhoRh.matricula + espelhoRh.competencia" :matricula="espelhoRh.matricula" :competencia-inicial="espelhoRh.competencia" somente-leitura />
       </div>
 
-      <div v-if="pode(colaborador, 'rh_ponto', 'importar')" class="bg-white rounded-2xl border border-slate-200 p-5 sm:p-6 space-y-5 max-w-3xl">
+      <div v-if="pode(colaborador, 'rh_ponto', 'importar')" class="bg-white rounded-2xl border border-slate-200 p-5 sm:p-6 space-y-5 xl:sticky xl:top-0">
         <div>
           <h3 class="text-sm font-semibold uppercase tracking-wider text-slate-800">Importar espelho de ponto</h3>
           <p class="text-xs text-slate-500 mt-0.5">Uma planilha com os espelhos de todos os colaboradores do mês. Cada espelho importado substitui o anterior do mesmo mês e fica disponível para assinatura.</p>
@@ -449,10 +490,11 @@
 
         <div class="text-xs text-slate-500 bg-slate-50 border border-slate-200 rounded-lg p-3 space-y-1">
           <p class="font-semibold text-slate-700">Formato do CSV</p>
-          <p>Uma linha por dia de cada colaborador, separada por ponto e vírgula: <code class="font-mono">matricula;data;entrada1;saida1;entrada2;saida2;ocorrencia;link_assinatura;saldo_banco</code></p>
+          <p>Uma linha por dia de cada colaborador, separada por ponto e vírgula: <code class="font-mono break-all">matricula;data;entrada1;saida1;entrada2;saida2;ocorrencia;link_assinatura;saldo_banco</code></p>
           <p><strong>link_assinatura</strong> é o link do documento daquele espelho no Autentique (um por colaborador e mês). Basta preencher na primeira linha de cada colaborador; o mesmo vale para <strong>saldo_banco</strong> (opcional).</p>
           <p>Datas em dd/mm/aaaa e horários em hh:mm. Deixe as horas vazias em folgas e informe a ocorrência (ex.: DSR, Feriado, Atestado). O saldo diário considera jornada de 8 horas.</p>
         </div>
+      </div>
       </div>
     </template>
 
@@ -969,12 +1011,29 @@ onMounted(carregar);
 </script>
 
 <style scoped>
+.linha-status {
+  width: 100%;
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 0 12px;
+  border-radius: 12px;
+  background: #f8fafc;
+  font-size: 13px;
+  color: #334155;
+  cursor: pointer;
+}
+.linha-status:active {
+  background: #f1f5f9;
+}
 .linha-lista {
   width: 100%;
   display: flex;
   align-items: center;
   gap: 12px;
-  padding: 12px 20px;
+  padding: 12px 16px;
   text-align: left;
   cursor: pointer;
   transition: background 0.15s;

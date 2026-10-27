@@ -1,6 +1,6 @@
 <template>
   <div class="space-y-6 animate-slide-up">
-    <div class="bg-white rounded-2xl border border-slate-200 p-6 sm:p-7">
+    <div class="sm:bg-white sm:rounded-2xl sm:border border-slate-200 sm:p-7">
       <div v-if="carregando" class="py-12 text-center text-sm text-slate-400">Carregando cadernos...</div>
 
       <div v-else-if="erro" class="py-12 text-center text-sm text-rose-700">{{ erro }}</div>

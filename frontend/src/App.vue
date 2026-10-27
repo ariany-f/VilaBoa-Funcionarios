@@ -636,7 +636,7 @@
                     <span
                       class="text-xs font-semibold px-3 py-1 rounded-full"
                       :class="holerites[0].aceite?.confirmado ? 'bg-emerald-500/15 text-emerald-300' : 'bg-amber-400/15 text-amber-300'"
-                    >{{ holerites[0].aceite?.confirmado ? '✓ Recebido' : 'Novo' }}</span>
+                    >{{ holerites[0].aceite?.confirmado ? '✓ Recebido' : 'Não lido' }}</span>
                   </div>
                   <p class="text-sm text-white/70">{{ holerites[0].tipo_folha || 'Folha Mensal' }} · pago em {{ holerites[0].data_pagamento }}</p>
                 </div>
@@ -820,7 +820,7 @@
                       <span
                         class="shrink-0 text-[11px] font-semibold px-2.5 py-1 rounded-full"
                         :class="h.aceite?.confirmado ? 'bg-emerald-50 text-emerald-700' : 'bg-amber-50 text-amber-700'"
-                      >{{ h.aceite?.confirmado ? '✓ Recebido' : 'Novo' }}</span>
+                      >{{ h.aceite?.confirmado ? '✓ Recebido' : 'Não lido' }}</span>
                     </button>
 
                     <div class="grid grid-cols-2 gap-2">
@@ -899,7 +899,7 @@
                             class="h-6 px-3 rounded-full text-[11px] font-bold text-slate-500 bg-slate-100/90 border border-slate-200 inline-flex items-center gap-1.5 shadow-2xs"
                           >
                             <span class="w-1.5 h-1.5 rounded-full bg-amber-500"></span>
-                            <span>Novo</span>
+                            <span>Não lido</span>
                           </span>
                         </td>
 
@@ -2259,13 +2259,13 @@ function carregarPendencias() {
   carregarPontosPendentes(token);
 }
 
-// Notificações do cabeçalho: holerites novos, espelhos para assinar e cadernos para ler
+// Notificações do cabeçalho: holerites não lidos, espelhos para assinar e cadernos para ler
 const notificacoes = computed(() => {
   const lista = [];
   const holeritesNovos = holerites.value.filter((h) => !h.aceite?.confirmado);
   if (holeritesNovos.length) {
     lista.push({
-      titulo: holeritesNovos.length === 1 ? 'Você tem 1 holerite novo' : `Você tem ${holeritesNovos.length} holerites novos`,
+      titulo: holeritesNovos.length === 1 ? 'Você tem 1 holerite não lido' : `Você tem ${holeritesNovos.length} holerites não lidos`,
       descricao: holeritesNovos.length === 1 ? `${holeritesNovos[0].mes_nome} de ${holeritesNovos[0].ano}` : `O mais recente é ${holeritesNovos[0].mes_nome} de ${holeritesNovos[0].ano}`,
       icone: 'document',
       cor: 'bg-rose-50 text-[#9c2337]',

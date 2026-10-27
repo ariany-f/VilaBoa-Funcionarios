@@ -82,7 +82,7 @@
     </div>
 
     <!-- Painel -->
-    <div v-else class="flex h-screen overflow-hidden">
+    <div v-else class="flex h-[100dvh] overflow-hidden">
       <aside class="hidden md:flex w-60 shrink-0 flex-col bg-white border-r border-slate-200">
         <div class="h-16 px-4 flex items-center border-b border-slate-200">
           <img src="/img/logo-vilaboa-color.png" alt="Vila Boa Construções e Serviços" class="h-8 w-auto object-contain" />
@@ -116,7 +116,7 @@
       </aside>
 
       <div class="flex-1 min-w-0 flex flex-col">
-        <header class="h-16 shrink-0 bg-[#141414] px-4 sm:px-6 flex items-center gap-3">
+        <header class="shrink-0 bg-[#141414] px-4 sm:px-6 pt-[env(safe-area-inset-top,0px)] h-[calc(4rem+env(safe-area-inset-top,0px))] flex items-center gap-3">
           <!-- Busca de colaborador -->
           <div class="relative flex-1 max-w-md">
             <div class="flex items-center h-9 rounded-lg bg-white overflow-hidden">
@@ -151,23 +151,26 @@
           <button type="button" @click="sair" class="md:hidden ml-auto text-xs font-semibold text-white/80 hover:text-white cursor-pointer">Sair</button>
         </header>
 
-        <!-- Seções no celular -->
-        <div class="md:hidden bg-white border-b border-slate-200 px-3 py-2 overflow-x-auto">
-          <div class="flex gap-1 w-max">
+        <main class="flex-1 min-h-0 overflow-y-auto p-4 sm:p-6 lg:p-8 pb-[calc(5.5rem+env(safe-area-inset-bottom,0px))] md:pb-8">
+          <RhView :colaborador="usuario" :aba-externa="secao" />
+        </main>
+
+        <!-- Seções no celular: barra de abas fixa embaixo, como num app -->
+        <nav class="md:hidden fixed bottom-0 inset-x-0 z-40 bg-white/95 backdrop-blur border-t border-slate-200 pb-[env(safe-area-inset-bottom,0px)]">
+          <div class="grid" :style="{ gridTemplateColumns: `repeat(${secoes.length}, minmax(0, 1fr))` }">
             <button
               v-for="s in secoes"
               :key="s.id"
               type="button"
               @click="secao = s.id"
-              class="h-9 px-4 rounded-full text-xs font-semibold cursor-pointer"
-              :class="secao === s.id ? 'bg-[#141414] text-white' : 'bg-slate-100 text-slate-600'"
-            >{{ s.rotulo }}</button>
+              class="h-16 flex flex-col items-center justify-center gap-1 cursor-pointer active:scale-95 transition"
+              :class="secao === s.id ? 'text-[#9c2337]' : 'text-slate-500'"
+            >
+              <AppIcon :name="s.icone" size="20" />
+              <span class="text-[10px] leading-none" :class="secao === s.id ? 'font-semibold' : ''">{{ s.rotuloCurto || s.rotulo }}</span>
+            </button>
           </div>
-        </div>
-
-        <main class="flex-1 min-h-0 overflow-y-auto p-4 sm:p-6 lg:p-8">
-          <RhView :colaborador="usuario" :aba-externa="secao" />
-        </main>
+        </nav>
       </div>
     </div>
 
@@ -235,9 +238,9 @@ async function carregarDemos() {
 const urlPortal = window.location.pathname.replace(/admin\/?$/, '');
 
 const secoes = computed(() => [
-  { id: 'acompanhamento', rotulo: 'Acompanhamento', icone: 'shield-check', tela: 'rh_acompanhamento' },
+  { id: 'acompanhamento', rotulo: 'Acompanhamento', rotuloCurto: 'Início', icone: 'shield-check', tela: 'rh_acompanhamento' },
   { id: 'cadernos', rotulo: 'Cadernos', icone: 'landmark', tela: 'rh_cadernos' },
-  { id: 'ponto', rotulo: 'Espelho de ponto', icone: 'calendar', tela: 'rh_ponto' },
+  { id: 'ponto', rotulo: 'Espelho de ponto', rotuloCurto: 'Ponto', icone: 'calendar', tela: 'rh_ponto' },
   { id: 'holerites', rotulo: 'Holerites', icone: 'document', tela: 'rh_holerites' }
 ].filter((s) => pode(usuario.value, s.tela, 'visualizar')));
 
