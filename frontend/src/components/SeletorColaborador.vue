@@ -8,6 +8,7 @@
         type="text"
         :placeholder="selecionado ? `${selecionado.nome} (${selecionado.matricula})` : 'Buscar colaborador...'"
         @focus="aberto = true"
+        @click="aberto = true"
         @blur="fechar"
         @keydown.down.prevent="mover(1)"
         @keydown.up.prevent="mover(-1)"
@@ -48,6 +49,7 @@ const props = defineProps({
 });
 const emit = defineEmits(['update:modelValue', 'change']);
 
+const campo = ref(null);
 const termo = ref('');
 const aberto = ref(false);
 const indice = ref(0);
@@ -60,7 +62,7 @@ const filtrados = computed(() => {
   return props.colaboradores.filter((c) => [c.nome, c.matricula, c.cargo, c.departamento].some((v) => (v || '').toLowerCase().includes(t)));
 });
 
-watch(termo, () => { indice.value = 0; aberto.value = true; });
+watch(termo, (t) => { indice.value = 0; if (t) aberto.value = true; });
 
 function mover(passo) {
   const total = filtrados.value.length;
@@ -72,6 +74,8 @@ function escolher(c) {
   emit('change', c.matricula);
   termo.value = '';
   aberto.value = false;
+  // Solta o foco: o próximo clique já abre a lista de novo
+  campo.value?.blur();
 }
 
 function fechar() {
