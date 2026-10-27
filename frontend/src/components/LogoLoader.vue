@@ -1,35 +1,15 @@
 <template>
-  <div class="flex flex-col items-center justify-center p-6 text-center select-none">
-    <!-- Logo oficial + anel de carregamento (roxo → bordô) -->
-    <img src="/img/logo-vilaboa-color.png" alt="Vila Boa Construções e Serviços" class="h-12 w-auto max-w-[240px] object-contain" />
+  <!-- Tela de abertura: logo com respiração suave e barra de progresso fina, como no splash de um app -->
+  <div class="flex flex-col items-center justify-center p-6 text-center select-none" role="status" aria-live="polite">
+    <img src="/img/logo-vilaboa-color.png" alt="Vila Boa Construções e Serviços" class="logo-respira h-12 w-auto max-w-[220px] object-contain" />
 
-    <div class="relative w-10 h-10 mt-8">
-      <svg viewBox="0 0 96 96" class="absolute inset-0 w-full h-full loader-ring" aria-hidden="true">
-        <defs>
-          <linearGradient id="loader-grad" x1="0" y1="0" x2="1" y2="1">
-            <stop offset="0%" stop-color="#141414" />
-            <stop offset="100%" stop-color="#9c2337" />
-          </linearGradient>
-        </defs>
-        <circle cx="48" cy="48" r="40" fill="none" stroke="#e2e8f0" stroke-width="8" />
-        <circle
-          cx="48" cy="48" r="40"
-          fill="none"
-          stroke="url(#loader-grad)"
-          stroke-width="8"
-          stroke-linecap="round"
-          stroke-dasharray="252"
-          class="loader-arc"
-        />
-      </svg>
+    <div class="mt-7 w-28 h-1 rounded-full bg-slate-200 overflow-hidden" aria-hidden="true">
+      <div class="barra-corre h-full w-1/3 rounded-full bg-[#9c2337]"></div>
     </div>
 
-    <!-- Rótulo Institucional -->
-    <div v-if="mensagem" class="mt-6 space-y-0.5">
-      <span class="text-sm font-medium text-slate-800 block">
-        {{ mensagem }}
-      </span>
-    </div>
+    <span class="mt-4 text-xs font-medium text-slate-500" :class="mensagem ? '' : 'sr-only'">
+      {{ mensagem || 'Carregando...' }}
+    </span>
   </div>
 </template>
 
@@ -43,25 +23,23 @@ defineProps({
 </script>
 
 <style scoped>
-.loader-ring {
-  animation: loader-spin 1.4s linear infinite;
+.logo-respira {
+  animation: respira 1.8s ease-in-out infinite;
 }
-.loader-arc {
-  transform-origin: 48px 48px;
-  transform: rotate(-90deg);
-  animation: loader-dash 1.4s ease-in-out infinite;
+.barra-corre {
+  animation: corre 1.1s cubic-bezier(0.65, 0, 0.35, 1) infinite;
 }
 
-@keyframes loader-spin {
-  to { transform: rotate(360deg); }
+@keyframes respira {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.75; transform: scale(0.97); }
 }
-@keyframes loader-dash {
-  0%   { stroke-dashoffset: 250; }
-  50%  { stroke-dashoffset: 90; }
-  100% { stroke-dashoffset: 250; }
+@keyframes corre {
+  0% { transform: translateX(-110%); }
+  100% { transform: translateX(310%); }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .loader-ring, .loader-arc { animation: none; }
+  .logo-respira, .barra-corre { animation: none; }
 }
 </style>

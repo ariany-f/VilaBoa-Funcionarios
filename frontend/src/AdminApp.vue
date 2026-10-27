@@ -117,6 +117,10 @@
 
       <div class="flex-1 min-w-0 flex flex-col">
         <header class="shrink-0 bg-[#141414] px-4 sm:px-6 pt-[env(safe-area-inset-top,0px)] h-[calc(4rem+env(safe-area-inset-top,0px))] flex items-center gap-3">
+          <!-- Abre a barra lateral no celular -->
+          <button type="button" @click="menuAberto = true" class="md:hidden w-10 h-10 -ml-1 rounded-full text-white/90 hover:bg-white/10 active:scale-95 flex items-center justify-center cursor-pointer shrink-0" aria-label="Abrir menu">
+            <AppIcon name="menu" size="20" />
+          </button>
           <!-- Busca de colaborador -->
           <div class="relative flex-1 max-w-md">
             <div class="flex items-center h-9 rounded-lg bg-white overflow-hidden">
@@ -148,7 +152,30 @@
               </button>
             </div>
           </div>
-          <button type="button" @click="sair" class="md:hidden ml-auto text-xs font-semibold text-white/80 hover:text-white cursor-pointer">Sair</button>
+          <!-- Usuário logado, com a opção de sair -->
+          <div class="relative ml-auto shrink-0">
+            <button type="button" @click="menuUsuarioAberto = !menuUsuarioAberto" class="flex items-center gap-2.5 h-10 pl-1 pr-1 md:pr-3 rounded-full hover:bg-white/10 cursor-pointer transition" :aria-expanded="menuUsuarioAberto" aria-label="Menu do usuário">
+              <span class="w-8 h-8 rounded-full bg-[#9c2337] text-white flex items-center justify-center text-xs font-semibold">{{ iniciais }}</span>
+              <span class="hidden md:block text-left leading-tight">
+                <span class="block text-xs font-semibold text-white max-w-[160px] truncate">{{ usuario.nome }}</span>
+                <span class="block text-[10px] text-white/60 max-w-[160px] truncate">{{ usuario.email }}</span>
+              </span>
+              <AppIcon name="chevron-down" size="14" class="hidden md:block text-white/60" />
+            </button>
+            <template v-if="menuUsuarioAberto">
+              <div class="fixed inset-0 z-40" @click="menuUsuarioAberto = false"></div>
+              <div class="absolute right-0 top-full mt-2 w-64 bg-white rounded-2xl border border-slate-200 shadow-xl z-50 overflow-hidden">
+                <div class="px-4 py-3 border-b border-slate-100">
+                  <p class="text-sm font-semibold text-slate-900 truncate">{{ usuario.nome }}</p>
+                  <p class="text-xs text-slate-500 truncate">{{ usuario.email }}</p>
+                </div>
+                <button type="button" @click="sair" class="w-full px-4 py-3 flex items-center gap-2.5 text-sm font-medium text-rose-700 hover:bg-rose-50 cursor-pointer">
+                  <AppIcon name="log-out" size="16" />
+                  Sair do painel
+                </button>
+              </div>
+            </template>
+          </div>
         </header>
 
         <main class="flex-1 min-h-0 overflow-y-auto p-4 sm:p-6 lg:p-8 pb-[calc(5.5rem+env(safe-area-inset-bottom,0px))] md:pb-8">
@@ -171,6 +198,48 @@
             </button>
           </div>
         </nav>
+
+        <!-- Barra lateral no celular -->
+        <div v-if="menuAberto" class="md:hidden fixed inset-0 z-50 flex">
+          <div class="absolute inset-0 bg-slate-900/60 backdrop-blur-xs gaveta-fundo" @click="menuAberto = false" aria-hidden="true"></div>
+          <aside class="gaveta relative w-[82%] max-w-xs h-full bg-white flex flex-col shadow-2xl" role="dialog" aria-modal="true" aria-label="Menu do painel">
+            <div class="px-4 pb-4 pt-[calc(1rem+env(safe-area-inset-top,0px))] border-b border-slate-100 flex items-center justify-between">
+              <img src="/img/logo-vilaboa-color.png" alt="Vila Boa Construções e Serviços" class="h-8 w-auto object-contain" />
+              <button type="button" @click="menuAberto = false" class="w-9 h-9 rounded-full bg-slate-100 text-slate-500 flex items-center justify-center active:scale-95 cursor-pointer" aria-label="Fechar menu">
+                <AppIcon name="close" size="14" />
+              </button>
+            </div>
+            <div class="p-4">
+              <div class="flex items-center gap-3 p-3 rounded-2xl bg-slate-50 border border-slate-200">
+                <span class="w-10 h-10 rounded-full bg-[#9c2337] text-white flex items-center justify-center text-sm font-semibold shrink-0">{{ iniciais }}</span>
+                <span class="min-w-0">
+                  <span class="block text-sm font-semibold text-slate-900 truncate">{{ usuario.nome }}</span>
+                  <span class="block text-xs text-slate-500 truncate">{{ usuario.email }}</span>
+                </span>
+              </div>
+            </div>
+            <span class="px-6 pb-1 text-[10px] font-semibold uppercase tracking-wider text-slate-400">Painel do RH</span>
+            <nav class="flex-1 overflow-y-auto px-3 space-y-1">
+              <button
+                v-for="s in secoes"
+                :key="s.id"
+                type="button"
+                @click="secao = s.id; menuAberto = false"
+                class="w-full flex items-center gap-3 px-3 h-12 rounded-xl text-sm font-semibold transition cursor-pointer"
+                :class="secao === s.id ? 'bg-slate-100 text-[#9c2337]' : 'text-slate-700 active:bg-slate-50'"
+              >
+                <AppIcon :name="s.icone" size="18" :class="secao === s.id ? 'text-[#9c2337]' : 'text-slate-400'" />
+                {{ s.rotulo }}
+              </button>
+            </nav>
+            <div class="p-4 pb-[calc(1rem+env(safe-area-inset-bottom,0px))] border-t border-slate-100">
+              <button type="button" @click="sair" class="w-full h-12 rounded-xl bg-rose-50 text-rose-700 font-semibold text-sm flex items-center justify-center gap-2 active:scale-[0.98] cursor-pointer">
+                <AppIcon name="log-out" size="16" />
+                Sair do painel
+              </button>
+            </div>
+          </aside>
+        </div>
       </div>
     </div>
 
@@ -266,7 +335,13 @@ async function entrar() {
   }
 }
 
+const menuAberto = ref(false);
+const menuUsuarioAberto = ref(false);
+const iniciais = computed(() => (usuario.value?.nome || '').split(' ').filter(Boolean).slice(0, 2).map((p) => p[0]).join('').toUpperCase());
+
 function sair() {
+  menuAberto.value = false;
+  menuUsuarioAberto.value = false;
   localStorage.removeItem(CHAVE_TOKEN_ADMIN);
   usuario.value = null;
   colaboradores.value = null;
@@ -327,3 +402,23 @@ onMounted(async () => {
   if (!usuario.value) carregarDemos();
 });
 </script>
+
+<style scoped>
+.gaveta {
+  animation: gaveta-entra 0.22s ease-out;
+}
+.gaveta-fundo {
+  animation: fundo-entra 0.2s ease-out;
+}
+@keyframes gaveta-entra {
+  from { transform: translateX(-100%); }
+  to { transform: translateX(0); }
+}
+@keyframes fundo-entra {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .gaveta, .gaveta-fundo { animation: none; }
+}
+</style>
