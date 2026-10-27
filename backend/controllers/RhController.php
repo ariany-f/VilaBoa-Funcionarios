@@ -88,7 +88,7 @@ class RhController
                     ], $publico))
                 ];
             }, $cadernos),
-            'categorias' => CadernosController::CATEGORIAS,
+            'categorias' => $this->cadernos->categorias(),
             'departamentos' => array_values(array_unique(array_filter(array_map(fn($c) => $c['departamento'] ?? '', $this->colaboradores->getAll()))))
         ];
     }
@@ -114,6 +114,57 @@ class RhController
                 'lido_em' => $lidos[$cad['arquivo']]['data_hora'] ?? null
             ], $doPublico)
         ];
+    }
+
+    /**
+     * Importa uma planilha com os espelhos de vários colaboradores. Colunas (cabeçalho obrigatório):
+     * matricula;data;entrada1;saida1;entrada2;saida2;ocorrencia;link_assinatura;saldo_banco
+     * Cada colaborador + mês vira um espelho (um documento no Autentique). O link de assinatura
+     * e o saldo do banco podem vir em qualquer linha do grupo (normalmente na primeira).
+     */
+    public function importarPlanilha(string $csv): array
+    {
+        $linhas = preg_split('/\r\n|\r|\n/', trim($csv));
+        $separador = str_contains($linhas[0] ?? '', ';') ? ';' : ',';
+        $cabecalho = array_map(fn($c) => mb_strtolower(trim($c, " \t\xEF\xBB\xBF")), str_getcsv(array_shift($linhas) ?? '', $separador));
+        $col = array_flip($cabecalho);
+        foreach (['matricula', 'data'] as $obrigatoria) {
+            if (!isset($col[$obrigatoria])) {
+                return ['erro' => "A planilha precisa da coluna \"$obrigatoria\". Baixe o modelo."];
+            }
+        }
+        $valor = fn(array $cols, string $nome) => isset($col[$nome]) ? trim($cols[$col[$nome]] ?? '') : '';
+
+        // Agrupa por colaborador + mês
+        $grupos = [];
+        foreach ($linhas as $n => $linha) {
+            if (trim($linha) === '') continue;
+            $cols = str_getcsv($linha, $separador);
+            $matricula = $valor($cols, 'matricula');
+            if (!preg_match('#^\d{2}/(\d{2})/(\d{4})$#', $valor($cols, 'data'), $m)) {
+                return ['erro' => 'Linha ' . ($n + 2) . ': data inválida (use dd/mm/aaaa).'];
+            }
+            $chave = "$matricula|{$m[1]}/{$m[2]}";
+            $grupos[$chave] ??= ['matricula' => $matricula, 'linhas' => [], 'link' => '', 'saldo' => ''];
+            $grupos[$chave]['linhas'][] = implode(';', [
+                $valor($cols, 'data'), $valor($cols, 'entrada1'), $valor($cols, 'saida1'),
+                $valor($cols, 'entrada2'), $valor($cols, 'saida2'), $valor($cols, 'ocorrencia')
+            ]);
+            $grupos[$chave]['link'] = $grupos[$chave]['link'] ?: $valor($cols, 'link_assinatura');
+            $grupos[$chave]['saldo'] = $grupos[$chave]['saldo'] ?: $valor($cols, 'saldo_banco');
+        }
+        if (!$grupos) {
+            return ['erro' => 'Nenhuma marcação encontrada na planilha.'];
+        }
+
+        $importados = [];
+        $erros = [];
+        foreach ($grupos as $g) {
+            $r = $this->importarPonto($g['matricula'], $g['saldo'], implode("\n", $g['linhas']), $g['link']);
+            if (!empty($r['erro'])) $erros[] = "{$g['matricula']}: {$r['erro']}";
+            else $importados[] = ['matricula' => $g['matricula'], 'competencia' => $r['competencia'], 'dias' => $r['dias'], 'com_link' => $g['link'] !== ''];
+        }
+        return ['sucesso' => !$erros, 'importados' => $importados, 'erros' => $erros];
     }
 
     /**

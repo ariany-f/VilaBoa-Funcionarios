@@ -6,7 +6,7 @@
         <h2 class="text-xl font-semibold text-slate-900 tracking-tight">Painel do RH</h2>
         <p class="text-xs text-slate-500 mt-0.5">Acompanhe recebimentos, assinaturas e leituras dos colaboradores.</p>
       </div>
-      <div class="flex items-center gap-1 bg-white border border-slate-200 rounded-full p-1 self-start">
+      <div v-if="!abaExterna" class="flex items-center gap-1 bg-white border border-slate-200 rounded-full p-1 self-start">
         <button
           v-for="a in abas"
           :key="a.id"
@@ -69,7 +69,7 @@
                 <th class="py-3 px-3">Holerites recebidos</th>
                 <th class="py-3 px-3">Espelho de ponto</th>
                 <th class="py-3 px-3">Cadernos</th>
-                <th class="py-3 pl-3 text-right">Situação</th>
+                <th class="py-3 pl-3 text-right">Ações</th>
               </tr>
             </thead>
             <tbody class="divide-y divide-slate-100">
@@ -111,7 +111,18 @@
                   </td>
                   <td class="py-3 pl-3 text-right" @click.stop>
 
-                    <span v-if="!temPendencia(c)" class="text-xs text-emerald-700 font-medium">Em dia</span>
+                    <a
+                      v-if="temPendencia(c) && c.telefone && podeAvisar"
+                      :href="cobrancaGeral(c)"
+                      target="_blank"
+                      rel="noopener"
+                      class="inline-flex items-center gap-1.5 h-8 px-3 rounded-lg bg-slate-100 text-slate-700 hover:bg-[#1DA851] hover:text-white text-xs font-semibold transition"
+                      title="Enviar todas as pendências pelo WhatsApp, com o link de cada uma"
+                    >
+                      <AppIcon name="whatsapp" size="13" />
+                      Cobrar
+                    </a>
+                    <span v-else-if="!temPendencia(c)" class="text-xs text-emerald-700 font-medium">Em dia</span>
                     <span v-else class="text-xs text-amber-700 font-medium">Pendente</span>
                   </td>
                 </tr>
@@ -225,6 +236,34 @@
             </select>
           </label>
 
+          <!-- Categorias: o RH cadastra e remove -->
+          <div v-if="pode(colaborador, 'rh_cadernos', 'editar')" class="space-y-2">
+            <div class="flex gap-2">
+              <input
+                v-model="novaCategoria"
+                type="text"
+                maxlength="40"
+                placeholder="Nova categoria"
+                @keydown.enter.prevent="adicionarCategoria"
+                class="flex-1 min-w-0 h-9 px-3 rounded-lg border border-slate-200 bg-slate-50 text-sm outline-none"
+              />
+              <button type="button" @click="adicionarCategoria" :disabled="!novaCategoria.trim()" class="h-9 px-3 rounded-lg bg-slate-100 hover:bg-slate-200 disabled:opacity-40 text-xs font-semibold text-slate-700 cursor-pointer">Adicionar</button>
+            </div>
+            <div class="flex flex-wrap gap-1.5">
+              <span v-for="cat in dados.categorias" :key="cat" class="inline-flex items-center gap-1 h-7 pl-2.5 pr-1 rounded-full bg-slate-100 text-[11px] text-slate-700">
+                {{ cat }}
+                <button
+                  v-if="cat !== 'Outros'"
+                  type="button"
+                  @click="removerCategoria(cat)"
+                  class="w-5 h-5 rounded-full hover:bg-slate-200 text-slate-400 hover:text-slate-700 flex items-center justify-center cursor-pointer"
+                  :title="`Remover ${cat}`"
+                  :aria-label="`Remover categoria ${cat}`"
+                ><AppIcon name="x" size="10" /></button>
+              </span>
+            </div>
+          </div>
+
           <div class="text-xs font-medium text-slate-700 space-y-1.5">
             <span>Leitura</span>
             <div class="grid grid-cols-2 gap-2">
@@ -265,9 +304,7 @@
       <div class="bg-white rounded-2xl border border-slate-200 p-5 sm:p-6 space-y-4">
         <div class="flex flex-col sm:flex-row sm:items-center gap-3">
           <h3 class="text-sm font-semibold uppercase tracking-wider text-slate-800 flex-1">Holerites por colaborador</h3>
-          <select v-model="matriculaHolerite" @change="carregarHolerites" class="h-10 px-3 rounded-lg border border-slate-200 bg-slate-50 text-sm outline-none sm:w-80">
-            <option v-for="c in dados.colaboradores" :key="c.matricula" :value="c.matricula">{{ c.nome }} ({{ c.matricula }})</option>
-          </select>
+          <SeletorColaborador v-model="matriculaHolerite" :colaboradores="dados.colaboradores" @change="carregarHolerites" />
           <select v-model="anoHolerite" @change="carregarHolerites" class="h-10 px-3 rounded-lg border border-slate-200 bg-slate-50 text-sm outline-none">
             <option v-for="a in anos" :key="a" :value="a">{{ a }}</option>
           </select>
@@ -303,9 +340,7 @@
     <template v-else-if="aba === 'ponto'">
       <div class="bg-white rounded-2xl border border-slate-200 p-5 sm:p-6 flex flex-col sm:flex-row sm:items-center gap-3">
         <h3 class="text-sm font-semibold uppercase tracking-wider text-slate-800 flex-1">Consultar espelho</h3>
-        <select v-model="matriculaPonto" class="h-10 px-3 rounded-lg border border-slate-200 bg-slate-50 text-sm outline-none sm:w-80">
-          <option v-for="c in dados.colaboradores" :key="c.matricula" :value="c.matricula">{{ c.nome }} ({{ c.matricula }})</option>
-        </select>
+        <SeletorColaborador v-model="matriculaPonto" :colaboradores="dados.colaboradores" />
       </div>
 
       <PontoView v-if="matriculaPonto" :matricula="matriculaPonto" somente-leitura />
@@ -313,34 +348,19 @@
       <div v-if="pode(colaborador, 'rh_ponto', 'importar')" class="bg-white rounded-2xl border border-slate-200 p-5 sm:p-6 space-y-5 max-w-3xl">
         <div>
           <h3 class="text-sm font-semibold uppercase tracking-wider text-slate-800">Importar espelho de ponto</h3>
-          <p class="text-xs text-slate-500 mt-0.5">Envie um CSV por colaborador. O espelho importado substitui o atual e fica disponível para assinatura.</p>
+          <p class="text-xs text-slate-500 mt-0.5">Uma planilha com os espelhos de todos os colaboradores do mês. Cada espelho importado substitui o anterior do mesmo mês e fica disponível para assinatura.</p>
         </div>
 
-        <form class="grid sm:grid-cols-2 gap-4" @submit.prevent="importarPonto">
-          <label class="text-xs font-medium text-slate-700 space-y-1.5">
-            <span>Colaborador</span>
-            <select v-model="formPonto.matricula" required class="w-full h-10 px-3 rounded-lg border border-slate-200 bg-slate-50 text-sm outline-none">
-              <option value="" disabled>Selecione...</option>
-              <option v-for="c in dados.colaboradores" :key="c.matricula" :value="c.matricula">{{ c.nome }} ({{ c.matricula }})</option>
-            </select>
-          </label>
-          <label class="text-xs font-medium text-slate-700 space-y-1.5">
-            <span>Saldo total do banco de horas (opcional)</span>
-            <input v-model="formPonto.saldo" type="text" placeholder="+14h 30m" class="w-full h-10 px-3 rounded-lg border border-slate-200 bg-slate-50 text-sm outline-none" />
-          </label>
-          <label class="sm:col-span-2 text-xs font-medium text-slate-700 space-y-1.5">
-            <span>Link de assinatura no Autentique</span>
-            <input v-model="formPonto.link" type="url" placeholder="https://painel.autentique.com.br/..." class="w-full h-10 px-3 rounded-lg border border-slate-200 bg-slate-50 text-sm outline-none" />
-          </label>
-          <label class="sm:col-span-2 text-xs font-medium text-slate-700 space-y-1.5">
-            <span>Arquivo CSV</span>
+        <form class="space-y-4" @submit.prevent="importarPonto">
+          <label class="block text-xs font-medium text-slate-700 space-y-1.5">
+            <span>Planilha (CSV)</span>
             <input ref="campoCsv" type="file" accept=".csv,text/csv" required class="block w-full text-sm text-slate-600 file:mr-3 file:h-9 file:px-4 file:rounded-full file:border-0 file:bg-slate-100 file:text-slate-700 file:font-semibold file:cursor-pointer" />
           </label>
-          <div class="sm:col-span-2 flex flex-wrap items-center gap-3">
+          <div class="flex flex-wrap items-center gap-3">
             <button type="submit" :disabled="importando" class="h-10 px-5 rounded-full bg-[#9c2337] hover:bg-[#831b2d] disabled:opacity-50 text-white text-sm font-semibold cursor-pointer">
-              {{ importando ? 'Importando...' : 'Importar espelho' }}
+              {{ importando ? 'Importando...' : 'Importar espelhos' }}
             </button>
-            <button type="button" @click="baixarModelo" class="text-xs font-semibold text-slate-600 hover:text-slate-900 cursor-pointer">Baixar modelo de CSV</button>
+            <button type="button" @click="baixarModelo" class="text-xs font-semibold text-slate-600 hover:text-slate-900 cursor-pointer">Baixar planilha modelo</button>
           </div>
         </form>
 
@@ -348,7 +368,8 @@
 
         <div class="text-xs text-slate-500 bg-slate-50 border border-slate-200 rounded-lg p-3 space-y-1">
           <p class="font-semibold text-slate-700">Formato do CSV</p>
-          <p>Uma linha por dia, separada por ponto e vírgula: <code class="font-mono">data;entrada1;saida1;entrada2;saida2;ocorrencia</code></p>
+          <p>Uma linha por dia de cada colaborador, separada por ponto e vírgula: <code class="font-mono">matricula;data;entrada1;saida1;entrada2;saida2;ocorrencia;link_assinatura;saldo_banco</code></p>
+          <p><strong>link_assinatura</strong> é o link do documento daquele espelho no Autentique (um por colaborador e mês). Basta preencher na primeira linha de cada colaborador; o mesmo vale para <strong>saldo_banco</strong> (opcional).</p>
           <p>Datas em dd/mm/aaaa e horários em hh:mm. Deixe as horas vazias em folgas e informe a ocorrência (ex.: DSR, Feriado, Atestado). O saldo diário considera jornada de 8 horas.</p>
         </div>
       </div>
@@ -386,7 +407,8 @@
                 <span class="block text-xs text-slate-400 truncate">{{ item.detalhe }}</span>
               </span>
               <span class="flex items-center gap-2 shrink-0">
-                <span class="text-xs" :class="item.data ? 'text-emerald-700' : 'text-amber-700'">{{ item.data || modalLeitura.rotuloPendente || 'Não leu' }}</span>
+                <!-- A aba já diz a situação; na linha só aparece a data (quando houver) -->
+                <span v-if="item.data" class="text-xs text-slate-500">{{ item.data }}</span>
                 <a
                   v-if="item.enviar"
                   :href="item.enviar"
@@ -412,13 +434,18 @@
 import { ref, computed, watch, onMounted } from 'vue';
 import AppIcon from './AppIcon.vue';
 import { pode } from '../utils/permissoes.js';
+import { tokenAdmin } from '../utils/sessaoAdmin.js';
 import { usarFecharComEsc } from '../utils/fecharComEsc.js';
-import { avisoCaderno, avisoPonto, avisoHolerite } from '../utils/avisosWhatsapp.js';
+import { avisoCaderno, avisoPonto, avisoHolerite, cobrancaGeral } from '../utils/avisosWhatsapp.js';
 import PontoView from './PontoView.vue';
+import SeletorColaborador from './SeletorColaborador.vue';
 import HoleriteModal from './HoleriteModal.vue';
 
 const props = defineProps({
-  colaborador: { type: Object, required: true }
+  // Usuário do painel (permissões do perfil)
+  colaborador: { type: Object, required: true },
+  // Seção escolhida no menu do /admin (esconde as abas internas)
+  abaExterna: { type: String, default: '' }
 });
 
 // Cada aba aparece só para perfis com a permissão de visualizar a tela correspondente
@@ -428,7 +455,8 @@ const abas = computed(() => [
   { id: 'ponto', rotulo: 'Espelho de ponto', tela: 'rh_ponto' },
   { id: 'holerites', rotulo: 'Holerites', tela: 'rh_holerites' }
 ].filter((a) => pode(props.colaborador, a.tela, 'visualizar')));
-const aba = ref(abas.value[0]?.id || 'acompanhamento');
+const aba = ref(props.abaExterna || abas.value[0]?.id || 'acompanhamento');
+watch(() => props.abaExterna, (v) => { if (v) aba.value = v; });
 const anoAtual = new Date().getFullYear();
 const anos = [anoAtual, anoAtual - 1, anoAtual - 2];
 const ano = ref(anoAtual);
@@ -444,14 +472,13 @@ const enviando = ref(false);
 const mensagemCadernos = ref('');
 const mensagemCadernosErro = ref(false);
 
-const formPonto = ref({ matricula: '', saldo: '', link: '' });
 const campoCsv = ref(null);
 const importando = ref(false);
 const mensagemPonto = ref('');
 const mensagemPontoErro = ref(false);
 
 function auth() {
-  return { 'Authorization': `Bearer ${localStorage.getItem('vb_auth_token') || ''}` };
+  return { 'Authorization': `Bearer ${tokenAdmin()}` };
 }
 
 // Modal de leituras: { titulo, subtitulo, grupos: [{ rotulo, vazio, itens: [{ nome, detalhe, data }] }] }
@@ -479,11 +506,10 @@ function abrirLeiturasDoCaderno(cad) {
 // Modal genérico: separa os colaboradores em "pendentes" e "em dia" para um indicador
 function abrirPorColaborador(titulo, subtitulo, emDia, resumoDe, considerar = () => true) {
   const lista = dados.value.colaboradores.filter(considerar);
-  const pessoa = (c) => ({ nome: c.nome, detalhe: resumoDe(c), data: emDia(c) ? 'Em dia' : null });
+  const pessoa = (c) => ({ nome: c.nome, detalhe: resumoDe(c), data: null });
   modalLeitura.value = {
     titulo,
     subtitulo,
-    rotuloPendente: 'Pendente',
     grupos: [
       { rotulo: 'Pendentes', vazio: 'Ninguém pendente.', itens: lista.filter((c) => !emDia(c)).map(pessoa) },
       { rotulo: 'Em dia', vazio: 'Ninguém em dia ainda.', itens: lista.filter(emDia).map(pessoa) }
@@ -493,11 +519,10 @@ function abrirPorColaborador(titulo, subtitulo, emDia, resumoDe, considerar = ()
 }
 
 function abrirHoleritesDoColaborador(c) {
-  const item = (h) => ({ nome: h.descricao, detalhe: h.recebido_em ? 'Recebido' : 'O colaborador ainda não abriu', data: h.recebido_em, enviar: h.recebido_em ? null : aviso(c, () => avisoHolerite(c, h)) });
+  const item = (h) => ({ nome: h.descricao, detalhe: '', data: h.recebido_em, enviar: h.recebido_em ? null : aviso(c, () => avisoHolerite(c, h)) });
   modalLeitura.value = {
     titulo: c.nome,
     subtitulo: `${c.matricula} · holerites de ${ano.value} · ${c.holerites.recebidos} de ${c.holerites.total} recebidos`,
-    rotuloPendente: 'Não recebido',
     grupos: [
       { rotulo: 'Não recebidos', vazio: 'Recebeu todos.', itens: c.holerites.detalhe.filter((h) => !h.recebido_em).map(item) },
       { rotulo: 'Recebidos', vazio: 'Nenhum recebido ainda.', itens: c.holerites.detalhe.filter((h) => h.recebido_em).map(item) }
@@ -508,11 +533,10 @@ function abrirHoleritesDoColaborador(c) {
 
 function abrirPontoDoColaborador(c) {
   const comps = c.ponto?.competencias || [];
-  const item = (p) => ({ nome: p.mes_nome, detalhe: p.assinado_em ? 'Assinado' : 'Falta assinar', data: p.assinado_em, enviar: p.assinado_em ? null : aviso(c, () => avisoPonto(c, p)) });
+  const item = (p) => ({ nome: p.mes_nome, detalhe: '', data: p.assinado_em, enviar: p.assinado_em ? null : aviso(c, () => avisoPonto(c, p)) });
   modalLeitura.value = {
     titulo: c.nome,
     subtitulo: `${c.matricula} · espelhos de ponto`,
-    rotuloPendente: 'Falta assinar',
     grupos: [
       { rotulo: 'Falta assinar', vazio: 'Todos assinados.', itens: comps.filter((p) => !p.assinado_em).map(item) },
       { rotulo: 'Assinados', vazio: 'Nenhum assinado ainda.', itens: comps.filter((p) => p.assinado_em).map(item) }
@@ -554,7 +578,7 @@ async function carregarHolerites() {
 }
 
 // Ao abrir as abas de consulta, já seleciona o primeiro colaborador
-watch(aba, (atual) => {
+watch([aba, () => dados.value.colaboradores.length], ([atual]) => {
   const primeiro = dados.value.colaboradores[0]?.matricula || '';
   if (atual === 'ponto' && !matriculaPonto.value) matriculaPonto.value = primeiro;
   if (atual === 'holerites' && !matriculaHolerite.value) {
@@ -623,6 +647,38 @@ const indicadores = computed(() => {
 
 
 const campoPdf = ref(null);
+const novaCategoria = ref('');
+
+async function adicionarCategoria() {
+  const nome = novaCategoria.value.trim();
+  if (!nome) return;
+  const res = await fetch('/api/rh/cadernos/categorias', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...auth() },
+    body: JSON.stringify({ nome })
+  });
+  const data = await res.json();
+  mensagemCadernosErro.value = !res.ok;
+  mensagemCadernos.value = res.ok ? `Categoria "${nome}" criada.` : data.erro;
+  if (res.ok) {
+    dados.value.categorias = data.categorias;
+    formCaderno.value.categoria = nome;
+    novaCategoria.value = '';
+  }
+}
+
+async function removerCategoria(nome) {
+  if (!confirm(`Remover a categoria "${nome}"?`)) return;
+  const res = await fetch('/api/rh/cadernos/categorias/remover', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...auth() },
+    body: JSON.stringify({ nome })
+  });
+  const data = await res.json();
+  mensagemCadernosErro.value = !res.ok;
+  mensagemCadernos.value = res.ok ? `Categoria "${nome}" removida.` : data.erro;
+  if (res.ok) dados.value.categorias = data.categorias;
+}
 const formVazio = () => ({ arquivo: '', categoria: 'Outros', obrigatorio: true, publico: 'todos', valores: [] });
 const formCaderno = ref(formVazio());
 
@@ -706,25 +762,30 @@ async function removerCaderno(cad) {
 
 async function importarPonto() {
   const arquivo = campoCsv.value?.files?.[0];
-  if (!arquivo || !formPonto.value.matricula) return;
+  if (!arquivo) return;
   importando.value = true;
   mensagemPonto.value = '';
   const fd = new FormData();
-  fd.append('matricula', formPonto.value.matricula);
-  fd.append('saldo_banco', formPonto.value.saldo);
-  fd.append('link_assinatura', formPonto.value.link);
   fd.append('arquivo', arquivo);
   try {
     const res = await fetch('/api/rh/ponto', { method: 'POST', headers: auth(), body: fd });
     const data = await res.json();
-    if (!res.ok) throw new Error(data.erro);
-    mensagemPontoErro.value = false;
-    mensagemPonto.value = `Espelho de ${data.competencia} importado (${data.dias} dias). O colaborador já pode assinar.`;
-    campoCsv.value.value = '';
-    carregar();
+    const ok = data.importados || [];
+    const semLink = ok.filter((i) => !i.com_link).length;
+    mensagemPontoErro.value = !!(data.erro || (data.erros && data.erros.length));
+    mensagemPonto.value = data.erro
+      || [
+        ok.length ? `${ok.length} espelho(s) importado(s).` : '',
+        semLink ? `${semLink} sem link do Autentique (a assinatura fica bloqueada até informar).` : '',
+        (data.erros || []).length ? `Erros: ${data.erros.join(' · ')}` : ''
+      ].filter(Boolean).join(' ');
+    if (ok.length) {
+      campoCsv.value.value = '';
+      carregar();
+    }
   } catch (e) {
     mensagemPontoErro.value = true;
-    mensagemPonto.value = e.message || 'Falha ao importar o espelho.';
+    mensagemPonto.value = 'Falha ao importar a planilha.';
   } finally {
     importando.value = false;
   }
@@ -732,16 +793,17 @@ async function importarPonto() {
 
 function baixarModelo() {
   const linhas = [
-    'data;entrada1;saida1;entrada2;saida2;ocorrencia',
-    '01/11/2026;;;;;DSR',
-    '02/11/2026;;;;;Feriado (Finados)',
-    '03/11/2026;07:00;12:00;13:00;17:00;',
-    '04/11/2026;07:02;12:00;13:00;17:15;'
+    'matricula;data;entrada1;saida1;entrada2;saida2;ocorrencia;link_assinatura;saldo_banco',
+    'VB-1040;01/11/2026;;;;;DSR;https://painel.autentique.com.br/documentos/COLE-O-LINK-AQUI;+14h 30m',
+    'VB-1040;02/11/2026;;;;;Feriado (Finados);;',
+    'VB-1040;03/11/2026;07:00;12:00;13:00;17:00;;;',
+    'VB-2085;01/11/2026;;;;;DSR;https://painel.autentique.com.br/documentos/OUTRO-LINK;',
+    'VB-2085;03/11/2026;08:00;12:00;13:00;17:00;;;'
   ];
-  const blob = new Blob(['﻿' + linhas.join('\r\n')], { type: 'text/csv;charset=utf-8' });
+  const blob = new Blob(['\ufeff' + linhas.join('\r\n')], { type: 'text/csv;charset=utf-8' });
   const a = document.createElement('a');
   a.href = URL.createObjectURL(blob);
-  a.download = 'modelo-espelho-de-ponto.csv';
+  a.download = 'modelo-espelhos-de-ponto.csv';
   a.click();
   setTimeout(() => URL.revokeObjectURL(a.href), 1000);
 }

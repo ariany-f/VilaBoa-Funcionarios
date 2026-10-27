@@ -73,10 +73,10 @@
             id="secao-ciencia"
             class="bg-slate-50 border border-slate-200 rounded-2xl p-4 flex items-center gap-2.5 text-slate-700 text-xs font-medium"
           >
-            <!-- Consulta do RH não registra recebimento: só informa que o colaborador ainda não abriu -->
+            <!-- Consulta do RH não registra recebimento: só informa que ainda não foi recebido -->
             <template v-if="consultaRh">
               <AppIcon name="info" size="15" class="text-slate-500 shrink-0" />
-              <span>O colaborador ainda não abriu este holerite.</span>
+              <span>Holerite ainda não recebido pelo colaborador.</span>
             </template>
             <template v-else>
               <span class="w-3.5 h-3.5 border-2 border-slate-400 border-t-transparent rounded-full animate-spin shrink-0"></span>

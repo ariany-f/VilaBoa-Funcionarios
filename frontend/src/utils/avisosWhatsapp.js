@@ -47,3 +47,20 @@ export function lerDestinoDaUrl() {
     return null;
   }
 }
+
+/**
+ * Cobrança geral: lista todas as pendências do colaborador, cada uma com o seu link.
+ * c = linha do /api/rh/resumo
+ */
+export function cobrancaGeral(c) {
+  const itens = [];
+  c.holerites.detalhe.filter((h) => !h.recebido_em).forEach((h) =>
+    itens.push(`• Holerite ${h.descricao}: ${linkPortal('holerite:' + h.id)}`));
+  (c.ponto?.competencias || []).filter((p) => !p.assinado_em).forEach((p) =>
+    itens.push(`• Espelho de ponto de ${p.mes_nome} para assinar: ${linkPortal('ponto:' + p.competencia)}`));
+  c.cadernos.detalhe.filter((d) => d.obrigatorio && !d.lido_em).forEach((d) =>
+    itens.push(`• Ler o caderno ${d.titulo}: ${linkPortal('caderno:' + d.arquivo)}`));
+  if (!itens.length) return null;
+  const texto = `Olá, ${primeiroNome(c.nome)}! Você tem pendências no Portal do Colaborador da Vila Boa:\n\n${itens.join('\n')}\n\nEntre com seu CPF pelo link de cada item.`;
+  return montarLink(c.telefone, texto);
+}

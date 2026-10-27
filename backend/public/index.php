@@ -86,6 +86,11 @@ $tentativasSegurancaFile = dirname(__DIR__) . '/data/tentativas_seguranca.json';
 const TOKEN_SMS_ATIVO = true;
 const TOKEN_FIXO = '123456';
 
+// Usuários de demonstração do Painel do RH (/admin): todos com a mesma senha de teste.
+// Desligue (false) em produção, depois de criar os usuários reais com scripts/criar_usuario_admin.php.
+const ADMIN_DEMO_ATIVO = true;
+const ADMIN_SENHA_DEMO = 'VilaBoa@2026';
+
 // Perguntas de segurança (alternativa "não tenho acesso ao celular"). Desativadas por enquanto.
 const PERGUNTAS_SEGURANCA_ATIVAS = false;
 
@@ -791,6 +796,219 @@ if ($method === 'POST' && $route === '/confirm-phone') {
     responderAcessoLiberado($colaboradorAtualizado, $permissaoService);
 }
 
+/** Interrompe com 403 quando o perfil não tem a ação na tela (mesma regra do sistema Vila Boa). */
+function exigirPermissao(array $matriz, string $tela, string $acao): void
+{
+    if (!PermissaoService::pode($matriz, $tela, $acao)) {
+        http_response_code(403);
+        echo json_encode(['sucesso' => false, 'erro' => 'Você não tem permissão para executar esta ação.'], JSON_UNESCAPED_UNICODE);
+        exit;
+    }
+}
+
+// ============================================================================
+// PAINEL DO RH (/admin): login próprio por e-mail e senha, separado do colaborador
+// ============================================================================
+if ($method === 'GET' && $route === '/admin/usuarios-demo') {
+    if (!ADMIN_DEMO_ATIVO) {
+        echo json_encode(['usuarios_para_teste' => []]);
+        exit;
+    }
+    $demo = [];
+    foreach (Banco::conexao()->buscar('users') as $u) {
+        $perfis = array_map(fn($r) => (int)$r['role_id'], Banco::conexao()->buscar('users_roles', ['user_id' => $u['id']]));
+        $nomesPerfis = array_column(Banco::conexao()->buscar('roles', ['id' => $perfis ?: [0]]), 'nome');
+        $demo[] = ['nome' => $u['name'], 'email' => $u['email'], 'perfil' => implode(', ', $nomesPerfis)];
+    }
+    echo json_encode(['senha' => ADMIN_SENHA_DEMO, 'usuarios_para_teste' => $demo], JSON_UNESCAPED_UNICODE);
+    exit;
+}
+
+if ($method === 'POST' && $route === '/admin/login') {
+    $email = trim($body['email'] ?? '');
+    $senha = (string)($body['senha'] ?? '');
+    $chaveTentativa = 'admin:' . mb_strtolower($email);
+    $tentativas = getTentativasSeguranca($tentativasSegurancaFile);
+    $registro = $tentativas[$chaveTentativa] ?? ['erros' => 0, 'bloqueado_ate' => 0];
+
+    if (($registro['bloqueado_ate'] ?? 0) > time()) {
+        http_response_code(429);
+        echo json_encode(['erro' => 'Muitas tentativas. Tente de novo em alguns minutos.'], JSON_UNESCAPED_UNICODE);
+        exit;
+    }
+
+    $usuario = $email !== '' ? $permissaoService->usuarioPorEmail($email) : null;
+    if (!$usuario || empty($usuario['password']) || !password_verify($senha, $usuario['password'])) {
+        $registro['erros'] = ($registro['erros'] ?? 0) + 1;
+        if ($registro['erros'] >= 5) {
+            $registro = ['erros' => 0, 'bloqueado_ate' => time() + 300];
+        }
+        $tentativas[$chaveTentativa] = $registro;
+        salvarTentativasSeguranca($tentativasSegurancaFile, $tentativas);
+        registrarAuditoriaLgpd('ADMIN_LOGIN_FALHOU', null, ['email' => $email]);
+        http_response_code(401);
+        echo json_encode(['erro' => 'E-mail ou senha incorretos.'], JSON_UNESCAPED_UNICODE);
+        exit;
+    }
+
+    unset($tentativas[$chaveTentativa]);
+    salvarTentativasSeguranca($tentativasSegurancaFile, $tentativas);
+
+    $menus = $permissaoService->menusDoUsuario((int)$usuario['id']);
+    if (!$menus) {
+        http_response_code(403);
+        echo json_encode(['erro' => 'Seu usuário não tem acesso ao Painel do RH.'], JSON_UNESCAPED_UNICODE);
+        exit;
+    }
+
+    registrarAuditoriaLgpd('ADMIN_LOGIN', null, ['email' => $usuario['email']]);
+    echo json_encode([
+        'sucesso' => true,
+        'admin_token' => gerarToken(['etapa' => 'admin', 'user_id' => (int)$usuario['id']], 43200),
+        'usuario' => [
+            'id' => (int)$usuario['id'],
+            'nome' => $usuario['name'],
+            'email' => $usuario['email'],
+            'permissoes' => $permissaoService->matrizDoUsuario((int)$usuario['id']),
+            'menus' => $menus
+        ]
+    ], JSON_UNESCAPED_UNICODE);
+    exit;
+}
+
+if (str_starts_with($route, '/admin/') || str_starts_with($route, '/rh/')) {
+    $sessaoAdmin = validarToken(getBearerToken());
+    $usuarioAdmin = ($sessaoAdmin && ($sessaoAdmin['etapa'] ?? '') === 'admin')
+        ? $permissaoService->usuarioPorId((int)$sessaoAdmin['user_id'])
+        : null;
+    if (!$usuarioAdmin) {
+        http_response_code(401);
+        echo json_encode(['erro' => 'Sessão do painel expirada. Entre novamente.'], JSON_UNESCAPED_UNICODE);
+        exit;
+    }
+    $permissoesLogado = $permissaoService->matrizDoUsuario((int)$usuarioAdmin['id']);
+
+    if ($method === 'GET' && $route === '/admin/me') {
+        echo json_encode([
+            'sucesso' => true,
+            'usuario' => [
+                'id' => (int)$usuarioAdmin['id'],
+                'nome' => $usuarioAdmin['name'],
+                'email' => $usuarioAdmin['email'],
+                'permissoes' => $permissoesLogado,
+                'menus' => $permissaoService->menusDoUsuario((int)$usuarioAdmin['id'])
+            ]
+        ], JSON_UNESCAPED_UNICODE);
+        exit;
+    }
+
+    // Rotas do RH (cada uma exige a ação correspondente no perfil)
+
+    if ($method === 'GET' && $route === '/rh/resumo') {
+        // O resumo alimenta as abas de acompanhamento, cadernos e ponto
+        $podeAlgumaAba = PermissaoService::pode($permissoesLogado, 'rh_acompanhamento', 'visualizar')
+            || PermissaoService::pode($permissoesLogado, 'rh_cadernos', 'visualizar')
+            || PermissaoService::pode($permissoesLogado, 'rh_ponto', 'visualizar')
+            || PermissaoService::pode($permissoesLogado, 'rh_holerites', 'visualizar');
+        if (!$podeAlgumaAba) {
+            exigirPermissao($permissoesLogado, 'rh_acompanhamento', 'visualizar');
+        }
+        echo json_encode(['sucesso' => true] + $rhController->resumo($_GET['ano'] ?? date('Y')), JSON_UNESCAPED_UNICODE);
+        exit;
+    }
+
+    if ($method === 'POST' && $route === '/rh/cadernos') {
+        exigirPermissao($permissoesLogado, 'rh_cadernos', 'publicar');
+        $resp = $cadernosController->salvarUpload($_FILES['arquivo'] ?? []);
+        if (empty($resp['erro']) && isset($_POST['config'])) {
+            $cadernosController->salvarConfig($resp['arquivo'], json_decode($_POST['config'], true) ?: []);
+        }
+        if (!empty($resp['erro'])) http_response_code(400);
+        else registrarAuditoriaLgpd('RH_CADERNO_ENVIADO', $usuarioAdmin['email'], ['arquivo' => $resp['arquivo']]);
+        echo json_encode($resp, JSON_UNESCAPED_UNICODE);
+        exit;
+    }
+
+    if ($method === 'POST' && $route === '/rh/cadernos/config') {
+        exigirPermissao($permissoesLogado, 'rh_cadernos', 'editar');
+        $config = $cadernosController->salvarConfig($body['arquivo'] ?? '', $body);
+        if (!$config) {
+            http_response_code(404);
+            echo json_encode(['erro' => 'Caderno não encontrado.']);
+            exit;
+        }
+        registrarAuditoriaLgpd('RH_CADERNO_CONFIGURADO', $usuarioAdmin['email'], ['arquivo' => $body['arquivo']] + $config);
+        echo json_encode(['sucesso' => true, 'config' => $config], JSON_UNESCAPED_UNICODE);
+        exit;
+    }
+
+    if ($method === 'POST' && $route === '/rh/cadernos/categorias') {
+        exigirPermissao($permissoesLogado, 'rh_cadernos', 'editar');
+        $resp = $cadernosController->adicionarCategoria((string)($body['nome'] ?? ''));
+        if (!empty($resp['erro'])) http_response_code(400);
+        else registrarAuditoriaLgpd('RH_CATEGORIA_CRIADA', $usuarioAdmin['email'], ['nome' => $body['nome'] ?? '']);
+        echo json_encode($resp, JSON_UNESCAPED_UNICODE);
+        exit;
+    }
+
+    if ($method === 'POST' && $route === '/rh/cadernos/categorias/remover') {
+        exigirPermissao($permissoesLogado, 'rh_cadernos', 'editar');
+        $resp = $cadernosController->removerCategoria((string)($body['nome'] ?? ''));
+        if (!empty($resp['erro'])) http_response_code(400);
+        else registrarAuditoriaLgpd('RH_CATEGORIA_REMOVIDA', $usuarioAdmin['email'], ['nome' => $body['nome'] ?? '']);
+        echo json_encode($resp, JSON_UNESCAPED_UNICODE);
+        exit;
+    }
+
+    if ($method === 'POST' && $route === '/rh/cadernos/remover') {
+        exigirPermissao($permissoesLogado, 'rh_cadernos', 'remover');
+        $ok = $cadernosController->remover($body['arquivo'] ?? '');
+        if ($ok) registrarAuditoriaLgpd('RH_CADERNO_REMOVIDO', $usuarioAdmin['email'], ['arquivo' => $body['arquivo']]);
+        http_response_code($ok ? 200 : 404);
+        echo json_encode($ok ? ['sucesso' => true] : ['erro' => 'Caderno não encontrado.'], JSON_UNESCAPED_UNICODE);
+        exit;
+    }
+
+    // Espelho de qualquer colaborador, por competência
+    if ($method === 'GET' && $route === '/rh/ponto') {
+        exigirPermissao($permissoesLogado, 'rh_ponto', 'visualizar');
+        $matricula = $_GET['matricula'] ?? '';
+        echo json_encode([
+            'sucesso' => true,
+            'competencias' => $pontoController->competencias($matricula),
+            'espelho' => $pontoController->getEspelho($matricula, $_GET['competencia'] ?? null)
+        ], JSON_UNESCAPED_UNICODE);
+        exit;
+    }
+
+    // Holerites de qualquer colaborador, por ano (consulta do RH não registra recebimento)
+    if ($method === 'GET' && $route === '/rh/holerites') {
+        exigirPermissao($permissoesLogado, 'rh_holerites', 'visualizar');
+        echo json_encode([
+            'sucesso' => true,
+            'holerites' => $holeriteService->getHolerites($_GET['matricula'] ?? '', $_GET['ano'] ?? date('Y'))
+        ], JSON_UNESCAPED_UNICODE);
+        exit;
+    }
+
+    if ($method === 'POST' && $route === '/rh/ponto') {
+        exigirPermissao($permissoesLogado, 'rh_ponto', 'importar');
+        $csv = isset($_FILES['arquivo']['tmp_name']) && is_uploaded_file($_FILES['arquivo']['tmp_name'])
+            ? file_get_contents($_FILES['arquivo']['tmp_name'])
+            : '';
+        if (!mb_check_encoding($csv, 'UTF-8')) $csv = mb_convert_encoding($csv, 'UTF-8', 'Windows-1252');
+        $resp = $rhController->importarPlanilha($csv);
+        if (!empty($resp['erro']) || empty($resp['importados'])) http_response_code(400);
+        if (!empty($resp['importados'])) registrarAuditoriaLgpd('RH_PONTO_IMPORTADO', $usuarioAdmin['email'], ['espelhos' => $resp['importados']]);
+        echo json_encode($resp, JSON_UNESCAPED_UNICODE);
+        exit;
+    }
+
+    http_response_code(404);
+    echo json_encode(['erro' => 'Endpoint não encontrado.', 'rota' => $route]);
+    exit;
+}
+
 // 5. Autenticação para rotas protegidas
 $authHeader = getBearerToken();
 $userSession = validarToken($authHeader);
@@ -804,15 +1022,6 @@ if (!$userSession || ($userSession['etapa'] ?? '') !== 'autenticado') {
 $colaboradorLogado = $colaboradorService->findById((int)$userSession['colaborador_id']);
 $permissoesLogado = $permissaoService->matrizDoColaborador($colaboradorLogado);
 
-/** Interrompe com 403 quando o perfil não tem a ação na tela (mesma regra do sistema Vila Boa). */
-function exigirPermissao(array $matriz, string $tela, string $acao): void
-{
-    if (!PermissaoService::pode($matriz, $tela, $acao)) {
-        http_response_code(403);
-        echo json_encode(['sucesso' => false, 'erro' => 'Você não tem permissão para executar esta ação.'], JSON_UNESCAPED_UNICODE);
-        exit;
-    }
-}
 
 // 6. Rota Me (Dados do Usuário Autenticado)
 if ($method === 'GET' && $route === '/me') {
@@ -1198,92 +1407,6 @@ if ($method === 'POST' && $route === '/cadernos/confirmar-leitura') {
     registrarAuditoriaLgpd('CADERNO_LEITURA_CONFIRMADA', $colaboradorLogado['matricula'], ['arquivo' => $leitura['arquivo']]);
     echo json_encode(['sucesso' => true, 'leitura' => $leitura], JSON_UNESCAPED_UNICODE);
     exit;
-}
-
-// 19. Painel do RH (cada rota exige a ação correspondente no perfil)
-if (str_starts_with($route, '/rh/')) {
-
-    if ($method === 'GET' && $route === '/rh/resumo') {
-        // O resumo alimenta as abas de acompanhamento, cadernos e ponto
-        $podeAlgumaAba = PermissaoService::pode($permissoesLogado, 'rh_acompanhamento', 'visualizar')
-            || PermissaoService::pode($permissoesLogado, 'rh_cadernos', 'visualizar')
-            || PermissaoService::pode($permissoesLogado, 'rh_ponto', 'visualizar')
-            || PermissaoService::pode($permissoesLogado, 'rh_holerites', 'visualizar');
-        if (!$podeAlgumaAba) {
-            exigirPermissao($permissoesLogado, 'rh_acompanhamento', 'visualizar');
-        }
-        echo json_encode(['sucesso' => true] + $rhController->resumo($_GET['ano'] ?? date('Y')), JSON_UNESCAPED_UNICODE);
-        exit;
-    }
-
-    if ($method === 'POST' && $route === '/rh/cadernos') {
-        exigirPermissao($permissoesLogado, 'rh_cadernos', 'publicar');
-        $resp = $cadernosController->salvarUpload($_FILES['arquivo'] ?? []);
-        if (empty($resp['erro']) && isset($_POST['config'])) {
-            $cadernosController->salvarConfig($resp['arquivo'], json_decode($_POST['config'], true) ?: []);
-        }
-        if (!empty($resp['erro'])) http_response_code(400);
-        else registrarAuditoriaLgpd('RH_CADERNO_ENVIADO', $colaboradorLogado['matricula'], ['arquivo' => $resp['arquivo']]);
-        echo json_encode($resp, JSON_UNESCAPED_UNICODE);
-        exit;
-    }
-
-    if ($method === 'POST' && $route === '/rh/cadernos/config') {
-        exigirPermissao($permissoesLogado, 'rh_cadernos', 'editar');
-        $config = $cadernosController->salvarConfig($body['arquivo'] ?? '', $body);
-        if (!$config) {
-            http_response_code(404);
-            echo json_encode(['erro' => 'Caderno não encontrado.']);
-            exit;
-        }
-        registrarAuditoriaLgpd('RH_CADERNO_CONFIGURADO', $colaboradorLogado['matricula'], ['arquivo' => $body['arquivo']] + $config);
-        echo json_encode(['sucesso' => true, 'config' => $config], JSON_UNESCAPED_UNICODE);
-        exit;
-    }
-
-    if ($method === 'POST' && $route === '/rh/cadernos/remover') {
-        exigirPermissao($permissoesLogado, 'rh_cadernos', 'remover');
-        $ok = $cadernosController->remover($body['arquivo'] ?? '');
-        if ($ok) registrarAuditoriaLgpd('RH_CADERNO_REMOVIDO', $colaboradorLogado['matricula'], ['arquivo' => $body['arquivo']]);
-        http_response_code($ok ? 200 : 404);
-        echo json_encode($ok ? ['sucesso' => true] : ['erro' => 'Caderno não encontrado.'], JSON_UNESCAPED_UNICODE);
-        exit;
-    }
-
-    // Espelho de qualquer colaborador, por competência
-    if ($method === 'GET' && $route === '/rh/ponto') {
-        exigirPermissao($permissoesLogado, 'rh_ponto', 'visualizar');
-        $matricula = $_GET['matricula'] ?? '';
-        echo json_encode([
-            'sucesso' => true,
-            'competencias' => $pontoController->competencias($matricula),
-            'espelho' => $pontoController->getEspelho($matricula, $_GET['competencia'] ?? null)
-        ], JSON_UNESCAPED_UNICODE);
-        exit;
-    }
-
-    // Holerites de qualquer colaborador, por ano (consulta do RH não registra recebimento)
-    if ($method === 'GET' && $route === '/rh/holerites') {
-        exigirPermissao($permissoesLogado, 'rh_holerites', 'visualizar');
-        echo json_encode([
-            'sucesso' => true,
-            'holerites' => $holeriteService->getHolerites($_GET['matricula'] ?? '', $_GET['ano'] ?? date('Y'))
-        ], JSON_UNESCAPED_UNICODE);
-        exit;
-    }
-
-    if ($method === 'POST' && $route === '/rh/ponto') {
-        exigirPermissao($permissoesLogado, 'rh_ponto', 'importar');
-        $csv = isset($_FILES['arquivo']['tmp_name']) && is_uploaded_file($_FILES['arquivo']['tmp_name'])
-            ? file_get_contents($_FILES['arquivo']['tmp_name'])
-            : '';
-        if (!mb_check_encoding($csv, 'UTF-8')) $csv = mb_convert_encoding($csv, 'UTF-8', 'Windows-1252');
-        $resp = $rhController->importarPonto($_POST['matricula'] ?? '', trim($_POST['saldo_banco'] ?? ''), $csv, trim($_POST['link_assinatura'] ?? ''));
-        if (!empty($resp['erro'])) http_response_code(400);
-        else registrarAuditoriaLgpd('RH_PONTO_IMPORTADO', $colaboradorLogado['matricula'], ['matricula' => $_POST['matricula'], 'competencia' => $resp['competencia']]);
-        echo json_encode($resp, JSON_UNESCAPED_UNICODE);
-        exit;
-    }
 }
 
 // Rota não encontrada

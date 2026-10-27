@@ -69,7 +69,17 @@
             Abrir no Painel do RH
           </button>
           <span v-if="!pendencias.length" class="h-11 rounded-xl bg-emerald-50 text-emerald-800 text-sm font-semibold flex items-center justify-center">Tudo em dia</span>
-          <span v-else class="h-11 rounded-xl bg-amber-50 text-amber-800 text-xs font-semibold flex items-center justify-center text-center px-2">{{ pendencias.length }} pendência(s) · use "Avisar" em cada item</span>
+          <a
+            v-else-if="linkCobranca"
+            :href="linkCobranca"
+            target="_blank"
+            rel="noopener"
+            class="h-11 rounded-xl bg-[#1DA851] hover:bg-[#178F44] text-white text-sm font-semibold flex items-center justify-center gap-2"
+          >
+            <AppIcon name="whatsapp" size="16" />
+            Cobrar pendências
+          </a>
+          <span v-else class="h-11 rounded-xl bg-amber-50 text-amber-800 text-xs font-semibold flex items-center justify-center">{{ pendencias.length }} pendência(s)</span>
         </div>
       </div>
     </div>
@@ -80,7 +90,7 @@
 import { computed } from 'vue';
 import AppIcon from './AppIcon.vue';
 import { usarFecharComEsc } from '../utils/fecharComEsc.js';
-import { avisoCaderno, avisoPonto, avisoHolerite } from '../utils/avisosWhatsapp.js';
+import { avisoCaderno, avisoPonto, avisoHolerite, cobrancaGeral } from '../utils/avisosWhatsapp.js';
 
 /** Resumo de um colaborador para o RH (linha do /api/rh/resumo). */
 const props = defineProps({
@@ -101,7 +111,7 @@ const indicadores = computed(() => [
 
 const pendencias = computed(() => {
   const itens = [];
-  if (c.value.holerites.recebidos < c.value.holerites.total) itens.push(`• ${c.value.holerites.total - c.value.holerites.recebidos} holerite(s) para abrir`);
+  if (c.value.holerites.recebidos < c.value.holerites.total) itens.push(`• ${c.value.holerites.total - c.value.holerites.recebidos} holerite(s) não recebido(s)`);
   (c.value.ponto?.competencias || []).filter((p) => !p.assinado_em).forEach((p) => itens.push(`• espelho de ponto de ${p.mes_nome} para assinar`));
   const naoLidos = c.value.cadernos.detalhe.filter((d) => d.obrigatorio && !d.lido_em).map((d) => d.titulo);
   if (naoLidos.length) itens.push(`• ler: ${naoLidos.join(', ')}`);
@@ -110,4 +120,5 @@ const pendencias = computed(() => {
 
 // Link de aviso de um item, só quando o RH pode enviar e o colaborador tem telefone
 const linkAviso = (gerar) => (props.podeCobrar && c.value.telefone ? gerar() : null);
+const linkCobranca = computed(() => linkAviso(() => cobrancaGeral(c.value)));
 </script>
