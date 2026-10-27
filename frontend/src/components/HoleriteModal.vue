@@ -1,7 +1,7 @@
 <template>
-  <div v-if="holerite" class="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 bg-slate-900/60 backdrop-blur-sm transition-all duration-300">
+  <div v-if="holerite" class="holerite-print-root fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 bg-slate-900/60 backdrop-blur-sm transition-all duration-300">
     <div 
-      class="bg-white w-full max-w-xl md:max-w-2xl lg:max-w-3xl max-h-[94vh] sm:max-h-[90vh] rounded-t-3xl sm:rounded-2xl shadow-2xl flex flex-col overflow-hidden animate-slide-up border border-slate-200"
+      class="holerite-print-card bg-white w-full max-w-xl md:max-w-2xl lg:max-w-3xl max-h-[94vh] sm:max-h-[90vh] rounded-t-3xl sm:rounded-2xl shadow-2xl flex flex-col overflow-hidden animate-slide-up border border-slate-200"
       @click.stop
     >
       <!-- Drag Handle para Mobile (Estilo Bottom Sheet Nativo) -->
@@ -597,6 +597,20 @@ function imprimir() {
   }
   .no-print {
     display: none !important;
+  }
+  /* Modal fixo se repete/desloca na impressão: vira bloco comum */
+  .holerite-print-root,
+  .holerite-print-card {
+    position: static !important;
+    inset: auto !important;
+    max-height: none !important;
+    overflow: visible !important;
+    transform: none !important;
+    animation: none !important;
+    backdrop-filter: none !important;
+    background: #fff !important;
+    box-shadow: none !important;
+    border: 0 !important;
   }
 }
 </style>
