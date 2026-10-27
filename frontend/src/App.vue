@@ -1454,12 +1454,13 @@
         <div class="w-14 h-14 rounded-2xl bg-slate-100 text-slate-600 flex items-center justify-center mx-auto">
           <AppIcon name="phone" size="24" />
         </div>
-        <h3 class="text-lg font-semibold text-slate-900">Pedido de troca de telefone</h3>
+        <h3 class="text-lg font-semibold text-slate-900">Alteração de telefone</h3>
         <p class="text-sm text-slate-600 leading-relaxed">
-          Para trocar o telefone cadastrado, procure o <strong class="text-slate-900">líder da sua equipe</strong>.
-          Ele vai atualizar o seu número no sistema.
+          Para atualizar seu número de telefone, entre em contato com o <strong class="text-slate-900">líder da sua equipe</strong>, responsável por realizar a alteração no sistema.
         </p>
-        <p class="text-xs text-slate-500">Depois da atualização, é só entrar no portal de novo.</p>
+        <p class="text-sm text-slate-600 leading-relaxed">
+          A atualização poderá levar até <strong class="text-slate-900">24 horas</strong> para ser concluída. Após esse prazo, acesse o portal novamente utilizando seu novo número.
+        </p>
         <button type="button" @click="seguirDepoisDoAviso" class="w-full h-12 rounded-full bg-[#9c2337] hover:bg-[#831b2d] text-white font-semibold text-sm cursor-pointer">
           Entendi
         </button>

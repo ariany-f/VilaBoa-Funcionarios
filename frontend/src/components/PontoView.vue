@@ -80,16 +80,10 @@
                 {{ c.assinado_em ? '✓ Assinado' : 'Assinar' }}
               </span>
             </button>
-            <div class="grid grid-cols-2 gap-2">
-              <button type="button" @click="abrirDetalhe(c.competencia)" class="h-12 rounded-xl bg-[#141414] text-white font-semibold text-sm inline-flex items-center justify-center gap-2 cursor-pointer active:scale-[0.98] transition">
-                <AppIcon name="eye" size="17" />
-                Ver espelho
-              </button>
-              <button type="button" @click="acaoNoPeriodo(c.competencia, 'whatsapp')" class="h-12 rounded-xl bg-[#1DA851] text-white font-semibold text-sm inline-flex items-center justify-center gap-2 cursor-pointer active:scale-[0.98] transition">
-                <AppIcon name="whatsapp" size="17" />
-                WhatsApp
-              </button>
-            </div>
+            <button type="button" @click="abrirDetalhe(c.competencia)" class="w-full h-12 rounded-xl bg-[#141414] text-white font-semibold text-sm inline-flex items-center justify-center gap-2 cursor-pointer active:scale-[0.98] transition">
+              <AppIcon name="eye" size="17" />
+              Ver espelho
+            </button>
           </div>
         </div>
 
@@ -119,14 +113,6 @@
                     <button type="button" @click="abrirDetalhe(c.competencia)" class="h-9 px-3.5 rounded-lg bg-slate-100 text-slate-700 hover:bg-slate-200 text-xs font-semibold inline-flex items-center gap-1.5 cursor-pointer">
                       <AppIcon name="eye" size="14" />
                       Ver
-                    </button>
-                    <button type="button" @click="acaoNoPeriodo(c.competencia, 'baixar')" class="h-9 px-3.5 rounded-lg bg-slate-100 text-slate-700 hover:bg-slate-200 text-xs font-semibold inline-flex items-center gap-1.5 cursor-pointer">
-                      <AppIcon name="download" size="14" />
-                      Baixar
-                    </button>
-                    <button type="button" @click="acaoNoPeriodo(c.competencia, 'whatsapp')" class="h-9 px-3.5 rounded-lg bg-slate-100 text-slate-700 hover:bg-[#1DA851] hover:text-white text-xs font-semibold inline-flex items-center gap-1.5 cursor-pointer">
-                      <AppIcon name="whatsapp" size="14" />
-                      WhatsApp
                     </button>
                   </div>
                 </td>

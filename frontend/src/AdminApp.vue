@@ -20,17 +20,8 @@
                 Área restrita · RH
               </span>
             </div>
-            <div class="space-y-2 pt-1">
+            <div class="pt-1">
               <h1 class="text-2xl sm:text-3xl lg:text-4xl font-semibold leading-tight tracking-tight">Painel do RH</h1>
-              <p class="text-white/80 text-xs sm:text-sm leading-relaxed">
-                Gestão de holerites, espelhos de ponto, cadernos e acompanhamento dos colaboradores.
-              </p>
-            </div>
-            <div class="hidden lg:grid gap-3 pt-4 border-t border-white/20">
-              <div v-for="t in ['Acompanhamento de ciência e pendências', 'Envio de espelho de ponto com Autentique', 'Publicação de holerites e cadernos']" :key="t" class="flex items-center gap-3 text-xs text-white/90">
-                <span class="w-6 h-6 rounded-lg bg-white/15 border border-white/15 flex items-center justify-center shrink-0"><AppIcon name="check" size="14" /></span>
-                <span>{{ t }}</span>
-              </div>
             </div>
           </div>
           <div class="hidden lg:block pt-6 text-[11px] text-white/60 font-medium">Acesso exclusivo da equipe de Recursos Humanos</div>

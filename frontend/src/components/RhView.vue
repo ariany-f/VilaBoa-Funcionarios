@@ -49,6 +49,12 @@
         <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b border-slate-100">
           <h3 class="text-sm font-semibold uppercase tracking-wider text-slate-800">Colaboradores</h3>
           <div class="flex flex-wrap items-center gap-2">
+            <select v-model="tipoFiltro" class="h-9 px-3 rounded-lg border border-slate-200 bg-slate-50 text-sm text-slate-700 outline-none">
+              <option value="todos">Todos os tipos</option>
+              <option value="holerites">Holerites</option>
+              <option value="ponto">Espelho de ponto</option>
+              <option value="cadernos">Cadernos</option>
+            </select>
             <select v-model="filtro" class="h-9 px-3 rounded-lg border border-slate-200 bg-slate-50 text-sm text-slate-700 outline-none">
               <option value="todos">Todos</option>
               <option value="pendentes">Com pendências</option>
@@ -62,13 +68,13 @@
         </div>
 
         <div class="overflow-x-auto">
-          <table class="w-full text-sm min-w-[760px]">
+          <table class="w-full text-sm" :class="tipoFiltro === 'todos' ? 'min-w-[760px]' : 'min-w-[480px]'">
             <thead>
               <tr class="text-[10px] font-semibold uppercase tracking-wider text-slate-400 text-left">
                 <th class="py-3 pr-3">Colaborador</th>
-                <th class="py-3 px-3">Holerites recebidos</th>
-                <th class="py-3 px-3">Espelho de ponto</th>
-                <th class="py-3 px-3">Cadernos</th>
+                <th v-if="mostraColuna('holerites')" class="py-3 px-3">Holerites recebidos</th>
+                <th v-if="mostraColuna('ponto')" class="py-3 px-3">Espelho de ponto</th>
+                <th v-if="mostraColuna('cadernos')" class="py-3 px-3">Cadernos</th>
                 <th class="py-3 pl-3 text-right">Ações</th>
               </tr>
             </thead>
@@ -79,20 +85,20 @@
                     <span class="block font-medium text-slate-900">{{ c.nome }}</span>
                     <span class="block text-xs text-slate-400">{{ c.matricula }} · {{ c.cargo }}</span>
                   </td>
-                  <td class="py-3 px-3">
+                  <td v-if="mostraColuna('holerites')" class="py-3 px-3">
                     <button type="button" @click.stop="abrirHoleritesDoColaborador(c)" class="badge cursor-pointer" :class="c.holerites.recebidos === c.holerites.total ? 'ok' : 'pendente'" title="Ver holerites">
                       {{ c.holerites.recebidos }} de {{ c.holerites.total }}
                       <AppIcon name="chevron-right" size="12" class="ml-1" />
                     </button>
                   </td>
-                  <td class="py-3 px-3">
+                  <td v-if="mostraColuna('ponto')" class="py-3 px-3">
                     <span v-if="!c.ponto" class="text-xs text-slate-400">Sem espelho</span>
                     <button v-else type="button" @click.stop="abrirPontoDoColaborador(c)" class="badge cursor-pointer" :class="c.ponto.assinado_em ? 'ok' : 'pendente'" title="Ver espelhos">
                       {{ c.ponto.assinado_em ? 'Assinado' : 'Pendente' }} · {{ c.ponto.competencia }}
                       <AppIcon name="chevron-right" size="12" class="ml-1" />
                     </button>
                   </td>
-                  <td class="py-3 px-3">
+                  <td v-if="mostraColuna('cadernos')" class="py-3 px-3">
                     <button
                       v-if="c.cadernos.obrigatorios_total || c.cadernos.opcionais_total"
                       type="button"
@@ -129,7 +135,7 @@
 
                 <!-- Detalhe do colaborador -->
                 <tr v-if="expandido === c.matricula" class="bg-slate-50/60">
-                  <td colspan="5" class="px-3 py-4">
+                  <td :colspan="tipoFiltro === 'todos' ? 5 : 3" class="px-3 py-4">
                     <div class="grid md:grid-cols-3 gap-4 text-xs">
                       <div>
                         <h4 class="font-semibold uppercase tracking-wider text-slate-600 mb-2">Holerites {{ ano }}</h4>
@@ -165,7 +171,7 @@
                 </tr>
               </template>
               <tr v-if="!colaboradoresFiltrados.length">
-                <td colspan="5" class="py-10 text-center text-sm text-slate-400">Nenhum colaborador encontrado.</td>
+                <td :colspan="tipoFiltro === 'todos' ? 5 : 3" class="py-10 text-center text-sm text-slate-400">Nenhum colaborador encontrado.</td>
               </tr>
             </tbody>
           </table>
@@ -225,8 +231,13 @@
 
           <p v-if="formCaderno.arquivo" class="text-xs text-slate-600 bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 truncate">{{ formCaderno.arquivo }}</p>
           <label v-else class="block text-xs font-medium text-slate-700 space-y-1.5">
-            <span>Arquivo PDF (o nome do arquivo vira o título)</span>
-            <input ref="campoPdf" type="file" accept="application/pdf,.pdf" required class="block w-full text-sm text-slate-600 file:mr-3 file:h-9 file:px-4 file:rounded-full file:border-0 file:bg-slate-100 file:text-slate-700 file:font-semibold file:cursor-pointer" />
+            <span>Arquivo PDF</span>
+            <input ref="campoPdf" type="file" @change="sugerirTitulo" accept="application/pdf,.pdf" required class="block w-full text-sm text-slate-600 file:mr-3 file:h-9 file:px-4 file:rounded-full file:border-0 file:bg-slate-100 file:text-slate-700 file:font-semibold file:cursor-pointer" />
+          </label>
+
+          <label class="block text-xs font-medium text-slate-700 space-y-1.5">
+            <span>Nome do caderno</span>
+            <input v-model="formCaderno.titulo" type="text" maxlength="120" required placeholder="Ex.: Manual do Colaborador" class="w-full h-10 px-3 rounded-lg border border-slate-200 bg-slate-50 text-sm outline-none focus:bg-white focus:border-slate-400" />
           </label>
 
           <label class="block text-xs font-medium text-slate-700 space-y-1.5">
@@ -713,17 +724,26 @@ async function carregar() {
   }
 }
 
-const temPendencia = (c) =>
-  c.holerites.recebidos < c.holerites.total ||
-  (c.ponto && !c.ponto.assinado_em) ||
-  c.cadernos.obrigatorios_lidos < c.cadernos.obrigatorios_total;
+// Pendência por tipo; sem tipo, vale qualquer uma
+const pendenciaPorTipo = {
+  holerites: (c) => c.holerites.recebidos < c.holerites.total,
+  ponto: (c) => !!(c.ponto && !c.ponto.assinado_em),
+  cadernos: (c) => c.cadernos.obrigatorios_lidos < c.cadernos.obrigatorios_total
+};
+const temPendencia = (c) => Object.values(pendenciaPorTipo).some((f) => f(c));
+
+// Filtro por tipo: mostra só a coluna do tipo escolhido
+const tipoFiltro = ref('todos');
+const mostraColuna = (tipo) => tipoFiltro.value === 'todos' || tipoFiltro.value === tipo;
 
 const colaboradoresFiltrados = computed(() => {
   const termo = busca.value.trim().toLowerCase();
   return dados.value.colaboradores.filter((c) => {
     if (termo && !c.nome.toLowerCase().includes(termo) && !c.matricula.toLowerCase().includes(termo)) return false;
-    if (filtro.value === 'pendentes') return temPendencia(c);
-    if (filtro.value === 'em_dia') return !temPendencia(c);
+    const pendente = tipoFiltro.value === 'todos' ? temPendencia(c) : pendenciaPorTipo[tipoFiltro.value](c);
+    if (tipoFiltro.value === 'ponto' && !c.ponto && filtro.value !== 'todos') return false;
+    if (filtro.value === 'pendentes') return pendente;
+    if (filtro.value === 'em_dia') return !pendente;
     return true;
   });
 });
@@ -790,7 +810,7 @@ async function removerCategoria(nome) {
   mensagemCadernos.value = res.ok ? `Categoria "${nome}" removida.` : data.erro;
   if (res.ok) dados.value.categorias = data.categorias;
 }
-const formVazio = () => ({ arquivo: '', categoria: 'Outros', obrigatorio: true, publico: 'todos', valores: [] });
+const formVazio = () => ({ arquivo: '', titulo: '', categoria: 'Outros', obrigatorio: true, publico: 'todos', valores: [] });
 const formCaderno = ref(formVazio());
 
 const opcoesPublico = computed(() =>
@@ -810,8 +830,14 @@ function descreverPublico(cad) {
 }
 
 function editarCaderno(cad) {
-  formCaderno.value = { arquivo: cad.arquivo, categoria: cad.categoria, obrigatorio: cad.obrigatorio, publico: cad.publico, valores: [...cad.valores] };
+  formCaderno.value = { arquivo: cad.arquivo, titulo: cad.titulo, categoria: cad.categoria, obrigatorio: cad.obrigatorio, publico: cad.publico, valores: [...cad.valores] };
   mensagemCadernos.value = '';
+}
+
+// Ao escolher o PDF, sugere o nome do arquivo como título (o RH pode trocar)
+function sugerirTitulo(e) {
+  const nome = e.target.files?.[0]?.name || '';
+  if (!formCaderno.value.titulo.trim()) formCaderno.value.titulo = nome.replace(/\.pdf$/i, '').replace(/[_-]+/g, ' ').trim();
 }
 
 function limparFormCaderno() {
@@ -828,7 +854,7 @@ async function salvarCaderno() {
   }
   enviando.value = true;
   mensagemCadernos.value = '';
-  const config = { categoria: f.categoria, obrigatorio: f.obrigatorio, publico: f.publico, valores: f.valores };
+  const config = { titulo: f.titulo.trim(), categoria: f.categoria, obrigatorio: f.obrigatorio, publico: f.publico, valores: f.valores };
   try {
     let res;
     if (f.arquivo) {
@@ -866,8 +892,9 @@ async function removerCaderno(cad) {
     headers: { 'Content-Type': 'application/json', ...auth() },
     body: JSON.stringify({ arquivo: cad.arquivo })
   });
+  const data = await res.json().catch(() => ({}));
   mensagemCadernosErro.value = !res.ok;
-  mensagemCadernos.value = res.ok ? `"${cad.titulo}" removido.` : 'Não foi possível remover o caderno.';
+  mensagemCadernos.value = res.ok ? `"${cad.titulo}" removido.` : (data.erro || 'Não foi possível remover o caderno.');
   carregar();
 }
 

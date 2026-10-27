@@ -32,7 +32,7 @@ class CadernosController
     {
         $todas = $this->lerJson($this->configFile);
         return array_merge(
-            ['categoria' => 'Outros', 'obrigatorio' => false, 'publico' => 'todos', 'valores' => []],
+            ['titulo' => '', 'categoria' => 'Outros', 'obrigatorio' => false, 'publico' => 'todos', 'valores' => []],
             $todas[$arquivo] ?? []
         );
     }
@@ -43,7 +43,9 @@ class CadernosController
             return null;
         }
         $publico = in_array($dados['publico'] ?? '', ['todos', 'departamentos', 'colaboradores'], true) ? $dados['publico'] : 'todos';
+        $titulo = trim(preg_replace('/\s+/', ' ', (string)($dados['titulo'] ?? '')));
         $config = [
+            'titulo' => mb_substr($titulo, 0, 120),
             'categoria' => in_array($dados['categoria'] ?? '', $this->categorias(), true) ? $dados['categoria'] : 'Outros',
             'obrigatorio' => !empty($dados['obrigatorio']),
             'publico' => $publico,
@@ -197,10 +199,20 @@ class CadernosController
         return ['sucesso' => true, 'arquivo' => $nome];
     }
 
-    public function remover(string $arquivo): bool
+    /** Remove o PDF; devolve o motivo quando não consegue (arquivo sumido ou pasta sem permissão de escrita). */
+    public function remover(string $arquivo): array
     {
         $caminho = $this->caminhoDoArquivo($arquivo);
-        return $caminho ? unlink($caminho) : false;
+        if (!$caminho) return ['erro' => 'Caderno não encontrado.', 'status' => 404];
+        if (!is_writable($this->pasta) || !@unlink($caminho)) {
+            error_log("Falha ao remover caderno {$caminho}: " . (error_get_last()['message'] ?? 'sem detalhe'));
+            return ['erro' => 'O servidor não tem permissão para apagar arquivos na pasta de cadernos. Peça para a TI liberar a escrita em backend/data/cadernos.', 'status' => 500];
+        }
+        // Sem o arquivo, a configuração não vale mais (um novo upload com o mesmo nome começa do zero)
+        $todas = $this->lerJson($this->configFile);
+        unset($todas[basename($caminho)]);
+        file_put_contents($this->configFile, json_encode($todas, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE), LOCK_EX);
+        return ['sucesso' => true];
     }
 
     private function chave(string $matricula, string $arquivo, string $hash): string
@@ -230,14 +242,16 @@ class CadernosController
         $cadernos = [];
         foreach (glob($this->pasta . '/*.{pdf,PDF}', GLOB_BRACE) ?: [] as $caminho) {
             $arquivo = basename($caminho);
+            $config = $this->config($arquivo);
             $cadernos[] = [
                 'arquivo' => $arquivo,
-                'titulo' => $this->tituloDoArquivo($arquivo),
+                // Título definido pelo RH; sem ele, vale o nome do arquivo
+                'titulo' => ($config['titulo'] ?? '') !== '' ? $config['titulo'] : $this->tituloDoArquivo($arquivo),
                 'tamanho_bytes' => filesize($caminho),
                 'hash' => hash_file('sha256', $caminho),
                 'paginas' => $this->contarPaginas($caminho),
                 'atualizado_em' => date('d/m/Y', filemtime($caminho))
-            ] + $this->config($arquivo);
+            ] + $config;
         }
 
         usort($cadernos, fn($a, $b) => strcasecmp($a['titulo'], $b['titulo']));

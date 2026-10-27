@@ -965,10 +965,13 @@ if (str_starts_with($route, '/admin/') || str_starts_with($route, '/rh/')) {
 
     if ($method === 'POST' && $route === '/rh/cadernos/remover') {
         exigirPermissao($permissoesLogado, 'rh_cadernos', 'remover');
-        $ok = $cadernosController->remover($body['arquivo'] ?? '');
-        if ($ok) registrarAuditoriaLgpd('RH_CADERNO_REMOVIDO', $usuarioAdmin['email'], ['arquivo' => $body['arquivo']]);
-        http_response_code($ok ? 200 : 404);
-        echo json_encode($ok ? ['sucesso' => true] : ['erro' => 'Caderno não encontrado.'], JSON_UNESCAPED_UNICODE);
+        $resultado = $cadernosController->remover($body['arquivo'] ?? '');
+        if (!empty($resultado['sucesso'])) {
+            registrarAuditoriaLgpd('RH_CADERNO_REMOVIDO', $usuarioAdmin['email'], ['arquivo' => $body['arquivo']]);
+        } else {
+            http_response_code($resultado['status']);
+        }
+        echo json_encode(empty($resultado['sucesso']) ? ['erro' => $resultado['erro']] : ['sucesso' => true], JSON_UNESCAPED_UNICODE);
         exit;
     }
 
