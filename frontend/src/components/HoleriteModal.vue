@@ -10,7 +10,7 @@
       </div>
 
       <!-- Cabeçalho do Modal / Handle para Mobile -->
-      <div class="px-5 pt-2 sm:pt-3 pb-3 border-b border-slate-100 flex items-center justify-between bg-slate-50 shrink-0">
+      <div class="px-5 pt-2 sm:pt-3 pb-3 border-b border-slate-100 flex items-center justify-between bg-slate-50 shrink-0 no-print">
         <div class="flex items-center space-x-3">
           <img src="/img/logo-vilaboa-color.png" alt="Vila Boa" class="h-7 w-auto object-contain" />
           <div class="border-l border-slate-200 pl-3">
@@ -590,6 +590,10 @@ function imprimir() {
     left: 0;
     top: 0;
     width: 100%;
+    max-height: none !important;
+    overflow: visible !important;
+    background: #fff;
+    z-index: 9999;
   }
   .no-print {
     display: none !important;
