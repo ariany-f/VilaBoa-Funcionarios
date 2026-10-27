@@ -60,12 +60,7 @@
 
           <nav class="space-y-1 text-xs">
             <!-- Módulos liberados -->
-            <template v-for="(modulo, i) in modulos" :key="modulo.id">
-            <span
-              v-if="temRh && (i === 0 || (modulo.somenteRh && !modulos[i - 1].somenteRh))"
-              class="block px-2 pb-1 text-[10px] font-bold uppercase tracking-wider text-slate-400"
-              :class="i === 0 ? '' : 'pt-3'"
-            >{{ modulo.somenteRh ? 'Portal do RH' : 'Meu portal' }}</span>
+            <template v-for="modulo in modulos" :key="modulo.id">
             <button
               type="button"
               @click="navegar(modulo.id)"
@@ -192,13 +187,11 @@ const emit = defineEmits(['close', 'selecionar', 'logout', 'gerar-pacote', 'abri
 const todosModulos = [
   { id: 'holerites', rotulo: 'Holerites & Folha', descricao: 'Demonstrativos de pagamento', icone: 'document' },
   { id: 'ponto', rotulo: 'Espelho de Ponto', descricao: 'Marcações e assinatura do mês', icone: 'calendar' },
-  { id: 'cadernos', rotulo: 'Cadernos', descricao: 'Manuais e programas da empresa', icone: 'landmark' },
-  { id: 'rh', rotulo: 'Painel do RH', descricao: 'Recebimentos, assinaturas e leituras', icone: 'shield-check', somenteRh: true }
+  { id: 'cadernos', rotulo: 'Cadernos', descricao: 'Manuais e programas da empresa', icone: 'landmark' }
 ];
 
-// O Painel do RH só aparece para perfis com o menu do RH
-const modulos = computed(() => todosModulos.filter(m => !m.somenteRh || temMenu(props.colaborador, '/rh')));
-const temRh = computed(() => modulos.value.some(m => m.somenteRh));
+// O Painel do RH agora fica separado, em /admin
+const modulos = computed(() => todosModulos);
 
 function navegar(aba) {
   emit('selecionar', aba);

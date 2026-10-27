@@ -247,6 +247,7 @@ import { ref, computed, watch, onMounted } from 'vue';
 import { usarFecharComEsc } from '../utils/fecharComEsc.js';
 import AppIcon from './AppIcon.vue';
 import { apiFetch } from '../utils/api.js';
+import { tokenAdmin } from '../utils/sessaoAdmin.js';
 
 const props = defineProps({
   colaborador: { type: Object, default: null },
@@ -355,7 +356,9 @@ const erro = ref('');
 
 
 function cabecalhoAuth() {
-  return { 'Authorization': `Bearer ${localStorage.getItem('vb_auth_token') || ''}` };
+  // Consulta do RH (matricula informada) usa a sessão do painel /admin
+  const token = props.matricula ? tokenAdmin() : localStorage.getItem('vb_auth_token');
+  return { 'Authorization': `Bearer ${token || ''}` };
 }
 
 function formatarData(iso) {

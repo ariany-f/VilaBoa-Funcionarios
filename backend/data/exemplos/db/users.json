@@ -4,12 +4,38 @@
         "name": "Juliana Silveira Ramos",
         "profile_image": null,
         "email": "juliana.ramos@vilaboaconstrucoes.com.br",
-        "password": "",
+        "password": "$2y$10$r3JGQt2eAyUdicQM7NUzLOTV7sBXbhfOC8hCXqhRX0sJuIsLGr9Eq",
         "recovery_code": null,
         "recovery_code_expires": null,
         "cellphone": null,
         "cpf": "98765432111",
-        "created": "2026-10-26 00:00:00",
-        "modified": "2026-10-26 00:00:00"
+        "created": "2026-10-27 00:00:00",
+        "modified": "2026-10-27 00:00:00"
+    },
+    {
+        "id": 2,
+        "name": "Roberto Almeida (Administrador)",
+        "profile_image": null,
+        "email": "admin@vilaboaconstrucoes.com.br",
+        "password": "$2y$10$r3JGQt2eAyUdicQM7NUzLOTV7sBXbhfOC8hCXqhRX0sJuIsLGr9Eq",
+        "recovery_code": null,
+        "recovery_code_expires": null,
+        "cellphone": null,
+        "cpf": null,
+        "created": "2026-10-27 00:00:00",
+        "modified": "2026-10-27 00:00:00"
+    },
+    {
+        "id": 3,
+        "name": "Patrícia Lima (RH - Consulta)",
+        "profile_image": null,
+        "email": "consulta.rh@vilaboaconstrucoes.com.br",
+        "password": "$2y$10$r3JGQt2eAyUdicQM7NUzLOTV7sBXbhfOC8hCXqhRX0sJuIsLGr9Eq",
+        "recovery_code": null,
+        "recovery_code_expires": null,
+        "cellphone": null,
+        "cpf": null,
+        "created": "2026-10-27 00:00:00",
+        "modified": "2026-10-27 00:00:00"
     }
 ]

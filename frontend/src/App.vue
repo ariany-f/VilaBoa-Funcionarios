@@ -183,6 +183,12 @@
                 Segurança & Proteção de Dados (LGPD)
               </button>
             </div>
+            <div>
+              <a :href="urlPainelRh" class="inline-flex items-center gap-1.5 mt-1 h-9 px-4 rounded-full border border-slate-300 text-slate-700 hover:border-slate-400 hover:text-slate-900 font-semibold transition">
+                <AppIcon name="shield-check" size="13" />
+                Acesso do RH
+              </a>
+            </div>
           </div>
         </div>
       </div>
@@ -567,11 +573,11 @@
                 <AppIcon name="search" size="15" class="text-slate-400 ml-3 shrink-0" />
                 <input
                   v-model="buscaGlobal"
-                  @focus="buscaGlobalAberta = true; carregarCadernosBusca(); carregarColaboradoresBusca()"
+                  @focus="buscaGlobalAberta = true; carregarCadernosBusca()"
                   @blur="fecharBuscaGlobal"
                   @keydown.enter.prevent="resultadosBusca[0] && selecionarResultado(resultadosBusca[0])"
                   type="text"
-                  :placeholder="temMenu(usuarioLogado, '/rh') ? 'Buscar colaborador, holerite, caderno...' : 'Buscar no portal: holerites, cadernos, ponto...'"
+                  placeholder="Buscar no portal: holerites, cadernos, ponto..."
                   class="flex-1 min-w-0 h-full px-3 text-sm text-slate-800 placeholder-slate-400 outline-none"
                 />
               </div>
@@ -710,7 +716,7 @@
                     <span
                       class="text-xs font-semibold px-3 py-1 rounded-full"
                       :class="holerites[0].aceite?.confirmado ? 'bg-emerald-500/15 text-emerald-300' : 'bg-amber-400/15 text-amber-300'"
-                    >{{ holerites[0].aceite?.confirmado ? '✓ Visto' : 'Novo' }}</span>
+                    >{{ holerites[0].aceite?.confirmado ? '✓ Recebido' : 'Novo' }}</span>
                   </div>
                   <p class="text-sm text-white/70">{{ holerites[0].tipo_folha || 'Folha Mensal' }} · pago em {{ holerites[0].data_pagamento }}</p>
                 </div>
@@ -894,7 +900,7 @@
                       <span
                         class="shrink-0 text-[11px] font-semibold px-2.5 py-1 rounded-full"
                         :class="h.aceite?.confirmado ? 'bg-emerald-50 text-emerald-700' : 'bg-amber-50 text-amber-700'"
-                      >{{ h.aceite?.confirmado ? '✓ Visto' : 'Novo' }}</span>
+                      >{{ h.aceite?.confirmado ? '✓ Recebido' : 'Novo' }}</span>
                     </button>
 
                     <div class="grid grid-cols-2 gap-2">
@@ -965,7 +971,7 @@
                             class="h-6 px-3 rounded-full text-[11px] font-bold text-slate-600 bg-slate-100/90 border border-slate-200 inline-flex items-center gap-1.5 shadow-2xs"
                           >
                             <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
-                            <span>Visto</span>
+                            <span>Recebido</span>
                           </span>
                           
                           <span 
@@ -1082,9 +1088,6 @@
 
           <!-- ESPELHO DE PONTO COM ASSINATURA ELETRÔNICA -->
           <PontoView v-else-if="abaAtiva === 'ponto'" :key="competenciaPontoInicial" :colaborador="usuarioLogado" :competenciaInicial="competenciaPontoInicial" />
-
-          <!-- PAINEL DO RH (somente perfis com o menu do RH) -->
-          <RhView v-else-if="abaAtiva === 'rh' && temMenu(usuarioLogado, '/rh')" :colaborador="usuarioLogado" />
 
           <!-- CADERNOS DO COLABORADOR (PDFs) -->
           <CadernosView v-else-if="abaAtiva === 'cadernos'" :key="buscaCadernoInicial" :buscaInicial="buscaCadernoInicial" :abrirArquivo="cadernoParaAbrir" @aberto="cadernoParaAbrir = ''" @progresso="progressoCadernos = $event" />
@@ -1525,14 +1528,24 @@
       @enviado="onWhatsappEnviado"
     />
 
-    <ResumoColaboradorModal
-      v-if="colaboradorResumo"
-      :colaborador="colaboradorResumo"
-      :ano="new Date().getFullYear()"
-      :pode-cobrar="podeRh('rh_acompanhamento', 'cobrar_pendencias')"
-      @close="colaboradorResumo = null"
-      @abrir-painel="colaboradorResumo = null; navegarParaAba('rh')"
-    />
+    <!-- Aviso: troca de telefone depende do líder da equipe -->
+    <div v-if="avisoAlteracaoTelefone" class="fixed inset-0 z-[70] bg-black/50 flex items-end sm:items-center justify-center p-0 sm:p-4">
+      <div class="w-full sm:max-w-md bg-white rounded-t-2xl sm:rounded-2xl p-6 space-y-4 text-center safe-bottom">
+        <div class="w-14 h-14 rounded-2xl bg-slate-100 text-slate-600 flex items-center justify-center mx-auto">
+          <AppIcon name="phone" size="24" />
+        </div>
+        <h3 class="text-lg font-semibold text-slate-900">Pedido de troca de telefone</h3>
+        <p class="text-sm text-slate-600 leading-relaxed">
+          Foi gerada uma tarefa de confirmação para trocar seu telefone para
+          <strong class="text-slate-900">{{ avisoAlteracaoTelefone.telefone_novo }}</strong>.
+          Procure o <strong class="text-slate-900">líder da sua equipe</strong> para concluir a alteração.
+        </p>
+        <p class="text-xs text-slate-500">Enquanto isso, continuamos usando o número atual. Protocolo {{ avisoAlteracaoTelefone.protocolo }}</p>
+        <button type="button" @click="seguirDepoisDoAviso" class="w-full h-12 rounded-full bg-[#9c2337] hover:bg-[#831b2d] text-white font-semibold text-sm cursor-pointer">
+          Entendi, continuar
+        </button>
+      </div>
+    </div>
 
     <HoleriteModal 
       v-if="holeriteSelecionado" 
@@ -1599,11 +1612,9 @@ import MobileDrawer from './components/MobileDrawer.vue';
 import FeriasView from './components/FeriasView.vue';
 import PontoView from './components/PontoView.vue';
 import CadernosView from './components/CadernosView.vue';
-import RhView from './components/RhView.vue';
 import NotificacoesBotao from './components/NotificacoesBotao.vue';
 import { temMenu, pode } from './utils/permissoes.js';
 import { lerDestinoDaUrl } from './utils/avisosWhatsapp.js';
-import ResumoColaboradorModal from './components/ResumoColaboradorModal.vue';
 import { resumirProgresso } from './utils/progressoCadernos.js';
 import ChamadosView from './components/ChamadosView.vue';
 import HoleriteModal from './components/HoleriteModal.vue';
@@ -1656,7 +1667,7 @@ function mascararCpf(cpf) {
 
 // ==================== SISTEMA DE ROTAS & PERSISTÊNCIA ====================
 // Módulos liberados; os demais seguem desativados.
-const ROTAS_VALIDAS = ['holerites', 'ponto', 'cadernos', 'rh'];
+const ROTAS_VALIDAS = ['holerites', 'ponto', 'cadernos'];
 
 function obterRotaValida() {
   if (typeof window === 'undefined') return 'holerites';
@@ -1686,7 +1697,6 @@ const abaAtiva = ref(obterRotaValida());
 
 function navegarParaAba(novaAba, atualizarHistorico = true) {
   if (!ROTAS_VALIDAS.includes(novaAba)) return;
-  if (novaAba === 'rh' && !temMenu(usuarioLogado.value, '/rh')) return;
   abaAtiva.value = novaAba;
   localStorage.setItem('vb_aba_ativa', novaAba);
 
@@ -1833,6 +1843,8 @@ const novoTelefoneInput = ref('');
 // Dados dos Módulos do Colaborador
 const usuarioLogado = ref(null);
 const podeRh = (tela, acao) => pode(usuarioLogado.value, tela, acao);
+// Login do Painel do RH, na mesma pasta do portal
+const urlPainelRh = window.location.pathname.replace(/\/?$/, '/') + 'admin';
 
 // Link de aviso do RH (?abrir=caderno:arquivo | ponto:mm/aaaa | holerite:id).
 // Guardado na sessão para sobreviver ao login e aberto assim que o painel carrega.
@@ -1868,12 +1880,7 @@ function irParaDestino() {
   }
 }
 
-// Quem não tem acesso de RH e chega em #/rh volta para os holerites
-watch(() => [abaAtiva.value, usuarioLogado.value], () => {
-  if (abaAtiva.value === 'rh' && usuarioLogado.value && !temMenu(usuarioLogado.value, '/rh')) {
-    navegarParaAba('holerites', false);
-  }
-});
+
 const holerites = ref([]);
 const holeriteSelecionado = ref(null);
 const pacoteRenda = ref(null);
@@ -2146,6 +2153,12 @@ async function fazerLogin() {
 const codigoToken = ref('');
 // Com token: CPF → telefone (etapa 2) → código (etapa 3)
 const fluxoToken = ref(false);
+const avisoAlteracaoTelefone = ref(null);
+
+function seguirDepoisDoAviso() {
+  avisoAlteracaoTelefone.value = null;
+  etapaAtual.value = 'token';
+}
 
 async function validarToken() {
   if (codigoToken.value.length !== 6 || carregando.value) return;
@@ -2273,6 +2286,11 @@ async function enviarConfirmacaoTelefone(telefone) {
     if (data.etapa_necessaria === 'token') {
       dadosEtapaSeguranca.value = data;
       codigoToken.value = '';
+      // Pediu número novo: avisa sobre a tarefa do líder antes de seguir para o código
+      if (data.alteracao_telefone) {
+        avisoAlteracaoTelefone.value = data.alteracao_telefone;
+        return;
+      }
       etapaAtual.value = 'token';
       return;
     }
@@ -2605,20 +2623,6 @@ async function carregarCadernosBusca() {
   }
 }
 
-// RH: colaboradores (resumo completo) para a busca geral
-const colaboradoresBusca = ref(null);
-const colaboradorResumo = ref(null);
-async function carregarColaboradoresBusca(forcar = false) {
-  if (!podeRh('rh_acompanhamento', 'visualizar') || (colaboradoresBusca.value && !forcar)) return;
-  try {
-    const res = await fetch(`/api/rh/resumo?ano=${new Date().getFullYear()}`, { headers: { 'Authorization': `Bearer ${localStorage.getItem('vb_auth_token') || ''}` } });
-    const data = await res.json();
-    colaboradoresBusca.value = res.ok ? (data.colaboradores || []) : [];
-  } catch (e) {
-    colaboradoresBusca.value = [];
-  }
-}
-
 const resultadosBusca = computed(() => {
   const termo = buscaGlobal.value.trim().toLowerCase();
   if (!termo) return [];
@@ -2642,12 +2646,7 @@ const resultadosBusca = computed(() => {
     .slice(0, 6)
     .map(c => ({ titulo: c.titulo, categoria: 'Caderno (PDF)', icone: 'landmark', tipo: 'caderno', caderno: c }));
 
-  const colaboradoresEncontrados = (colaboradoresBusca.value || [])
-    .filter(c => bate(c.nome, c.matricula, c.cargo, c.departamento))
-    .slice(0, 6)
-    .map(c => ({ titulo: c.nome, categoria: `Colaborador · ${c.matricula} · ${c.cargo}`, icone: 'user', tipo: 'colaborador', colaborador: c }));
-
-  return [...colaboradoresEncontrados, ...modulos, ...holeritesEncontrados, ...cadernosEncontrados];
+  return [...modulos, ...holeritesEncontrados, ...cadernosEncontrados];
 });
 
 const buscaCadernoInicial = ref('');
@@ -2655,7 +2654,6 @@ const buscaCadernoInicial = ref('');
 function selecionarResultado(r) {
   if (r.tipo === 'aba') navegarParaAba(r.aba);
   if (r.tipo === 'holerite') abrirHolerite(r.holerite);
-  if (r.tipo === 'colaborador') colaboradorResumo.value = r.colaborador;
   if (r.tipo === 'caderno') {
     buscaCadernoInicial.value = r.caderno.titulo;
     navegarParaAba('cadernos');

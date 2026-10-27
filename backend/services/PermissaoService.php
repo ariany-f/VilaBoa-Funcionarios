@@ -38,10 +38,13 @@ class PermissaoService
     public function matrizDoColaborador(array $colaborador): array
     {
         $usuario = $this->usuarioDoColaborador($colaborador);
-        if (!$usuario) {
-            return [];
-        }
-        $perfis = $this->perfisDoUsuario((int)$usuario['id']);
+        return $usuario ? $this->matrizDoUsuario((int)$usuario['id']) : [];
+    }
+
+    /** Matriz de permissões do usuário (login do painel /admin). */
+    public function matrizDoUsuario(int $userId): array
+    {
+        $perfis = $this->perfisDoUsuario($userId);
         if (!$perfis) {
             return [];
         }
@@ -61,6 +64,33 @@ class PermissaoService
             }
         }
         return $matriz;
+    }
+
+    /** Usuário do painel /admin pelo e-mail. */
+    public function usuarioPorEmail(string $email): ?array
+    {
+        $email = mb_strtolower(trim($email));
+        foreach ($this->banco->buscar('users') as $u) {
+            if (mb_strtolower($u['email']) === $email) {
+                return $u;
+            }
+        }
+        return null;
+    }
+
+    public function usuarioPorId(int $id): ?array
+    {
+        return $this->banco->primeiro('users', ['id' => $id]);
+    }
+
+    /** Menus liberados para os perfis do usuário (roles_menus). */
+    public function menusDoUsuario(int $userId): array
+    {
+        $perfis = $this->perfisDoUsuario($userId);
+        $menuIds = array_map(fn($r) => (int)$r['menu_id'], $this->banco->buscar('roles_menus', ['role_id' => $perfis ?: [0]]));
+        $menus = $this->banco->buscar('menus', ['id' => $menuIds]);
+        usort($menus, fn($a, $b) => $a['position'] <=> $b['position']);
+        return array_map(fn($m) => ['name' => $m['name'], 'url' => $m['url'], 'icon' => $m['icon']], $menus);
     }
 
     /** Menus liberados para os perfis do colaborador (roles_menus). */

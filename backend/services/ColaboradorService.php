@@ -214,6 +214,29 @@ class ColaboradorService
     /**
      * OBJETIVO PRIMÁRIO: Atualiza e confirma o telefone do colaborador.
      */
+    /**
+     * Telefone novo não é trocado na hora: vira uma solicitação que o líder da equipe
+     * conclui (a tarefa é aberta no uMov). Fica em data/alteracoes_telefone.json.
+     */
+    public function solicitarAlteracaoTelefone(array $colaborador, string $novoTelefone): array
+    {
+        $arquivo = dirname($this->dataFile) . '/alteracoes_telefone.json';
+        $solicitacoes = file_exists($arquivo) ? (json_decode(file_get_contents($arquivo), true) ?: []) : [];
+        $solicitacao = [
+            'protocolo' => 'TEL-' . date('Ymd-His') . '-' . $colaborador['id'],
+            'colaborador_id' => $colaborador['id'],
+            'matricula' => $colaborador['matricula'],
+            'nome' => $colaborador['nome'],
+            'telefone_atual' => $colaborador['telefone_atual'],
+            'telefone_novo' => $novoTelefone,
+            'status' => 'aguardando_lider',
+            'criado_em' => date('Y-m-d H:i:s')
+        ];
+        $solicitacoes[] = $solicitacao;
+        file_put_contents($arquivo, json_encode($solicitacoes, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE), LOCK_EX);
+        return $solicitacao;
+    }
+
     public function confirmarTelefone(int $colaboradorId, string $novoTelefone): ?array
     {
         $colaboradores = $this->getAll();

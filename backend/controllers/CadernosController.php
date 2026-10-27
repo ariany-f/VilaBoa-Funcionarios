@@ -12,7 +12,8 @@ class CadernosController
     private string $leiturasFile;
     private string $configFile;
 
-    public const CATEGORIAS = ['Manuais', 'Programas', 'Políticas', 'Segurança do Trabalho', 'Treinamentos', 'Outros'];
+    /** Categorias iniciais (o RH cadastra outras em data/cadernos_categorias.json). */
+    public const CATEGORIAS_PADRAO = ['Manuais', 'Programas', 'Políticas', 'Segurança do Trabalho', 'Treinamentos', 'Outros'];
 
     public function __construct()
     {
@@ -43,7 +44,7 @@ class CadernosController
         }
         $publico = in_array($dados['publico'] ?? '', ['todos', 'departamentos', 'colaboradores'], true) ? $dados['publico'] : 'todos';
         $config = [
-            'categoria' => in_array($dados['categoria'] ?? '', self::CATEGORIAS, true) ? $dados['categoria'] : 'Outros',
+            'categoria' => in_array($dados['categoria'] ?? '', $this->categorias(), true) ? $dados['categoria'] : 'Outros',
             'obrigatorio' => !empty($dados['obrigatorio']),
             'publico' => $publico,
             'valores' => $publico === 'todos' ? [] : array_values(array_filter(array_map('strval', (array)($dados['valores'] ?? []))))
@@ -52,6 +53,46 @@ class CadernosController
         $todas[basename($arquivo)] = $config;
         file_put_contents($this->configFile, json_encode($todas, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE), LOCK_EX);
         return $config;
+    }
+
+    public function categorias(): array
+    {
+        $arquivo = dirname(__DIR__) . '/data/cadernos_categorias.json';
+        $lista = file_exists($arquivo) ? (json_decode(file_get_contents($arquivo), true) ?: []) : self::CATEGORIAS_PADRAO;
+        if (!in_array('Outros', $lista, true)) $lista[] = 'Outros';
+        return array_values($lista);
+    }
+
+    public function adicionarCategoria(string $nome): array
+    {
+        $nome = trim(preg_replace('/\s+/', ' ', $nome));
+        if ($nome === '' || mb_strlen($nome) > 40) {
+            return ['erro' => 'Informe um nome de até 40 caracteres.'];
+        }
+        $lista = $this->categorias();
+        foreach ($lista as $c) {
+            if (mb_strtolower($c) === mb_strtolower($nome)) return ['erro' => 'Essa categoria já existe.'];
+        }
+        $lista[] = $nome;
+        usort($lista, fn($a, $b) => $a === 'Outros' ? 1 : ($b === 'Outros' ? -1 : strcasecmp($a, $b)));
+        $this->salvarCategorias($lista);
+        return ['sucesso' => true, 'categorias' => $lista];
+    }
+
+    public function removerCategoria(string $nome): array
+    {
+        if (!in_array($nome, $this->categorias(), true)) return ['erro' => 'Categoria não encontrada.'];
+        if ($nome === 'Outros') return ['erro' => 'A categoria "Outros" não pode ser removida.'];
+        $emUso = array_filter($this->listar(), fn($c) => $c['categoria'] === $nome);
+        if ($emUso) return ['erro' => 'Há ' . count($emUso) . ' caderno(s) nesta categoria. Mude a categoria deles antes de remover.'];
+        $lista = array_values(array_filter($this->categorias(), fn($c) => $c !== $nome));
+        $this->salvarCategorias($lista);
+        return ['sucesso' => true, 'categorias' => $lista];
+    }
+
+    private function salvarCategorias(array $lista): void
+    {
+        file_put_contents(dirname(__DIR__) . '/data/cadernos_categorias.json', json_encode(array_values($lista), JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE), LOCK_EX);
     }
 
     /** O colaborador faz parte do público deste caderno? */

@@ -2,7 +2,8 @@
 const originalFetch = window.fetch;
 window.fetch = function(input, init) {
   if (typeof input === 'string' && input.startsWith('/api')) {
-    let pathname = window.location.pathname;
+    // No painel (/admin) a API é a mesma do portal, na pasta acima
+    let pathname = window.location.pathname.replace(/admin\/?$/, '');
     if (!pathname.endsWith('/')) {
       pathname += '/';
     }
@@ -13,6 +14,8 @@ window.fetch = function(input, init) {
 
 import { createApp } from 'vue';
 import App from './App.vue';
+import AdminApp from './AdminApp.vue';
+import { ehPainelAdmin } from './utils/sessaoAdmin.js';
 import './style.css';
 
-createApp(App).mount('#app');
+createApp(ehPainelAdmin() ? AdminApp : App).mount('#app');

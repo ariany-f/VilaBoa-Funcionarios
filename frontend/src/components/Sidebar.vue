@@ -46,14 +46,7 @@
     <div class="flex-1 overflow-y-auto py-4 px-3 space-y-1.5 min-h-0 custom-scrollbar">
       
       <!-- Módulos liberados -->
-      <template v-for="(modulo, i) in modulos" :key="modulo.id">
-      <!-- Subtítulos: área do colaborador e área do RH -->
-      <span
-        v-if="!recolhida && temRh && (i === 0 || (modulo.somenteRh && !modulos[i - 1].somenteRh))"
-        class="block px-3 pb-1 text-[10px] font-semibold uppercase tracking-wider text-slate-400"
-        :class="i === 0 ? 'pt-1' : 'pt-5'"
-      >{{ modulo.somenteRh ? 'Portal do RH' : 'Meu portal' }}</span>
-      <div v-else-if="recolhida && temRh && modulo.somenteRh && !modulos[i - 1]?.somenteRh" class="mx-3 my-2 border-t border-slate-200"></div>
+      <template v-for="modulo in modulos" :key="modulo.id">
       <button
         type="button"
         @click="$emit('selecionar', modulo.id)"
@@ -186,13 +179,11 @@ defineEmits(['toggle', 'selecionar', 'logout', 'gerar-pacote']);
 const todosModulos = [
   { id: 'holerites', rotulo: 'Holerites & Salários', icone: 'document' },
   { id: 'ponto', rotulo: 'Espelho de Ponto', icone: 'calendar' },
-  { id: 'cadernos', rotulo: 'Cadernos', icone: 'landmark' },
-  { id: 'rh', rotulo: 'Painel do RH', descricao: 'Recebimentos, assinaturas e leituras', icone: 'shield-check', somenteRh: true }
+  { id: 'cadernos', rotulo: 'Cadernos', icone: 'landmark' }
 ];
 
-// O Painel do RH só aparece para perfis com o menu do RH
-const modulos = computed(() => todosModulos.filter(m => !m.somenteRh || temMenu(props.colaborador, '/rh')));
-const temRh = computed(() => modulos.value.some(m => m.somenteRh));
+// O Painel do RH agora fica separado, em /admin
+const modulos = computed(() => todosModulos);
 </script>
 
 <style scoped>
