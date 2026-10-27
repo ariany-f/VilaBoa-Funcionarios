@@ -15,11 +15,11 @@
     <!-- ========================================================================= -->
     <!-- TELA 1: LOGIN (RESPONSIVO: SPLIT SCREEN NO DESKTOP, COMPACTO NO MOBILE)   -->
     <!-- ========================================================================= -->
-    <div v-else-if="etapaAtual === 'login'" class="flex-1 flex items-center justify-center p-3 sm:p-6 lg:p-8">
-      <div class="w-full max-w-md md:max-w-xl lg:max-w-5xl xl:max-w-6xl bg-white rounded-2xl lg:rounded-3xl shadow-2xl overflow-hidden flex flex-col lg:flex-row border border-slate-200">
+    <div v-else-if="etapaAtual === 'login'" class="flex-1 flex items-stretch sm:items-center justify-center sm:p-6 lg:p-8 bg-white sm:bg-transparent">
+      <div class="w-full sm:max-w-xl lg:max-w-5xl xl:max-w-6xl bg-white sm:rounded-2xl lg:rounded-3xl sm:shadow-2xl overflow-hidden flex flex-col lg:flex-row sm:border border-slate-200">
         
         <!-- Lado Esquerdo Institucional (Desktop / Tablet) - Sólido Corporativo Sem Gradiente -->
-        <div class="lg:w-1/2 bg-[#141414] text-white p-8 lg:p-12 flex flex-col justify-between relative border-b lg:border-b-0 lg:border-r border-slate-800">
+        <div class="lg:w-1/2 bg-[#141414] text-white p-6 pt-[calc(1.5rem+env(safe-area-inset-top,0px))] sm:p-8 lg:p-12 flex flex-col justify-between relative border-b lg:border-b-0 lg:border-r border-slate-800">
           <div class="relative z-10 space-y-6">
             <div class="inline-flex items-center space-x-3 bg-white/10 px-4 py-2.5 rounded-2xl border border-white/15">
               <img src="/img/logo-vilaboa-white.png" alt="Vila Boa Construções e Serviços" class="h-9 w-auto object-contain" />
@@ -66,9 +66,6 @@
         <div class="lg:w-1/2 p-6 sm:p-8 lg:p-10 flex flex-col justify-between bg-white">
           <div class="space-y-6">
             <div>
-              <div class="lg:hidden flex items-center mb-4">
-                <img src="/img/logo-horizontal.png" alt="Vila Boa Construções e Serviços" class="h-8 w-auto object-contain" />
-              </div>
               <h2 class="text-xl sm:text-2xl font-semibold text-slate-900 tracking-tight">Acesso ao Portal</h2>
               <p class="text-xs sm:text-sm text-slate-500">Informe seu CPF e data de nascimento cadastrados</p>
             </div>
@@ -389,7 +386,7 @@
             <span class="text-xs text-slate-400 font-medium">WhatsApp / Celular</span>
           </div>
 
-          <div v-if="!editandoTelefone" class="space-y-4">
+          <div class="space-y-4">
             <div class="p-4 bg-white border border-slate-200 rounded-xl flex items-center justify-between shadow-sm">
               <span class="text-xl font-bold font-mono text-slate-800 tracking-tight">
                 {{ dadosEtapaTelefone.colaborador?.telefone_atual || '(Não informado)' }}
@@ -417,49 +414,11 @@
                 class="w-full py-3 px-4 rounded-xl bg-white border border-slate-300 hover:bg-slate-50 text-slate-700 font-bold text-xs transition cursor-pointer flex items-center justify-center gap-1.5"
               >
                 <AppIcon name="edit" size="14" />
-                <span>Meu número mudou (Informar novo)</span>
+                <span>Meu número mudou</span>
               </button>
             </div>
           </div>
 
-          <div v-else class="space-y-4">
-            <div>
-              <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
-                Novo Telefone Celular com DDD
-              </label>
-              <input 
-                type="tel"
-                inputmode="numeric"
-                v-model="novoTelefoneInput"
-                @input="handleTelefoneInput"
-                placeholder="(11) 90000-0000"
-                maxlength="15"
-                class="w-full px-4 py-3.5 rounded-xl bg-white border-2 border-[#9c2337] font-mono text-lg font-bold text-slate-900 focus:outline-none focus:ring-2 focus:ring-[#9c2337]"
-                autofocus
-              />
-              <span class="text-xs text-slate-400 block mt-1">Informe DDD + 9 dígitos para celular/WhatsApp</span>
-            </div>
-
-            <div class="space-y-2">
-              <button 
-                type="button"
-                @click="salvarNovoTelefone"
-                :disabled="carregando || novoTelefoneInput.length < 14"
-                class="w-full py-4 px-4 rounded-xl bg-[#9c2337] hover:bg-[#831b2d] disabled:opacity-50 active:scale-[0.98] text-white font-bold text-sm shadow-md transition flex items-center justify-center gap-2 cursor-pointer"
-              >
-                <span v-if="carregando" class="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
-                <span>Salvar Novo Telefone e Continuar →</span>
-              </button>
-
-              <button 
-                type="button"
-                @click="editandoTelefone = false"
-                class="w-full py-2 px-4 text-slate-500 hover:text-slate-800 text-xs font-medium cursor-pointer"
-              >
-                Cancelar e manter número anterior
-              </button>
-            </div>
-          </div>
         </div>
 
         <div class="text-center text-xs text-slate-400 flex items-center justify-center gap-1.5">
@@ -1536,13 +1495,12 @@
         </div>
         <h3 class="text-lg font-semibold text-slate-900">Pedido de troca de telefone</h3>
         <p class="text-sm text-slate-600 leading-relaxed">
-          Foi gerada uma tarefa de confirmação para trocar seu telefone para
-          <strong class="text-slate-900">{{ avisoAlteracaoTelefone.telefone_novo }}</strong>.
-          Procure o <strong class="text-slate-900">líder da sua equipe</strong> para concluir a alteração.
+          Para trocar o telefone cadastrado, procure o <strong class="text-slate-900">líder da sua equipe</strong>.
+          Ele vai atualizar o seu número no sistema.
         </p>
-        <p class="text-xs text-slate-500">Enquanto isso, continuamos usando o número atual. Protocolo {{ avisoAlteracaoTelefone.protocolo }}</p>
+        <p class="text-xs text-slate-500">Depois da atualização, é só entrar no portal de novo.</p>
         <button type="button" @click="seguirDepoisDoAviso" class="w-full h-12 rounded-full bg-[#9c2337] hover:bg-[#831b2d] text-white font-semibold text-sm cursor-pointer">
-          Entendi, continuar
+          Entendi
         </button>
       </div>
     </div>
@@ -1605,7 +1563,7 @@
 
 <script setup>
 import { ref, computed, watch, onMounted, onUnmounted } from 'vue';
-import { maskCPF, maskDate, maskPhone, formatCurrency } from './utils/masks.js';
+import { maskCPF, maskDate, formatCurrency } from './utils/masks.js';
 import AppIcon from './components/AppIcon.vue';
 import Sidebar from './components/Sidebar.vue';
 import MobileDrawer from './components/MobileDrawer.vue';
@@ -1837,8 +1795,6 @@ const formLogin = ref({
 const dadosEtapaSeguranca = ref({});
 const respostaSelecionada = ref('');
 const dadosEtapaTelefone = ref({});
-const editandoTelefone = ref(false);
-const novoTelefoneInput = ref('');
 
 // Dados dos Módulos do Colaborador
 const usuarioLogado = ref(null);
@@ -2086,10 +2042,6 @@ function handleDataInput(e) {
   formLogin.value.data_nascimento = maskDate(e.target.value);
 }
 
-function handleTelefoneInput(e) {
-  novoTelefoneInput.value = maskPhone(e.target.value);
-}
-
 function preencherDemo(demo) {
   formLogin.value.cpf = demo.cpf;
   formLogin.value.data_nascimento = demo.data_nascimento;
@@ -2136,8 +2088,6 @@ async function fazerLogin() {
         phone_token: data.phone_token,
         colaborador: { nome: data.colaborador?.primeiro_nome, ...data.telefone }
       };
-      editandoTelefone.value = false;
-      novoTelefoneInput.value = '';
       etapaAtual.value = 'telefone';
     } else {
       etapaAtual.value = 'seguranca';
@@ -2157,7 +2107,7 @@ const avisoAlteracaoTelefone = ref(null);
 
 function seguirDepoisDoAviso() {
   avisoAlteracaoTelefone.value = null;
-  etapaAtual.value = 'token';
+  voltarParaLogin();
 }
 
 async function validarToken() {
@@ -2234,8 +2184,6 @@ async function validarRespostaSeguranca() {
     bloqueioSegundos.value = 0;
 
     dadosEtapaTelefone.value = data;
-    editandoTelefone.value = false;
-    novoTelefoneInput.value = '';
     etapaAtual.value = 'telefone';
   } catch (err) {
     mensagemErro.value = 'Falha ao validar resposta de segurança.';
@@ -2250,17 +2198,9 @@ async function confirmarTelefoneMesmo() {
   await enviarConfirmacaoTelefone(tel);
 }
 
+// Número mudou: não coletamos o novo, o líder da equipe atualiza no sistema
 function iniciarEdicaoTelefone() {
-  editandoTelefone.value = true;
-  novoTelefoneInput.value = dadosEtapaTelefone.value.colaborador?.telefone_atual || '';
-}
-
-async function salvarNovoTelefone() {
-  if (novoTelefoneInput.value.length < 14) {
-    mensagemErro.value = 'Informe um telefone válido com DDD.';
-    return;
-  }
-  await enviarConfirmacaoTelefone(novoTelefoneInput.value);
+  avisoAlteracaoTelefone.value = true;
 }
 
 async function enviarConfirmacaoTelefone(telefone) {
@@ -2286,11 +2226,6 @@ async function enviarConfirmacaoTelefone(telefone) {
     if (data.etapa_necessaria === 'token') {
       dadosEtapaSeguranca.value = data;
       codigoToken.value = '';
-      // Pediu número novo: avisa sobre a tarefa do líder antes de seguir para o código
-      if (data.alteracao_telefone) {
-        avisoAlteracaoTelefone.value = data.alteracao_telefone;
-        return;
-      }
       etapaAtual.value = 'token';
       return;
     }

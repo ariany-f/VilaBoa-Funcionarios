@@ -6,48 +6,88 @@
     </div>
 
     <!-- Login do painel -->
-    <div v-else-if="!usuario" class="min-h-screen flex items-center justify-center p-4">
-      <form class="w-full max-w-sm bg-white rounded-2xl border border-slate-200 shadow-xl p-7 space-y-5" @submit.prevent="entrar">
-        <div class="space-y-3 text-center">
-          <img src="/img/logo-vilaboa-color.png" alt="Vila Boa Construções e Serviços" class="h-10 w-auto mx-auto object-contain" />
-          <div>
-            <h1 class="text-lg font-semibold text-slate-900">Painel do RH</h1>
-            <p class="text-xs text-slate-500">Acesso restrito à equipe de Recursos Humanos</p>
+    <!-- Mesmo layout do login do colaborador; o lado institucional em vinho marca a área do RH -->
+    <div v-else-if="!usuario" class="min-h-[100dvh] flex items-stretch sm:items-center justify-center sm:p-6 lg:p-8 bg-white sm:bg-slate-100">
+      <div class="w-full sm:max-w-xl lg:max-w-5xl bg-white sm:rounded-2xl lg:rounded-3xl sm:shadow-2xl overflow-hidden flex flex-col lg:flex-row sm:border border-slate-200">
+        <div class="lg:w-1/2 bg-[#9c2337] text-white p-6 pt-[calc(1.5rem+env(safe-area-inset-top,0px))] sm:p-8 lg:p-12 flex flex-col justify-between">
+          <div class="space-y-5">
+            <div class="flex items-center justify-between gap-3">
+              <div class="inline-flex items-center bg-white/10 px-4 py-2.5 rounded-2xl border border-white/20">
+                <img src="/img/logo-vilaboa-white.png" alt="Vila Boa Construções e Serviços" class="h-8 sm:h-9 w-auto object-contain" />
+              </div>
+              <span class="inline-flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider bg-white text-[#9c2337] px-3 py-1.5 rounded-full whitespace-nowrap shrink-0">
+                <AppIcon name="shield-check" size="12" />
+                Área restrita · RH
+              </span>
+            </div>
+            <div class="space-y-2 pt-1">
+              <h1 class="text-2xl sm:text-3xl lg:text-4xl font-semibold leading-tight tracking-tight">Painel do RH</h1>
+              <p class="text-white/80 text-xs sm:text-sm leading-relaxed">
+                Gestão de holerites, espelhos de ponto, cadernos e acompanhamento dos colaboradores.
+              </p>
+            </div>
+            <div class="hidden lg:grid gap-3 pt-4 border-t border-white/20">
+              <div v-for="t in ['Acompanhamento de ciência e pendências', 'Envio de espelho de ponto com Autentique', 'Publicação de holerites e cadernos']" :key="t" class="flex items-center gap-3 text-xs text-white/90">
+                <span class="w-6 h-6 rounded-lg bg-white/15 border border-white/15 flex items-center justify-center shrink-0"><AppIcon name="check" size="14" /></span>
+                <span>{{ t }}</span>
+              </div>
+            </div>
           </div>
+          <div class="hidden lg:block pt-6 text-[11px] text-white/60 font-medium">Acesso exclusivo da equipe de Recursos Humanos</div>
         </div>
 
-        <label class="block text-xs font-medium text-slate-700 space-y-1.5">
-          <span>E-mail</span>
-          <input v-model="email" type="email" autocomplete="username" required class="w-full h-11 px-3 rounded-lg border border-slate-300 text-sm outline-none focus:border-[#9c2337] focus:ring-2 focus:ring-rose-100" />
-        </label>
-        <label class="block text-xs font-medium text-slate-700 space-y-1.5">
-          <span>Senha</span>
-          <input v-model="senha" type="password" autocomplete="current-password" required class="w-full h-11 px-3 rounded-lg border border-slate-300 text-sm outline-none focus:border-[#9c2337] focus:ring-2 focus:ring-rose-100" />
-        </label>
+        <form class="lg:w-1/2 p-6 sm:p-8 lg:p-10 space-y-5 bg-white" @submit.prevent="entrar">
+          <div>
+            <h2 class="text-xl sm:text-2xl font-semibold text-slate-900 tracking-tight">Entrar no painel</h2>
+            <p class="text-xs sm:text-sm text-slate-500">Use seu e-mail e senha corporativos</p>
+          </div>
 
-        <p v-if="erro" class="text-xs text-rose-700">{{ erro }}</p>
+          <div v-if="erro" class="p-3.5 rounded-2xl bg-rose-50 border border-rose-200 text-rose-700 text-xs flex items-start gap-2">
+            <AppIcon name="alert-triangle" size="16" class="shrink-0 mt-0.5" />
+            <span class="font-medium">{{ erro }}</span>
+          </div>
 
-        <button type="submit" :disabled="entrando" class="w-full h-11 rounded-full bg-[#9c2337] hover:bg-[#831b2d] disabled:opacity-50 text-white text-sm font-semibold cursor-pointer">
-          {{ entrando ? 'Entrando...' : 'Entrar' }}
-        </button>
+          <label class="block">
+            <span class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">E-mail</span>
+            <input v-model="email" type="email" inputmode="email" autocomplete="username" autocapitalize="off" required class="w-full px-4 py-3.5 rounded-2xl bg-slate-50 border border-slate-200 text-slate-900 font-semibold text-base focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#9c2337] focus:border-transparent transition" />
+          </label>
+          <label class="block">
+            <span class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">Senha</span>
+            <input v-model="senha" type="password" autocomplete="current-password" required class="w-full px-4 py-3.5 rounded-2xl bg-slate-50 border border-slate-200 text-slate-900 font-semibold text-base focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#9c2337] focus:border-transparent transition" />
+          </label>
 
-        <a :href="urlPortal" class="block text-center text-xs text-slate-500 hover:text-slate-900">Sou colaborador: ir para o portal</a>
-
-        <!-- Acessos de demonstração (somente enquanto ADMIN_DEMO_ATIVO) -->
-        <div v-if="demos.length" class="pt-4 border-t border-slate-100 space-y-2">
-          <p class="text-[10px] font-semibold uppercase tracking-wider text-slate-400">Acessos de demonstração</p>
-          <button
-            v-for="d in demos"
-            :key="d.email"
-            type="button"
-            @click="email = d.email; senha = senhaDemo"
-            class="w-full text-left px-3 py-2 rounded-lg border border-slate-200 hover:border-slate-300 hover:bg-slate-50 cursor-pointer"
-          >
-            <span class="block text-xs font-semibold text-slate-800">{{ d.nome }}</span>
-            <span class="block text-[11px] text-slate-500">{{ d.email }} · {{ d.perfil }}</span>
+          <button type="submit" :disabled="entrando" class="w-full py-4 px-6 rounded-2xl bg-[#141414] hover:bg-black disabled:opacity-50 active:scale-[0.98] text-white font-bold text-sm tracking-wide shadow-lg shadow-black/20 transition flex items-center justify-center gap-2 cursor-pointer">
+            <span v-if="entrando" class="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
+            <span>{{ entrando ? 'Entrando...' : 'Entrar no painel' }}</span>
+            <span v-if="!entrando">→</span>
           </button>
-        </div>
-      </form>
+
+          <!-- Acessos de demonstração (somente enquanto ADMIN_DEMO_ATIVO) -->
+          <div v-if="demos.length" class="pt-4 border-t border-slate-100 space-y-2">
+            <p class="text-[11px] font-bold uppercase tracking-wider text-slate-500">Acessos de demonstração</p>
+            <button
+              v-for="d in demos"
+              :key="d.email"
+              type="button"
+              @click="email = d.email; senha = senhaDemo"
+              class="w-full text-left p-3 rounded-2xl border border-slate-200/90 hover:border-[#9c2337] bg-slate-50/80 hover:bg-rose-50/40 active:scale-[0.99] transition flex items-center gap-3 cursor-pointer"
+            >
+              <span class="w-9 h-9 rounded-xl bg-white border border-slate-200 flex items-center justify-center font-semibold text-xs text-[#9c2337] shrink-0">{{ d.nome.slice(0, 2).toUpperCase() }}</span>
+              <span class="min-w-0">
+                <span class="block text-xs font-bold text-slate-800 truncate">{{ d.nome }}</span>
+                <span class="block text-[10px] text-slate-400 truncate">{{ d.email }} · {{ d.perfil }}</span>
+              </span>
+            </button>
+          </div>
+
+          <div class="text-center pt-2">
+            <a :href="urlPortal" class="inline-flex items-center gap-1.5 h-9 px-4 rounded-full border border-slate-300 text-[11px] text-slate-700 hover:border-slate-400 hover:text-slate-900 font-semibold transition">
+              <AppIcon name="user" size="13" />
+              Sou colaborador: ir para o portal
+            </a>
+          </div>
+        </form>
+      </div>
     </div>
 
     <!-- Painel -->

@@ -195,7 +195,8 @@ async function consultarAutenticidade() {
     }
 
     const id = params.get('id') || '';
-    const auth = params.get('auth') || '';
+    // QR do dossiê de renda manda a chave como "hash"
+    const auth = params.get('auth') || params.get('hash') || '';
 
     if (!id && !auth) {
       erro.value = 'Chave de autenticação ou ID do demonstrativo ausente no QR Code.';

@@ -287,12 +287,15 @@ if ($method === 'GET' && $route === '/validar-holerite') {
 
     foreach ($colabs as $c) {
         // 1. Busca por holerite individual
-        $holerites = $holeriteService->getHolerites($c['matricula'], '2026');
-        foreach ($holerites as $h) {
-            if (($id && $h['id'] === $id) || ($auth && $h['autenticacao_digital'] === $auth)) {
-                $holeriteEncontrado = $h;
-                $colaboradorDono = $c;
-                break 2;
+        // Procura do ano atual até 5 anos atrás (prazo de guarda do holerite)
+        $anoAtual = (int) date('Y');
+        for ($ano = $anoAtual; $ano >= $anoAtual - 5; $ano--) {
+            foreach ($holeriteService->getHolerites($c['matricula'], (string) $ano) as $h) {
+                if (($id && $h['id'] === $id) || ($auth && $h['autenticacao_digital'] === $auth)) {
+                    $holeriteEncontrado = $h;
+                    $colaboradorDono = $c;
+                    break 3;
+                }
             }
         }
 

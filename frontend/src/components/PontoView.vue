@@ -216,23 +216,14 @@
           </div>
 
           <!-- Ações, como no rodapé do demonstrativo -->
-          <div v-if="espelho" class="p-3.5 pb-[calc(0.875rem+env(safe-area-inset-bottom,0px))] bg-slate-50 border-t border-slate-200 grid gap-2.5 shrink-0" :class="podeAssinar(espelho) ? 'grid-cols-1 sm:grid-cols-3' : 'grid-cols-2'">
+          <div v-if="espelho && podeAssinar(espelho)" class="p-3.5 pb-[calc(0.875rem+env(safe-area-inset-bottom,0px))] bg-slate-50 border-t border-slate-200 shrink-0">
             <button
-              v-if="podeAssinar(espelho)"
               type="button"
               @click="assinarNoAutentique(espelho)"
-              class="h-12 rounded-xl bg-[#9c2337] hover:bg-[#831b2d] text-white font-semibold text-sm flex items-center justify-center gap-2 cursor-pointer"
+              class="w-full h-12 rounded-xl bg-[#9c2337] hover:bg-[#831b2d] text-white font-semibold text-sm flex items-center justify-center gap-2 cursor-pointer"
             >
               <AppIcon name="pen-tool" size="16" />
               Conferi e quero assinar
-            </button>
-            <button type="button" @click="baixarEspelho(espelho)" class="h-12 rounded-xl bg-white border border-slate-200 text-slate-800 font-semibold text-sm flex items-center justify-center gap-2 cursor-pointer">
-              <AppIcon name="download" size="16" />
-              Baixar
-            </button>
-            <button type="button" @click="enviarWhatsapp(espelho)" class="h-12 rounded-xl bg-[#1DA851] hover:bg-[#178F44] text-white font-semibold text-sm flex items-center justify-center gap-2 cursor-pointer">
-              <AppIcon name="whatsapp" size="16" />
-              WhatsApp
             </button>
           </div>
         </div>
