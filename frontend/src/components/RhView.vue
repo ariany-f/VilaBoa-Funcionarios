@@ -305,7 +305,7 @@
         <div class="p-5 sm:p-6 space-y-4 border-b border-slate-100">
           <div class="flex flex-col lg:flex-row lg:items-center gap-3">
             <div class="flex-1">
-              <h3 class="text-sm font-semibold uppercase tracking-wider text-slate-800">Holerites por colaborador</h3>
+              <h3 class="text-sm font-semibold uppercase tracking-wider text-slate-800 whitespace-nowrap">Holerites por colaborador</h3>
               <p class="text-xs text-slate-400 mt-0.5">A consulta do RH não registra recebimento no lugar do colaborador.</p>
             </div>
             <div class="flex flex-col sm:flex-row gap-2">
@@ -362,11 +362,16 @@
         <div class="p-5 sm:p-6 space-y-4 border-b border-slate-100">
           <div class="flex flex-col lg:flex-row lg:items-center gap-3">
             <div class="flex-1">
-              <h3 class="text-sm font-semibold uppercase tracking-wider text-slate-800">Espelhos de ponto</h3>
+              <h3 class="text-sm font-semibold uppercase tracking-wider text-slate-800 whitespace-nowrap">Espelhos de ponto</h3>
               <p class="text-xs text-slate-400 mt-0.5">Toque em um espelho para ver os dias e a assinatura.</p>
             </div>
             <div class="flex flex-col sm:flex-row gap-2">
-              <input v-model="buscaPonto" type="text" placeholder="Buscar nome ou matrícula..." class="h-10 px-3 rounded-lg border border-slate-200 bg-slate-50 text-sm text-slate-800 outline-none focus:bg-white focus:border-slate-400 sm:w-56" />
+              <div class="flex items-center gap-1">
+                <SeletorColaborador v-model="matriculaPonto" :colaboradores="dados.colaboradores" class="flex-1" />
+                <button v-if="matriculaPonto" type="button" @click="matriculaPonto = ''" class="w-10 h-10 rounded-lg text-slate-400 hover:bg-slate-100 hover:text-slate-700 flex items-center justify-center cursor-pointer shrink-0" title="Ver todos os colaboradores" aria-label="Ver todos os colaboradores">
+                  <AppIcon name="x" size="14" />
+                </button>
+              </div>
               <select v-model="filtroCompetenciaPonto" class="h-10 px-3 rounded-lg border border-slate-200 bg-slate-50 text-sm text-slate-700 outline-none">
                 <option value="">Todos os meses</option>
                 <option v-for="c in competenciasPonto" :key="c.competencia" :value="c.competencia">{{ c.mes_nome }}</option>
@@ -621,7 +626,6 @@ function abrirLeiturasDoColaborador(c) {
   grupoModal.value = lista.every((d) => d.lido_em) ? 1 : 0;
 }
 const matriculaPonto = ref('');
-const buscaPonto = ref('');
 const filtroCompetenciaPonto = ref('');
 const filtroSituacaoPonto = ref('');
 const espelhoRh = ref(null);
@@ -640,20 +644,18 @@ const competenciasPonto = computed(() => {
 });
 
 const espelhosFiltrados = computed(() => {
-  const t = buscaPonto.value.trim().toLowerCase();
   return espelhos.value.filter((e) =>
     (!filtroCompetenciaPonto.value || e.competencia === filtroCompetenciaPonto.value) &&
     (!filtroSituacaoPonto.value || (filtroSituacaoPonto.value === 'assinado') === !!e.assinado_em) &&
-    (!t || e.nome.toLowerCase().includes(t) || e.matricula.toLowerCase().includes(t))
+    (!matriculaPonto.value || e.matricula === matriculaPonto.value)
   );
 });
 
-// Contagens respeitam a busca e o mês escolhidos
+// Contagens respeitam o colaborador e o mês escolhidos
 const filtrosSituacaoPonto = computed(() => {
-  const t = buscaPonto.value.trim().toLowerCase();
   const base = espelhos.value.filter((e) =>
     (!filtroCompetenciaPonto.value || e.competencia === filtroCompetenciaPonto.value) &&
-    (!t || e.nome.toLowerCase().includes(t) || e.matricula.toLowerCase().includes(t))
+    (!matriculaPonto.value || e.matricula === matriculaPonto.value)
   );
   return [
     { id: '', rotulo: 'Todos', classe: '', total: base.length },
@@ -690,7 +692,6 @@ async function carregarHolerites() {
 // Ao abrir as abas de consulta, já seleciona o primeiro colaborador
 watch([aba, () => dados.value.colaboradores.length], ([atual]) => {
   const primeiro = dados.value.colaboradores[0]?.matricula || '';
-  if (atual === 'ponto' && !matriculaPonto.value) matriculaPonto.value = primeiro;
   if (atual === 'holerites' && !matriculaHolerite.value) {
     matriculaHolerite.value = primeiro;
     carregarHolerites();
