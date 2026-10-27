@@ -301,29 +301,48 @@
 
     <!-- ===================== HOLERITES ===================== -->
     <template v-else-if="aba === 'holerites'">
-      <div class="bg-white rounded-2xl border border-slate-200 p-5 sm:p-6 space-y-4">
-        <div class="flex flex-col sm:flex-row sm:items-center gap-3">
-          <h3 class="text-sm font-semibold uppercase tracking-wider text-slate-800 flex-1">Holerites por colaborador</h3>
-          <SeletorColaborador v-model="matriculaHolerite" :colaboradores="dados.colaboradores" @change="carregarHolerites" />
-          <select v-model="anoHolerite" @change="carregarHolerites" class="h-10 px-3 rounded-lg border border-slate-200 bg-slate-50 text-sm outline-none">
-            <option v-for="a in anos" :key="a" :value="a">{{ a }}</option>
-          </select>
+      <div class="bg-white rounded-2xl border border-slate-200 overflow-hidden">
+        <div class="p-5 sm:p-6 space-y-4 border-b border-slate-100">
+          <div class="flex flex-col lg:flex-row lg:items-center gap-3">
+            <div class="flex-1">
+              <h3 class="text-sm font-semibold uppercase tracking-wider text-slate-800">Holerites por colaborador</h3>
+              <p class="text-xs text-slate-400 mt-0.5">A consulta do RH não registra recebimento no lugar do colaborador.</p>
+            </div>
+            <div class="flex flex-col sm:flex-row gap-2">
+              <SeletorColaborador v-model="matriculaHolerite" :colaboradores="dados.colaboradores" @change="carregarHolerites" />
+              <select v-model="anoHolerite" @change="carregarHolerites" class="h-10 px-3 rounded-lg border border-slate-200 bg-slate-50 text-sm outline-none">
+                <option v-for="a in anos" :key="a" :value="a">{{ a }}</option>
+              </select>
+            </div>
+          </div>
+          <div v-if="holeritesRh.length && !carregandoHolerites" class="flex flex-wrap gap-2">
+            <span class="chip-resumo">{{ holeritesRh.length }} holerites</span>
+            <span class="chip-resumo ok">{{ holeritesRh.filter(h => h.aceite?.confirmado).length }} recebidos</span>
+            <span class="chip-resumo pendente">{{ holeritesRh.filter(h => !h.aceite?.confirmado).length }} não recebidos</span>
+          </div>
         </div>
-        <p class="text-xs text-slate-500">A consulta do RH não registra recebimento no lugar do colaborador.</p>
 
-        <div v-if="carregandoHolerites" class="py-10 text-center text-sm text-slate-400">Carregando holerites...</div>
-        <ul v-else class="divide-y divide-slate-100 border-t border-slate-100">
+        <div v-if="carregandoHolerites" class="py-12 text-center text-sm text-slate-400">Carregando holerites...</div>
+        <p v-else-if="!holeritesRh.length" class="py-12 text-center text-sm text-slate-400">Nenhum holerite em {{ anoHolerite }}.</p>
+        <ul v-else class="divide-y divide-slate-100">
           <li v-for="h in holeritesRh" :key="h.id">
-            <button type="button" @click="holeriteAberto = h" class="w-full py-3 flex items-center gap-3 text-left hover:bg-slate-50 px-2 -mx-2 rounded-lg cursor-pointer">
-              <span class="min-w-0 flex-1">
-                <span class="block text-sm font-medium text-slate-800">{{ h.mes_nome }} / {{ h.ano }}</span>
-                <span class="block text-xs text-slate-400">{{ h.tipo_folha || 'Folha Mensal' }} · pago em {{ h.data_pagamento }}</span>
+            <button type="button" @click="holeriteAberto = h" class="linha-lista">
+              <span class="bloco-mes">
+                <span class="mes">{{ h.mes_nome.slice(0, 3) }}</span>
+                <span class="ano">{{ h.ano }}</span>
               </span>
-              <span class="badge" :class="h.aceite?.confirmado ? 'ok' : 'pendente'">{{ h.aceite?.confirmado ? 'Recebido em ' + h.aceite.data_hora : 'Não recebido' }}</span>
-              <AppIcon name="chevron-right" size="15" class="text-slate-300" />
+              <span class="min-w-0 flex-1">
+                <span class="block text-sm font-semibold text-slate-800 truncate">{{ h.mes_nome }} / {{ h.ano }}</span>
+                <span class="block text-xs text-slate-400 truncate">{{ h.tipo_folha || 'Folha Mensal' }} · pago em {{ h.data_pagamento }}</span>
+              </span>
+              <span class="hidden sm:block text-sm font-semibold font-mono text-slate-800 shrink-0">{{ moedaRh(h.salario_liquido) }}</span>
+              <span class="flex flex-col items-end shrink-0">
+                <span class="badge" :class="h.aceite?.confirmado ? 'ok' : 'pendente'">{{ h.aceite?.confirmado ? 'Recebido' : 'Não recebido' }}</span>
+                <span v-if="h.aceite?.confirmado" class="hidden sm:block text-[10px] text-slate-400 mt-1">{{ h.aceite.data_hora }}</span>
+              </span>
+              <AppIcon name="chevron-right" size="16" class="text-slate-300 shrink-0" />
             </button>
           </li>
-          <li v-if="!holeritesRh.length" class="py-10 text-center text-sm text-slate-400">Nenhum holerite em {{ anoHolerite }}.</li>
         </ul>
       </div>
 
@@ -338,12 +357,55 @@
 
     <!-- ===================== ESPELHO DE PONTO ===================== -->
     <template v-else-if="aba === 'ponto'">
-      <div class="bg-white rounded-2xl border border-slate-200 p-5 sm:p-6 flex flex-col sm:flex-row sm:items-center gap-3">
-        <h3 class="text-sm font-semibold uppercase tracking-wider text-slate-800 flex-1">Consultar espelho</h3>
-        <SeletorColaborador v-model="matriculaPonto" :colaboradores="dados.colaboradores" />
+      <!-- Lista de todos os espelhos (colaborador × competência) -->
+      <div class="bg-white rounded-2xl border border-slate-200 overflow-hidden">
+        <div class="p-5 sm:p-6 space-y-4 border-b border-slate-100">
+          <div class="flex flex-col lg:flex-row lg:items-center gap-3">
+            <div class="flex-1">
+              <h3 class="text-sm font-semibold uppercase tracking-wider text-slate-800">Espelhos de ponto</h3>
+              <p class="text-xs text-slate-400 mt-0.5">Toque em um espelho para ver os dias e a assinatura.</p>
+            </div>
+            <div class="flex flex-col sm:flex-row gap-2">
+              <input v-model="buscaPonto" type="text" placeholder="Buscar nome ou matrícula..." class="h-10 px-3 rounded-lg border border-slate-200 bg-slate-50 text-sm text-slate-800 outline-none focus:bg-white focus:border-slate-400 sm:w-56" />
+              <select v-model="filtroCompetenciaPonto" class="h-10 px-3 rounded-lg border border-slate-200 bg-slate-50 text-sm text-slate-700 outline-none">
+                <option value="">Todos os meses</option>
+                <option v-for="c in competenciasPonto" :key="c.competencia" :value="c.competencia">{{ c.mes_nome }}</option>
+              </select>
+            </div>
+          </div>
+          <div class="flex flex-wrap gap-2">
+            <button v-for="f in filtrosSituacaoPonto" :key="f.id" type="button" @click="filtroSituacaoPonto = f.id" class="chip-resumo cursor-pointer" :class="[f.classe, filtroSituacaoPonto === f.id ? 'ativo' : '']">
+              {{ f.rotulo }} · {{ f.total }}
+            </button>
+          </div>
+        </div>
+
+        <p v-if="!espelhosFiltrados.length" class="py-12 text-center text-sm text-slate-400">Nenhum espelho encontrado.</p>
+        <ul v-else class="divide-y divide-slate-100">
+          <li v-for="e in espelhosFiltrados" :key="e.matricula + e.competencia">
+            <button type="button" @click="abrirEspelhoRh(e)" class="linha-lista">
+              <span class="bloco-mes">
+                <span class="mes">{{ e.mes_nome.slice(0, 3) }}</span>
+                <span class="ano">{{ e.competencia.slice(3) }}</span>
+              </span>
+              <span class="min-w-0 flex-1">
+                <span class="block text-sm font-semibold text-slate-800 truncate">{{ e.nome }}</span>
+                <span class="block text-xs text-slate-400 truncate">{{ e.matricula }} · {{ e.mes_nome }}</span>
+              </span>
+              <span class="flex flex-col items-end shrink-0">
+                <span class="badge" :class="e.assinado_em ? 'ok' : 'pendente'">{{ e.assinado_em ? 'Assinado' : 'Falta assinar' }}</span>
+                <span v-if="e.assinado_em" class="hidden sm:block text-[10px] text-slate-400 mt-1">{{ e.assinado_em }}</span>
+              </span>
+              <AppIcon name="chevron-right" size="16" class="text-slate-300 shrink-0" />
+            </button>
+          </li>
+        </ul>
       </div>
 
-      <PontoView v-if="matriculaPonto" :matricula="matriculaPonto" somente-leitura />
+      <!-- Abre só o detalhe do espelho escolhido (o modal do PontoView) -->
+      <div v-if="espelhoRh" class="hidden">
+        <PontoView :key="espelhoRh.matricula + espelhoRh.competencia" :matricula="espelhoRh.matricula" :competencia-inicial="espelhoRh.competencia" somente-leitura />
+      </div>
 
       <div v-if="pode(colaborador, 'rh_ponto', 'importar')" class="bg-white rounded-2xl border border-slate-200 p-5 sm:p-6 space-y-5 max-w-3xl">
         <div>
@@ -431,7 +493,7 @@
 </template>
 
 <script setup>
-import { ref, computed, watch, onMounted } from 'vue';
+import { ref, computed, watch, onMounted, nextTick } from 'vue';
 import AppIcon from './AppIcon.vue';
 import { pode } from '../utils/permissoes.js';
 import { tokenAdmin } from '../utils/sessaoAdmin.js';
@@ -559,6 +621,54 @@ function abrirLeiturasDoColaborador(c) {
   grupoModal.value = lista.every((d) => d.lido_em) ? 1 : 0;
 }
 const matriculaPonto = ref('');
+const buscaPonto = ref('');
+const filtroCompetenciaPonto = ref('');
+const filtroSituacaoPonto = ref('');
+const espelhoRh = ref(null);
+
+// Um item por espelho importado, do mês mais recente para o mais antigo
+const espelhos = computed(() => (dados.value?.colaboradores || []).flatMap((c) =>
+  (c.ponto?.competencias || []).map((p) => ({ nome: c.nome, matricula: c.matricula, competencia: p.competencia, mes_nome: p.mes_nome, assinado_em: p.assinado_em }))
+).sort((a, b) => chaveCompetencia(b.competencia).localeCompare(chaveCompetencia(a.competencia)) || a.nome.localeCompare(b.nome)));
+
+const chaveCompetencia = (c) => (c || '').split('/').reverse().join('');
+
+const competenciasPonto = computed(() => {
+  const vistos = new Map();
+  espelhos.value.forEach((e) => vistos.set(e.competencia, e));
+  return [...vistos.values()];
+});
+
+const espelhosFiltrados = computed(() => {
+  const t = buscaPonto.value.trim().toLowerCase();
+  return espelhos.value.filter((e) =>
+    (!filtroCompetenciaPonto.value || e.competencia === filtroCompetenciaPonto.value) &&
+    (!filtroSituacaoPonto.value || (filtroSituacaoPonto.value === 'assinado') === !!e.assinado_em) &&
+    (!t || e.nome.toLowerCase().includes(t) || e.matricula.toLowerCase().includes(t))
+  );
+});
+
+// Contagens respeitam a busca e o mês escolhidos
+const filtrosSituacaoPonto = computed(() => {
+  const t = buscaPonto.value.trim().toLowerCase();
+  const base = espelhos.value.filter((e) =>
+    (!filtroCompetenciaPonto.value || e.competencia === filtroCompetenciaPonto.value) &&
+    (!t || e.nome.toLowerCase().includes(t) || e.matricula.toLowerCase().includes(t))
+  );
+  return [
+    { id: '', rotulo: 'Todos', classe: '', total: base.length },
+    { id: 'pendente', rotulo: 'Falta assinar', classe: 'pendente', total: base.filter((e) => !e.assinado_em).length },
+    { id: 'assinado', rotulo: 'Assinados', classe: 'ok', total: base.filter((e) => e.assinado_em).length }
+  ];
+});
+
+const moedaRh = (v) => Number(v || 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+
+function abrirEspelhoRh(e) {
+  // Recria o PontoView mesmo se for o mesmo espelho de antes
+  espelhoRh.value = null;
+  nextTick(() => { espelhoRh.value = e; });
+}
 const matriculaHolerite = ref('');
 const anoHolerite = ref(anoAtual);
 const holeritesRh = ref([]);
@@ -812,6 +922,69 @@ onMounted(carregar);
 </script>
 
 <style scoped>
+.linha-lista {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 20px;
+  text-align: left;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+.linha-lista:hover {
+  background: #f8fafc;
+}
+.bloco-mes {
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  background: #f1f5f9;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  line-height: 1;
+}
+.bloco-mes .mes {
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: #9c2337;
+}
+.bloco-mes .ano {
+  font-size: 10px;
+  font-weight: 600;
+  color: #0f172a;
+  margin-top: 3px;
+}
+.chip-resumo {
+  display: inline-flex;
+  align-items: center;
+  height: 30px;
+  padding: 0 12px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 600;
+  background: #f8fafc;
+  color: #475569;
+  border: 1px solid #e2e8f0;
+}
+.chip-resumo.ok {
+  background: #ecfdf5;
+  color: #065f46;
+  border-color: #a7f3d0;
+}
+.chip-resumo.pendente {
+  background: #fffbeb;
+  color: #92400e;
+  border-color: #fde68a;
+}
+.chip-resumo.ativo {
+  outline: 2px solid #141414;
+  outline-offset: 1px;
+}
 .badge {
   display: inline-flex;
   align-items: center;

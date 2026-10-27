@@ -1,18 +1,6 @@
 <template>
   <div class="space-y-6 animate-slide-up">
     <div class="bg-white rounded-2xl border border-slate-200 p-6 sm:p-7">
-      <div class="flex justify-end border-b border-slate-100 pb-4">
-        <div class="relative w-full sm:w-64">
-          <AppIcon name="search" size="14" class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
-          <input
-            v-model="busca"
-            type="text"
-            placeholder="Buscar caderno..."
-            class="w-full h-9 pl-9 pr-3 rounded-lg border border-slate-200 bg-slate-50 text-sm text-slate-800 placeholder-slate-400 outline-none focus:border-slate-400 focus:bg-white transition"
-          />
-        </div>
-      </div>
-
       <div v-if="carregando" class="py-12 text-center text-sm text-slate-400">Carregando cadernos...</div>
 
       <div v-else-if="erro" class="py-12 text-center text-sm text-rose-700">{{ erro }}</div>
