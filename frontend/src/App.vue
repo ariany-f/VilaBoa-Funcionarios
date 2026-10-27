@@ -123,23 +123,8 @@
 
             <!-- Preenchimento Rápido com Mocks (Homologação & LGPD) -->
             <div class="pt-4 border-t border-slate-100">
-              <div class="flex items-center justify-between mb-2">
-                <button 
-                  type="button" 
-                  @click="mostrarMocks = !mostrarMocks"
-                  class="text-[11px] font-bold uppercase tracking-wider text-slate-500 hover:text-slate-800 flex items-center gap-1 cursor-pointer transition select-none"
-                >
-                  <span>{{ mostrarMocks ? '▼ Ocultar Perfis de Teste' : '▶ Perfis de Teste (Homologação)' }}</span>
-                </button>
-                <span class="text-[9px] bg-slate-100 text-slate-600 border border-slate-200 px-2 py-0.5 rounded-full font-bold">
-                  Ambiente Homologação
-                </span>
-              </div>
-
-              <div v-if="mostrarMocks" class="space-y-2">
-                <p class="text-[10px] text-slate-400 leading-tight">
-                  <strong class="text-slate-600">Conformidade LGPD:</strong> Em produção, esta lista é desativada para resguardar a privacidade dos dados funcionais.
-                </p>
+              <div class="space-y-2">
+                <p class="text-[11px] font-bold uppercase tracking-wider text-slate-500">Acessos de demonstração</p>
                 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-1 gap-2">
                 <button 
                   v-for="demo in colaboradoresDemo" 
@@ -1614,7 +1599,6 @@ watch(cpfVisivel, (val) => {
   } catch (e) {}
 });
 
-const mostrarMocks = ref(true);
 
 function mascararCpf(cpf) {
   if (!cpf) return '***.***.***-**';

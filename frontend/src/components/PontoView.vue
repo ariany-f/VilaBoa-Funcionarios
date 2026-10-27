@@ -9,8 +9,19 @@
 
     <template v-else>
       <!-- Último espelho (mesmo formato do último holerite) -->
-      <div class="w-full bg-gradient-to-br from-[#141414] to-[#000000] text-white rounded-2xl p-6 sm:p-7 shadow-sm space-y-5">
-        <div class="space-y-1.5">
+      <div class="w-full bg-gradient-to-br from-[#141414] to-[#000000] text-white rounded-2xl p-6 sm:p-7 shadow-sm relative overflow-hidden space-y-5">
+        <div class="absolute -right-20 -top-20 w-80 h-80 bg-[#9c2337]/30 rounded-full blur-3xl pointer-events-none"></div>
+
+        <!-- Identificação do colaborador -->
+        <div v-if="colaborador" class="hidden sm:flex flex-wrap items-center justify-between gap-x-4 gap-y-1 relative z-10 text-xs text-white/60">
+          <span class="text-sm font-semibold text-white">{{ colaborador.nome }}</span>
+          <span class="flex flex-wrap items-center gap-x-3 gap-y-1">
+            <span>{{ colaborador.cargo }}</span>
+            <span>Matrícula <strong class="text-white/90 font-medium">{{ colaborador.matricula }}</strong></span>
+          </span>
+        </div>
+
+        <div class="relative z-10 space-y-1.5" :class="colaborador ? 'sm:border-t sm:border-white/10 sm:pt-4' : ''">
           <span class="text-xs text-white/60 font-medium">Seu último espelho de ponto</span>
           <div class="flex items-center gap-2.5 flex-wrap">
             <h3 class="text-3xl font-semibold tracking-tight leading-tight">{{ ultimo.mes_nome }}</h3>
@@ -22,7 +33,7 @@
           <p class="text-sm text-white/70">{{ resumoLinha(ultimo) }}</p>
         </div>
 
-        <div class="grid grid-cols-1 gap-3" :class="podeAssinar(ultimo) ? 'sm:grid-cols-2' : 'sm:grid-cols-1 sm:max-w-xs'">
+        <div class="relative z-10 grid grid-cols-1 gap-3" :class="podeAssinar(ultimo) ? 'sm:grid-cols-2' : 'sm:grid-cols-1 sm:max-w-xs'">
           <button
             v-if="podeAssinar(ultimo)"
             type="button"
@@ -41,7 +52,7 @@
             <span>Ver espelho</span>
           </button>
         </div>
-        <p v-if="!ultimo.assinatura && !somenteLeitura && !ultimo.link_assinatura" class="text-xs text-white/60">
+        <p v-if="!ultimo.assinatura && !somenteLeitura && !ultimo.link_assinatura" class="relative z-10 text-xs text-white/60">
           A assinatura deste mês ainda não foi liberada pelo RH.
         </p>
       </div>

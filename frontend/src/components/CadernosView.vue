@@ -1,12 +1,8 @@
 <template>
   <div class="space-y-6 animate-slide-up">
     <div class="bg-white rounded-2xl border border-slate-200 p-6 sm:p-7">
-      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-4">
-        <div>
-          <h3 class="text-sm font-semibold uppercase tracking-wider text-slate-800">Cadernos do Colaborador</h3>
-          <p class="text-xs text-slate-400 mt-0.5">Manuais, programas e políticas da Vila Boa para consulta.</p>
-        </div>
-        <div class="relative sm:w-64">
+      <div class="flex justify-end border-b border-slate-100 pb-4">
+        <div class="relative w-full sm:w-64">
           <AppIcon name="search" size="14" class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
           <input
             v-model="busca"
