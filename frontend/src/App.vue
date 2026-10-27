@@ -29,32 +29,8 @@
               <h1 class="text-2xl sm:text-3xl lg:text-4xl font-semibold leading-tight tracking-tight">
                 Portal do Colaborador
               </h1>
-              <p class="text-slate-300 text-xs sm:text-sm leading-relaxed">
-                Plataforma digital integrada para acesso a demonstrativos de pagamento, controle de EPIs (NR-06), consulta de férias e solicitações ao RH.
-              </p>
             </div>
 
-            <!-- Benefícios em Destaque no Desktop -->
-            <div class="hidden lg:grid grid-cols-1 gap-3 pt-4 border-t border-white/15">
-              <div class="flex items-center space-x-3 text-xs text-slate-200">
-                <span class="w-6 h-6 rounded-lg bg-white/10 border border-white/10 flex items-center justify-center text-white shrink-0">
-                  <AppIcon name="check" size="14" />
-                </span>
-                <span>Holerites, 13º Salário e Informe de Rendimentos</span>
-              </div>
-              <div class="flex items-center space-x-3 text-xs text-slate-200">
-                <span class="w-6 h-6 rounded-lg bg-white/10 border border-white/10 flex items-center justify-center text-white shrink-0">
-                  <AppIcon name="check" size="14" />
-                </span>
-                <span>Ficha de EPI com Assinatura Eletrônica (NR-06)</span>
-              </div>
-              <div class="flex items-center space-x-3 text-xs text-slate-200">
-                <span class="w-6 h-6 rounded-lg bg-white/10 border border-white/10 flex items-center justify-center text-white shrink-0">
-                  <AppIcon name="check" size="14" />
-                </span>
-                <span>Consulta de Férias e Autoatendimento ao RH</span>
-              </div>
-            </div>
           </div>
 
           <div class="relative z-10 pt-6 text-[11px] text-slate-400 font-medium">
