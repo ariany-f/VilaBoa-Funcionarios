@@ -129,7 +129,7 @@
         <div class="w-full max-w-4xl bg-white rounded-t-2xl sm:rounded-2xl shadow-2xl flex flex-col max-h-[94vh] sm:max-h-[90vh] overflow-hidden">
           <div class="px-5 pt-3 pb-3 border-b border-slate-100 flex items-center justify-between bg-slate-50 shrink-0">
             <div class="flex items-center space-x-3 min-w-0">
-              <img src="/img/logo-vilaboa-color.png" alt="Vila Boa" class="h-7 w-auto object-contain" />
+              <img :src="logoEmpresa" alt="Logo da empresa" class="h-7 w-auto object-contain" />
               <div class="border-l border-slate-200 pl-3 min-w-0">
                 <h3 class="text-xs font-bold text-slate-800">Espelho de Ponto</h3>
                 <p class="text-[10px] text-slate-500 truncate">{{ espelho?.mes_nome }} · {{ espelho?.assinatura ? 'Assinado em ' + espelho.assinatura.data_hora : 'Falta assinar' }}</p>
@@ -233,6 +233,7 @@
 <script setup>
 import { ref, computed, watch, onMounted } from 'vue';
 import { usarFecharComEsc } from '../utils/fecharComEsc.js';
+import { logoEmpresa } from '../utils/logoEmpresa.js';
 import AppIcon from './AppIcon.vue';
 import { apiFetch } from '../utils/api.js';
 import { tokenAdmin } from '../utils/sessaoAdmin.js';

@@ -94,6 +94,7 @@ class RhController
             }, $cadernos),
             'categorias' => $this->cadernos->categorias(),
             'empresas' => EmpresaService::listar(),
+            'empresas_logos' => array_column(EmpresaService::listarComLogo(), 'logo', 'nome'),
             'departamentos' => array_values(array_unique(array_filter(array_map(fn($c) => $c['departamento'] ?? '', $this->colaboradores->getAll()))))
         ];
     }

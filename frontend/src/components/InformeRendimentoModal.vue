@@ -7,7 +7,7 @@
       <!-- Cabeçalho do Modal -->
       <div class="px-5 py-3.5 border-b border-slate-200 flex items-center justify-between bg-slate-50">
         <div class="flex items-center space-x-3">
-          <img src="/img/logo-vilaboa-color.png" alt="Vila Boa" class="h-7 w-auto object-contain" />
+          <img :src="logoEmpresa" alt="Logo da empresa" class="h-7 w-auto object-contain" />
           <div class="border-l border-slate-200 pl-3">
             <h3 class="text-xs sm:text-sm font-semibold text-slate-800">
               Informe de Rendimentos IRPF {{ informe.exercicio }}
@@ -231,6 +231,7 @@
 <script setup>
 import { usarFecharComEsc } from '../utils/fecharComEsc.js';
 import { formatCurrency } from '../utils/masks.js';
+import { logoEmpresa } from '../utils/logoEmpresa.js';
 import AppIcon from './AppIcon.vue';
 
 defineProps({

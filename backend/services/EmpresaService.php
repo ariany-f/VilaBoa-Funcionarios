@@ -65,8 +65,12 @@ class EmpresaService
         $existente = self::normalizar($novo);
         if ($existente && $existente !== $atual) return ['erro' => 'Essa empresa já existe.'];
 
+        $logo = self::caminhoDoLogo($atual);
         $lista = array_map(fn($e) => $e === $atual ? $novo : $e, self::listar());
         self::salvar($lista);
+        if ($logo) {
+            @rename($logo, self::pastaLogos() . '/' . self::baseDoLogo($novo) . '.' . pathinfo($logo, PATHINFO_EXTENSION));
+        }
 
         $colaboradores = self::lerJson('colaboradores.json');
         foreach ($colaboradores as &$c) {
@@ -93,9 +97,78 @@ class EmpresaService
         if ($colabs) return ['erro' => 'Há ' . count($colabs) . ' colaborador(es) nesta empresa. Mude a empresa deles antes de remover.'];
         $cads = array_filter(self::lerJson('cadernos_config.json'), fn($cfg) => self::normalizarEm($cfg['empresa'] ?? null, $nome));
         if ($cads) return ['erro' => 'Há ' . count($cads) . ' caderno(s) desta empresa. Mude a empresa deles antes de remover.'];
+        self::removerLogo($nome);
         $lista = array_values(array_filter($lista, fn($e) => $e !== $nome));
         self::salvar($lista);
         return ['sucesso' => true, 'empresas' => $lista];
+    }
+
+    // ---------------- Logos (data/empresas_logos/<empresa>.<ext>) ----------------
+
+    private const LOGO_TIPOS = ['image/png' => 'png', 'image/jpeg' => 'jpg', 'image/webp' => 'webp'];
+    private const LOGO_TAMANHO_MAXIMO = 2 * 1024 * 1024;
+
+    private static function pastaLogos(): string
+    {
+        return self::dataDir() . '/empresas_logos';
+    }
+
+    /** Nome do arquivo sem caracteres problemáticos ("Vila Boa" -> "vila-boa"). */
+    private static function baseDoLogo(string $empresa): string
+    {
+        $base = strtolower(iconv('UTF-8', 'ASCII//TRANSLIT//IGNORE', $empresa) ?: $empresa);
+        return trim(preg_replace('/[^a-z0-9]+/', '-', $base), '-') ?: 'empresa';
+    }
+
+    public static function caminhoDoLogo(?string $empresa): ?string
+    {
+        $empresa = self::normalizar($empresa);
+        if (!$empresa) return null;
+        foreach (self::LOGO_TIPOS as $ext) {
+            $caminho = self::pastaLogos() . '/' . self::baseDoLogo($empresa) . '.' . $ext;
+            if (is_file($caminho)) return $caminho;
+        }
+        return null;
+    }
+
+    /** Versão do logo (data do arquivo) para atualizar a imagem no navegador; null = sem logo. */
+    public static function versaoDoLogo(?string $empresa): ?string
+    {
+        $caminho = self::caminhoDoLogo($empresa);
+        return $caminho ? (string)filemtime($caminho) : null;
+    }
+
+    /** Empresas com a versão do logo de cada uma. */
+    public static function listarComLogo(): array
+    {
+        return array_map(fn($e) => ['nome' => $e, 'logo' => self::versaoDoLogo($e)], self::listar());
+    }
+
+    /** Salva (ou troca) o logo. Aceita PNG, JPG ou WEBP de até 2 MB. */
+    public static function salvarLogo(string $empresa, array $imagem): array
+    {
+        $empresa = self::normalizar($empresa);
+        if (!$empresa) return ['erro' => 'Empresa não encontrada.'];
+        if (($imagem['error'] ?? 1) !== UPLOAD_ERR_OK) return ['erro' => 'Falha no envio da imagem.'];
+        if (($imagem['size'] ?? 0) > self::LOGO_TAMANHO_MAXIMO) return ['erro' => 'O logo pode ter no máximo 2 MB.'];
+        $info = @getimagesize($imagem['tmp_name']);
+        $mime = $info['mime'] ?? null;
+        $ext = self::LOGO_TIPOS[$mime] ?? null;
+        if (!$ext) return ['erro' => 'Envie o logo em PNG, JPG ou WEBP.'];
+
+        if (!is_dir(self::pastaLogos())) @mkdir(self::pastaLogos(), 0775, true);
+        self::removerLogo($empresa);
+        $destino = self::pastaLogos() . '/' . self::baseDoLogo($empresa) . '.' . $ext;
+        if (!is_writable(self::pastaLogos()) || !move_uploaded_file($imagem['tmp_name'], $destino)) {
+            return ['erro' => 'O servidor não tem permissão para gravar o logo. Peça para a TI liberar a escrita em backend/data.'];
+        }
+        return ['sucesso' => true, 'logo' => (string)filemtime($destino)];
+    }
+
+    public static function removerLogo(string $empresa): void
+    {
+        $caminho = self::caminhoDoLogo($empresa);
+        if ($caminho) @unlink($caminho);
     }
 
     /** Troca a empresa de um colaborador (pela matrícula). */

@@ -12,7 +12,7 @@
       <!-- Cabeçalho do Modal / Handle para Mobile -->
       <div class="px-5 pt-2 sm:pt-3 pb-3 border-b border-slate-100 flex items-center justify-between bg-slate-50 shrink-0 no-print">
         <div class="flex items-center space-x-3">
-          <img src="/img/logo-vilaboa-color.png" alt="Vila Boa" class="h-7 w-auto object-contain" />
+          <img :src="logoEmpresa" alt="Logo da empresa" class="h-7 w-auto object-contain" />
           <div class="border-l border-slate-200 pl-3">
             <h3 class="text-xs font-bold text-slate-800">Demonstrativo de Pagamento</h3>
             <p class="text-[10px] text-slate-500">Ref: {{ holerite.competencia }} • {{ holerite.tipo_folha }}</p>
@@ -377,6 +377,7 @@ import { usarFecharComEsc } from '../utils/fecharComEsc.js';
 import { ref, computed, watch, onMounted } from 'vue';
 import { formatCurrency } from '../utils/masks.js';
 import { obterExplicacaoRubrica, GLOSSARIO_RUBRICAS } from '../utils/rubricas.js';
+import { logoEmpresa } from '../utils/logoEmpresa.js';
 import AppIcon from './AppIcon.vue';
 import QRCode from 'qrcode';
 

@@ -12,7 +12,7 @@
       <!-- Cabeçalho do Modal -->
       <div class="px-5 py-3.5 border-b border-slate-200 flex items-center justify-between bg-slate-50 shrink-0">
         <div class="flex items-center space-x-3">
-          <img src="/img/logo-vilaboa-color.png" alt="Vila Boa" class="h-7 w-auto object-contain" />
+          <img :src="logoEmpresa" alt="Logo da empresa" class="h-7 w-auto object-contain" />
           <div class="border-l border-slate-200 pl-3">
             <h3 class="text-xs sm:text-sm font-semibold text-slate-800">
               Dossiê Consolidado dos Últimos 3 Meses
@@ -306,6 +306,7 @@ import { usarFecharComEsc } from '../utils/fecharComEsc.js';
 import { ref, computed, watch } from 'vue';
 import QRCode from 'qrcode';
 import { formatCurrency } from '../utils/masks.js';
+import { logoEmpresa } from '../utils/logoEmpresa.js';
 import AppIcon from './AppIcon.vue';
 
 const qrCodeDataUrl = ref('');
@@ -716,7 +717,7 @@ function imprimirPacote() {
     <div>
       <div class="header-bar">
         <div>
-          <img src="/img/logo-vilaboa-color.png" alt="Vila Boa" class="header-logo" />
+          <img src="${logoEmpresa.value}" alt="Logo da empresa" class="header-logo" />
         </div>
         <div class="company-info">
           <div class="company-title">${p.empresa?.razao_social || 'VILA BOA CONSTRUÇÕES E SERVIÇOS LIMITADA'}</div>
@@ -822,7 +823,7 @@ function imprimirPacote() {
       <div>
         <div class="header-bar">
           <div>
-            <img src="/img/logo-vilaboa-color.png" alt="Vila Boa" class="header-logo" />
+            <img src="${logoEmpresa.value}" alt="Logo da empresa" class="header-logo" />
           </div>
           <div class="company-info">
             <div class="company-title">${p.empresa?.razao_social || 'VILA BOA CONSTRUÇÕES E SERVIÇOS LIMITADA'}</div>

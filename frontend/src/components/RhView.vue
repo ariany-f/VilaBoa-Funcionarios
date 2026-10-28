@@ -393,7 +393,8 @@
         <div class="bg-white rounded-2xl border border-slate-200 p-5 space-y-4">
           <div>
             <h3 class="text-sm font-semibold uppercase tracking-wider text-slate-800">Empresas</h3>
-            <p class="text-xs text-slate-500 mt-0.5">Cada colaborador pertence a uma empresa. Cadernos podem ser de todas ou de uma só.</p>
+            <p class="text-xs text-slate-500 mt-0.5">Cada colaborador pertence a uma empresa e vê o logo dela no portal. Cadernos podem ser de todas ou de uma só.</p>
+            <p class="text-xs text-slate-400 mt-1">Logo em PNG, JPG ou WEBP de até 2 MB, de preferência com fundo transparente. Sem logo, o portal mostra o da Vila Boa.</p>
           </div>
           <p v-if="mensagemEmpresas" class="text-xs" :class="mensagemEmpresasErro ? 'text-rose-700' : 'text-emerald-700'">{{ mensagemEmpresas }}</p>
           <ul class="divide-y divide-slate-100 border-t border-slate-100">
@@ -404,11 +405,20 @@
                 <button type="button" @click="empresaEditando = null" class="w-8 h-8 rounded-lg text-slate-400 hover:bg-slate-100 flex items-center justify-center cursor-pointer" aria-label="Cancelar"><AppIcon name="x" size="14" /></button>
               </template>
               <template v-else>
+                <span class="w-16 h-10 rounded-lg border border-slate-200 bg-white flex items-center justify-center shrink-0 overflow-hidden">
+                  <img v-if="logoDe(e)" :src="logoDe(e)" :alt="`Logo ${e}`" class="max-w-full max-h-full object-contain p-1" />
+                  <span v-else class="text-[9px] font-semibold uppercase text-slate-400">Sem logo</span>
+                </span>
                 <span class="min-w-0 flex-1">
                   <span class="block text-sm font-medium text-slate-800 truncate">{{ e }}</span>
                   <span class="block text-xs text-slate-400">{{ contarColaboradores(e) }} colaborador(es) · {{ contarCadernos(e) }} caderno(s) só desta empresa</span>
                 </span>
                 <template v-if="pode(colaborador, 'rh_cadernos', 'editar')">
+                  <label class="w-8 h-8 rounded-lg text-slate-400 hover:bg-slate-100 hover:text-slate-800 flex items-center justify-center cursor-pointer" :title="logoDe(e) ? 'Trocar logo' : 'Enviar logo'">
+                    <AppIcon name="download" size="14" class="rotate-180" />
+                    <input type="file" accept="image/png,image/jpeg,image/webp" class="hidden" @change="enviarLogo(e, $event)" />
+                  </label>
+                  <button v-if="logoDe(e)" type="button" @click="tirarLogo(e)" class="h-8 px-2 rounded-lg text-[11px] font-semibold text-slate-400 hover:bg-slate-100 hover:text-slate-800 cursor-pointer" :aria-label="`Tirar logo de ${e}`">Tirar logo</button>
                   <button type="button" @click="empresaEditando = e; nomeEditado = e" class="w-8 h-8 rounded-lg text-slate-400 hover:bg-slate-100 hover:text-slate-800 flex items-center justify-center cursor-pointer" title="Renomear" :aria-label="`Renomear ${e}`"><AppIcon name="edit" size="14" /></button>
                   <button type="button" @click="removerEmpresa(e)" class="w-8 h-8 rounded-lg text-slate-400 hover:bg-rose-50 hover:text-rose-700 flex items-center justify-center cursor-pointer" title="Remover" :aria-label="`Remover ${e}`"><AppIcon name="x" size="15" /></button>
                 </template>
@@ -659,6 +669,7 @@ import { ref, computed, watch, onMounted, nextTick } from 'vue';
 import AppIcon from './AppIcon.vue';
 import { pode } from '../utils/permissoes.js';
 import { urlCapa } from '../utils/capas.js';
+import { urlLogoEmpresa } from '../utils/logoEmpresa.js';
 import { tokenAdmin } from '../utils/sessaoAdmin.js';
 import { usarFecharComEsc } from '../utils/fecharComEsc.js';
 import { avisoCaderno, avisoPonto, avisoHolerite, cobrancaGeral } from '../utils/avisosWhatsapp.js';
@@ -1019,6 +1030,28 @@ async function removerEmpresa(nome) {
   if (!confirm(`Remover a empresa "${nome}"?`)) return;
   const data = await postEmpresas('/remover', { nome }, `Empresa "${nome}" removida.`);
   if (data) dados.value.empresas = data.empresas;
+}
+
+const logoDe = (e) => urlLogoEmpresa(e, dados.value.empresas_logos?.[e]);
+
+async function enviarLogo(nome, evento) {
+  const arquivo = evento.target.files?.[0];
+  evento.target.value = '';
+  if (!arquivo) return;
+  const corpo = new FormData();
+  corpo.append('nome', nome);
+  corpo.append('logo', arquivo);
+  const res = await fetch('/api/rh/empresas/logo', { method: 'POST', headers: auth(), body: corpo });
+  const data = await res.json();
+  mensagemEmpresasErro.value = !res.ok;
+  mensagemEmpresas.value = res.ok ? `Logo da ${nome} atualizado.` : data.erro;
+  if (res.ok) dados.value.empresas_logos = { ...dados.value.empresas_logos, [nome]: data.logo };
+}
+
+async function tirarLogo(nome) {
+  if (!confirm(`Tirar o logo da ${nome}? O portal passa a mostrar o da Vila Boa.`)) return;
+  const data = await postEmpresas('/logo/remover', { nome }, `Logo da ${nome} removido.`);
+  if (data) dados.value.empresas_logos = { ...dados.value.empresas_logos, [nome]: null };
 }
 
 // O público dos cadernos muda junto, então recarrega o resumo

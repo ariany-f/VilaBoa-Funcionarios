@@ -9,7 +9,7 @@
 
     <!-- TELA DE TRANSIÇÃO / RESTAURAÇÃO DE SESSÃO COM LOGO PINTANDO DINÂMICO -->
     <div v-else-if="verificandoSessao" class="min-h-screen flex-1 flex flex-col items-center justify-center p-6 bg-slate-50">
-      <LogoLoader />
+      <LogoLoader :logo="logoSalvo()" />
     </div>
 
     <!-- ========================================================================= -->
@@ -1527,6 +1527,7 @@
 import { ref, computed, watch, onMounted, onUnmounted } from 'vue';
 import { maskCPF, maskDate, formatCurrency } from './utils/masks.js';
 import AppIcon from './components/AppIcon.vue';
+import { logoSalvo, definirLogoEmpresa } from './utils/logoEmpresa.js';
 import Sidebar from './components/Sidebar.vue';
 import MobileDrawer from './components/MobileDrawer.vue';
 import FeriasView from './components/FeriasView.vue';
@@ -2645,6 +2646,9 @@ function voltarParaLogin() {
   etapaAtual.value = 'login';
   mensagemErro.value = '';
 }
+
+// Logo do portal acompanha a empresa do colaborador logado
+watch(usuarioLogado, (u) => definirLogoEmpresa(u));
 
 function fazerLogout() {
   localStorage.removeItem('vb_auth_token');

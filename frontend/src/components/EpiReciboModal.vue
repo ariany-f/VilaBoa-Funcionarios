@@ -30,7 +30,7 @@
         <!-- Cabeçalho Oficial da Ficha -->
         <div class="border-b-2 border-slate-800 pb-3 flex items-center justify-between">
           <div class="flex items-center space-x-3">
-            <img src="/img/logo-horizontal.png" alt="Vila Boa" class="h-8 w-auto object-contain" />
+            <img :src="logoEmpresa" alt="Logo da empresa" class="h-8 w-auto object-contain" />
             <div class="border-l border-slate-300 pl-3">
               <h2 class="text-xs sm:text-sm font-semibold text-slate-900 uppercase">
                 Ficha de Controle e Fornecimento de EPI
@@ -187,6 +187,7 @@
 
 <script setup>
 import { usarFecharComEsc } from '../utils/fecharComEsc.js';
+import { logoEmpresa } from '../utils/logoEmpresa.js';
 import AppIcon from './AppIcon.vue';
 
 const props = defineProps({

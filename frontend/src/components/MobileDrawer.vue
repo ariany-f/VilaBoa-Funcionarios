@@ -17,7 +17,7 @@
       <!-- Topo: Identidade da Empresa e Botão Fechar -->
       <div class="p-4 border-b border-slate-100 flex items-center justify-between bg-slate-50/60 shrink-0">
         <div class="flex items-center space-x-2.5 min-w-0">
-          <img src="/img/logo-vilaboa-color.png" alt="Vila Boa Construções e Serviços" class="h-8 w-auto max-w-[170px] object-contain" />
+          <img :src="logoEmpresa" alt="Logo da empresa" class="h-8 w-auto max-w-[170px] object-contain" />
         </div>
 
         <!-- Botão Fechar Estilo Glass Bubble Nativo -->
@@ -156,6 +156,7 @@
 
 <script setup>
 import { computed } from 'vue';
+import { logoEmpresa } from '../utils/logoEmpresa.js';
 import AppIcon from './AppIcon.vue';
 import { temMenu } from '../utils/permissoes.js';
 

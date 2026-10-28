@@ -119,6 +119,7 @@ function responderAcessoLiberado(array $colaborador, PermissaoService $permissao
             'cargo' => $colaborador['cargo'],
             'departamento' => $colaborador['departamento'],
             'empresa' => EmpresaService::doColaborador($colaborador),
+            'empresa_logo' => EmpresaService::versaoDoLogo(EmpresaService::doColaborador($colaborador)),
             'telefone_atual' => $colaborador['telefone_atual'],
             'telefone_confirmado_em' => $colaborador['telefone_confirmado_em'],
             'permissoes' => $permissaoService->matrizDoColaborador($colaborador),
@@ -815,6 +816,21 @@ function exigirPermissao(array $matriz, string $tela, string $acao): void
 // ============================================================================
 // PAINEL DO RH (/admin): login próprio por e-mail e senha, separado do colaborador
 // ============================================================================
+// Logo da empresa: imagem pública, servida sem login para poder usar em <img>
+if ($method === 'GET' && $route === '/empresas/logo') {
+    $logo = EmpresaService::caminhoDoLogo($_GET['nome'] ?? '');
+    if (!$logo) {
+        http_response_code(404);
+        echo json_encode(['erro' => 'Logo não encontrado.']);
+        exit;
+    }
+    header('Content-Type: ' . (mime_content_type($logo) ?: 'image/png'));
+    header('Cache-Control: public, max-age=86400');
+    header('Content-Length: ' . filesize($logo));
+    readfile($logo);
+    exit;
+}
+
 // Capa de caderno: imagem sem dado pessoal, servida sem login para poder usar em <img>
 if ($method === 'GET' && $route === '/cadernos/capa') {
     $capa = $cadernosController->caminhoDaCapa($_GET['nome'] ?? '');
@@ -989,6 +1005,11 @@ if (str_starts_with($route, '/admin/') || str_starts_with($route, '/rh/')) {
         '/rh/empresas' => fn() => EmpresaService::adicionar((string)($body['nome'] ?? '')),
         '/rh/empresas/renomear' => fn() => EmpresaService::renomear((string)($body['nome'] ?? ''), (string)($body['novo_nome'] ?? '')),
         '/rh/empresas/remover' => fn() => EmpresaService::remover((string)($body['nome'] ?? '')),
+        '/rh/empresas/logo' => fn() => EmpresaService::salvarLogo((string)($_POST['nome'] ?? ''), $_FILES['logo'] ?? []),
+        '/rh/empresas/logo/remover' => function () use ($body) {
+            EmpresaService::removerLogo((string)($body['nome'] ?? ''));
+            return ['sucesso' => true];
+        },
         '/rh/empresas/colaborador' => fn() => EmpresaService::definirDoColaborador((string)($body['matricula'] ?? ''), (string)($body['empresa'] ?? ''))
     ];
     if ($method === 'POST' && isset($rotasEmpresas[$route])) {
@@ -1111,6 +1132,8 @@ if ($method === 'GET' && $route === '/me') {
             'cpf' => $colaboradorLogado['cpf_formatado'],
             'cargo' => $colaboradorLogado['cargo'],
             'departamento' => $colaboradorLogado['departamento'],
+            'empresa' => EmpresaService::doColaborador($colaboradorLogado),
+            'empresa_logo' => EmpresaService::versaoDoLogo(EmpresaService::doColaborador($colaboradorLogado)),
             'telefone_atual' => $colaboradorLogado['telefone_atual'],
             'telefone_confirmado_em' => $colaboradorLogado['telefone_confirmado_em'],
             'email' => $colaboradorLogado['email'] ?? null,
