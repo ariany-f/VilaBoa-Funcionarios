@@ -13,6 +13,9 @@ class CadernosController
     private string $configFile;
 
     /** Categorias iniciais (o RH cadastra outras em data/cadernos_categorias.json). */
+    /** Empresas do grupo; colaborador sem empresa no cadastro conta como VB. */
+    public const EMPRESAS = ['VB', 'Mondego'];
+
     public const CATEGORIAS_PADRAO = ['Manuais', 'Programas', 'Políticas', 'Segurança do Trabalho', 'Treinamentos', 'Outros'];
 
     public function __construct()
@@ -27,12 +30,13 @@ class CadernosController
      *  categoria   - agrupamento exibido ao colaborador
      *  obrigatorio - leitura obrigatória para o público ou apenas opcional
      *  publico     - 'todos' | 'departamentos' | 'colaboradores', com a lista em 'valores'
+     *  empresa     - 'todas' | uma de EMPRESAS (combina com o público)
      */
     public function config(string $arquivo): array
     {
         $todas = $this->lerJson($this->configFile);
         return array_merge(
-            ['titulo' => '', 'categoria' => 'Outros', 'obrigatorio' => false, 'publico' => 'todos', 'valores' => []],
+            ['titulo' => '', 'categoria' => 'Outros', 'obrigatorio' => false, 'publico' => 'todos', 'valores' => [], 'empresa' => 'todas'],
             $todas[$arquivo] ?? []
         );
     }
@@ -49,6 +53,7 @@ class CadernosController
             'categoria' => in_array($dados['categoria'] ?? '', $this->categorias(), true) ? $dados['categoria'] : 'Outros',
             'obrigatorio' => !empty($dados['obrigatorio']),
             'publico' => $publico,
+            'empresa' => in_array($dados['empresa'] ?? '', self::EMPRESAS, true) ? $dados['empresa'] : 'todas',
             'valores' => $publico === 'todos' ? [] : array_values(array_filter(array_map('strval', (array)($dados['valores'] ?? []))))
         ];
         $todas = $this->lerJson($this->configFile);
@@ -100,11 +105,20 @@ class CadernosController
     /** O colaborador faz parte do público deste caderno? */
     public function visivelPara(array $colaborador, array $caderno): bool
     {
+        $empresa = $caderno['empresa'] ?? 'todas';
+        if ($empresa !== 'todas' && self::empresaDe($colaborador) !== $empresa) {
+            return false;
+        }
         return match ($caderno['publico']) {
             'departamentos' => in_array($colaborador['departamento'] ?? '', $caderno['valores'], true),
             'colaboradores' => in_array($colaborador['matricula'], $caderno['valores'], true),
             default => true,
         };
+    }
+
+    public static function empresaDe(array $colaborador): string
+    {
+        return in_array($colaborador['empresa'] ?? '', self::EMPRESAS, true) ? $colaborador['empresa'] : 'VB';
     }
 
     /** Cadernos que o colaborador pode ver, com a confirmação de leitura dele. */

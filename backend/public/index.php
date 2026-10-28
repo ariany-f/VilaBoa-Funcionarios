@@ -116,6 +116,7 @@ function responderAcessoLiberado(array $colaborador, PermissaoService $permissao
             'cpf' => $colaborador['cpf_formatado'],
             'cargo' => $colaborador['cargo'],
             'departamento' => $colaborador['departamento'],
+            'empresa' => \App\Controllers\CadernosController::empresaDe($colaborador),
             'telefone_atual' => $colaborador['telefone_atual'],
             'telefone_confirmado_em' => $colaborador['telefone_confirmado_em'],
             'permissoes' => $permissaoService->matrizDoColaborador($colaborador),

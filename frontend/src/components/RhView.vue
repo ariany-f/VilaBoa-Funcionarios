@@ -60,6 +60,10 @@
               <option value="pendentes">Com pendências</option>
               <option value="em_dia">Em dia</option>
             </select>
+            <select v-model="empresaFiltro" class="h-9 px-3 rounded-lg border border-slate-200 bg-slate-50 text-sm text-slate-700 outline-none">
+              <option value="">Todas as empresas</option>
+              <option v-for="e in empresas" :key="e" :value="e">{{ e }}</option>
+            </select>
             <select v-model="ano" @change="carregar" class="h-9 px-3 rounded-lg border border-slate-200 bg-slate-50 text-sm text-slate-700 outline-none">
               <option v-for="a in anos" :key="a" :value="a">{{ a }}</option>
             </select>
@@ -73,7 +77,7 @@
             <div class="flex items-start justify-between gap-3">
               <span class="min-w-0">
                 <span class="block text-sm font-semibold text-slate-900 truncate">{{ c.nome }}</span>
-                <span class="block text-xs text-slate-400 truncate">{{ c.matricula }} · {{ c.cargo }}</span>
+                <span class="block text-xs text-slate-400 truncate">{{ c.matricula }} · {{ c.empresa }} · {{ c.cargo }}</span>
               </span>
               <a
                 v-if="temPendencia(c) && c.telefone && podeAvisar"
@@ -122,7 +126,7 @@
                 <tr class="hover:bg-slate-50/70 cursor-pointer" @click="expandido = expandido === c.matricula ? null : c.matricula">
                   <td class="py-3 pr-3">
                     <span class="block font-medium text-slate-900">{{ c.nome }}</span>
-                    <span class="block text-xs text-slate-400">{{ c.matricula }} · {{ c.cargo }}</span>
+                    <span class="block text-xs text-slate-400">{{ c.matricula }} · {{ c.empresa }} · {{ c.cargo }}</span>
                   </td>
                   <td v-if="mostraColuna('holerites')" class="py-3 px-3">
                     <button type="button" @click.stop="abrirHoleritesDoColaborador(c)" class="badge cursor-pointer" :class="c.holerites.recebidos === c.holerites.total ? 'ok' : 'pendente'" title="Ver holerites">
@@ -225,19 +229,23 @@
           <div>
             <h3 class="text-sm font-semibold uppercase tracking-wider text-slate-800">Cadernos publicados</h3>
             <p class="text-xs text-slate-500 mt-0.5">Ao substituir um PDF por outro com o mesmo nome, o público precisa ler de novo.</p>
+            <select v-model="empresaFiltroCadernos" class="mt-3 h-9 px-3 rounded-lg border border-slate-200 bg-slate-50 text-sm text-slate-700 outline-none">
+              <option value="">Todas as empresas</option>
+              <option v-for="e in empresas" :key="e" :value="e">{{ e }}</option>
+            </select>
           </div>
 
           <p v-if="mensagemCadernos" class="text-xs" :class="mensagemCadernosErro ? 'text-rose-700' : 'text-emerald-700'">{{ mensagemCadernos }}</p>
 
           <ul class="divide-y divide-slate-100 border-t border-slate-100">
-            <li v-for="cad in dados.cadernos" :key="cad.arquivo" class="py-3">
+            <li v-for="cad in cadernosFiltrados" :key="cad.arquivo" class="py-3">
               <div class="flex items-center gap-3">
               <img v-if="cad.capa" :src="capaDe(cad)" alt="" class="w-8 h-10 rounded object-cover shrink-0 border border-slate-200" />
               <span v-else class="w-8 h-10 rounded bg-[#9c2337] text-white text-[9px] font-semibold flex items-end justify-center pb-1 shrink-0">PDF</span>
               <span class="min-w-0 flex-1">
                 <span class="block text-sm font-medium text-slate-800 truncate">{{ cad.titulo }}</span>
                 <span class="block text-xs text-slate-400 truncate">
-                  {{ cad.categoria }} · {{ cad.obrigatorio ? 'Obrigatório' : 'Opcional' }} · {{ descreverPublico(cad) }}
+                  {{ descreverEmpresa(cad) }} · {{ cad.categoria }} · {{ cad.obrigatorio ? 'Obrigatório' : 'Opcional' }} · {{ descreverPublico(cad) }}
                 </span>
               </span>
               <button
@@ -261,7 +269,7 @@
               </button>
               </div>
             </li>
-            <li v-if="!dados.cadernos.length" class="py-10 text-center text-sm text-slate-400">Nenhum caderno publicado.</li>
+            <li v-if="!cadernosFiltrados.length" class="py-10 text-center text-sm text-slate-400">{{ dados.cadernos.length ? 'Nenhum caderno desta empresa.' : 'Nenhum caderno publicado.' }}</li>
           </ul>
         </div>
 
@@ -343,6 +351,14 @@
               <button type="button" @click="formCaderno.obrigatorio = false" class="h-10 rounded-lg border text-sm font-semibold cursor-pointer" :class="!formCaderno.obrigatorio ? 'border-slate-800 bg-slate-100 text-slate-900' : 'border-slate-200 text-slate-600'">Opcional</button>
             </div>
           </div>
+
+          <label class="block text-xs font-medium text-slate-700 space-y-1.5">
+            <span>Empresa</span>
+            <select v-model="formCaderno.empresa" class="w-full h-10 px-3 rounded-lg border border-slate-200 bg-slate-50 text-sm outline-none">
+              <option value="todas">Todas as empresas</option>
+              <option v-for="e in empresas" :key="e" :value="e">{{ e }}</option>
+            </select>
+          </label>
 
           <label class="block text-xs font-medium text-slate-700 space-y-1.5">
             <span>Quem tem acesso</span>
@@ -801,9 +817,20 @@ const temPendencia = (c) => Object.values(pendenciaPorTipo).some((f) => f(c));
 const tipoFiltro = ref('todos');
 const mostraColuna = (tipo) => tipoFiltro.value === 'todos' || tipoFiltro.value === tipo;
 
+// Empresas do grupo (VB, Mondego)
+const empresas = computed(() => dados.value.empresas || ['VB', 'Mondego']);
+const empresaFiltro = ref('');
+const empresaFiltroCadernos = ref('');
+// Caderno de "todas" aparece em qualquer empresa escolhida
+const cadernosFiltrados = computed(() =>
+  dados.value.cadernos.filter((cad) => !empresaFiltroCadernos.value || (cad.empresa || 'todas') === 'todas' || cad.empresa === empresaFiltroCadernos.value)
+);
+const descreverEmpresa = (cad) => ((cad.empresa || 'todas') === 'todas' ? 'Todas as empresas' : cad.empresa);
+
 const colaboradoresFiltrados = computed(() => {
   const termo = busca.value.trim().toLowerCase();
   return dados.value.colaboradores.filter((c) => {
+    if (empresaFiltro.value && c.empresa !== empresaFiltro.value) return false;
     if (termo && !c.nome.toLowerCase().includes(termo) && !c.matricula.toLowerCase().includes(termo)) return false;
     const pendente = tipoFiltro.value === 'todos' ? temPendencia(c) : pendenciaPorTipo[tipoFiltro.value](c);
     if (tipoFiltro.value === 'ponto' && !c.ponto && filtro.value !== 'todos') return false;
@@ -903,13 +930,15 @@ async function removerCategoria(nome) {
   mensagemCadernos.value = res.ok ? `Categoria "${nome}" removida.` : data.erro;
   if (res.ok) dados.value.categorias = data.categorias;
 }
-const formVazio = () => ({ arquivo: '', titulo: '', categoria: 'Outros', obrigatorio: true, publico: 'todos', valores: [] });
+const formVazio = () => ({ arquivo: '', titulo: '', categoria: 'Outros', obrigatorio: true, publico: 'todos', valores: [], empresa: 'todas' });
 const formCaderno = ref(formVazio());
 
 const opcoesPublico = computed(() =>
   formCaderno.value.publico === 'departamentos'
     ? (dados.value.departamentos || []).map((d) => ({ valor: d, rotulo: d }))
-    : dados.value.colaboradores.map((c) => ({ valor: c.matricula, rotulo: `${c.nome} (${c.matricula})` }))
+    : dados.value.colaboradores
+      .filter((c) => formCaderno.value.empresa === 'todas' || c.empresa === formCaderno.value.empresa)
+      .map((c) => ({ valor: c.matricula, rotulo: `${c.nome} (${c.matricula})` }))
 );
 
 watch(() => formCaderno.value.publico, (novo, antigo) => {
@@ -923,7 +952,7 @@ function descreverPublico(cad) {
 }
 
 function editarCaderno(cad) {
-  formCaderno.value = { arquivo: cad.arquivo, titulo: cad.titulo, categoria: cad.categoria, obrigatorio: cad.obrigatorio, publico: cad.publico, valores: [...cad.valores] };
+  formCaderno.value = { arquivo: cad.arquivo, titulo: cad.titulo, categoria: cad.categoria, obrigatorio: cad.obrigatorio, publico: cad.publico, valores: [...cad.valores], empresa: cad.empresa || 'todas' };
   capaEscolhida.value = null;
   removerCapaAoSalvar.value = false;
   previaCapa.value = urlCapa(cad) || '';
@@ -954,7 +983,7 @@ async function salvarCaderno() {
   }
   enviando.value = true;
   mensagemCadernos.value = '';
-  const config = { titulo: f.titulo.trim(), categoria: f.categoria, obrigatorio: f.obrigatorio, publico: f.publico, valores: f.valores };
+  const config = { titulo: f.titulo.trim(), categoria: f.categoria, obrigatorio: f.obrigatorio, publico: f.publico, valores: f.valores, empresa: f.empresa };
   try {
     let res;
     if (f.arquivo) {

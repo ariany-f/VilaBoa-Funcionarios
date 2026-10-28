@@ -39,6 +39,7 @@ class RhController
                 'nome' => $c['nome'],
                 'cargo' => $c['cargo'],
                 'departamento' => $c['departamento'] ?? '',
+                'empresa' => CadernosController::empresaDe($c),
                 'telefone' => $c['telefone_atual'] ?? '',
                 'holerites' => [
                     'total' => count($hols),
@@ -78,6 +79,7 @@ class RhController
                     'obrigatorio' => $cad['obrigatorio'],
                     'publico' => $cad['publico'],
                     'valores' => $cad['valores'],
+                    'empresa' => $cad['empresa'],
                     'total_publico' => count($publico),
                     'total_leram' => count($leram),
                     'leitores' => array_values(array_map(fn($c) => [
@@ -90,6 +92,7 @@ class RhController
                 ];
             }, $cadernos),
             'categorias' => $this->cadernos->categorias(),
+            'empresas' => CadernosController::EMPRESAS,
             'departamentos' => array_values(array_unique(array_filter(array_map(fn($c) => $c['departamento'] ?? '', $this->colaboradores->getAll()))))
         ];
     }
