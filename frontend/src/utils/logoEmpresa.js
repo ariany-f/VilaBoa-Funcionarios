@@ -9,8 +9,11 @@ export function urlLogoEmpresa(nome, versao) {
   return versao ? `${baseDoPortal()}api/empresas/logo?nome=${encodeURIComponent(nome)}&v=${versao}` : null;
 }
 
+// Sem sessão salva (deslogado ou acesso expirado), a abertura fica com o logo da Vila Boa
 function lerSalvo() {
-  try { return localStorage.getItem(CHAVE) || LOGO_PADRAO; } catch (e) { return LOGO_PADRAO; }
+  try {
+    return (localStorage.getItem('vb_auth_token') && localStorage.getItem(CHAVE)) || LOGO_PADRAO;
+  } catch (e) { return LOGO_PADRAO; }
 }
 
 export const logoEmpresa = ref(LOGO_PADRAO);
