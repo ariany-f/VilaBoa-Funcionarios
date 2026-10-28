@@ -2,7 +2,8 @@ import { ref } from 'vue';
 import { baseDoPortal } from './capas.js';
 
 // Logo exibido no portal do colaborador: o da empresa dele, ou o da Vila Boa quando a empresa não tem logo.
-export const LOGO_PADRAO = '/img/logo-vilaboa-color.png';
+// Caminho relativo à pasta do portal (ele pode estar numa subpasta do servidor)
+export const LOGO_PADRAO = `${baseDoPortal()}img/logo-vilaboa-color.png`;
 const CHAVE = 'vb_logo_empresa';
 
 export function urlLogoEmpresa(nome, versao) {
@@ -12,7 +13,8 @@ export function urlLogoEmpresa(nome, versao) {
 // Sem sessão salva (deslogado ou acesso expirado), a abertura fica com o logo da Vila Boa
 function lerSalvo() {
   try {
-    return (localStorage.getItem('vb_auth_token') && localStorage.getItem(CHAVE)) || LOGO_PADRAO;
+    const salvo = localStorage.getItem(CHAVE) || '';
+    return (localStorage.getItem('vb_auth_token') && salvo.includes('api/empresas/logo')) ? salvo : LOGO_PADRAO;
   } catch (e) { return LOGO_PADRAO; }
 }
 
@@ -23,7 +25,8 @@ export const logoSalvo = lerSalvo;
 export function definirLogoEmpresa(colaborador) {
   logoEmpresa.value = (colaborador && urlLogoEmpresa(colaborador.empresa, colaborador.empresa_logo)) || LOGO_PADRAO;
   try {
-    if (colaborador) localStorage.setItem(CHAVE, logoEmpresa.value);
+    // Só guarda logo de empresa; o padrão é sempre recalculado
+    if (colaborador && logoEmpresa.value !== LOGO_PADRAO) localStorage.setItem(CHAVE, logoEmpresa.value);
     else localStorage.removeItem(CHAVE);
   } catch (e) { /* sem localStorage: só não lembra na próxima abertura */ }
 }
