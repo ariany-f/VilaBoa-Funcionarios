@@ -2,6 +2,8 @@
 
 namespace App\Controllers;
 
+use App\Services\EmpresaService;
+
 /**
  * Cadernos do colaborador (manual, programas, políticas...).
  * Lista e entrega todo PDF colocado em backend/data/cadernos.
@@ -13,9 +15,6 @@ class CadernosController
     private string $configFile;
 
     /** Categorias iniciais (o RH cadastra outras em data/cadernos_categorias.json). */
-    /** Empresas do grupo; colaborador sem empresa no cadastro conta como VB. */
-    public const EMPRESAS = ['VB', 'Mondego'];
-
     public const CATEGORIAS_PADRAO = ['Manuais', 'Programas', 'Políticas', 'Segurança do Trabalho', 'Treinamentos', 'Outros'];
 
     public function __construct()
@@ -30,7 +29,7 @@ class CadernosController
      *  categoria   - agrupamento exibido ao colaborador
      *  obrigatorio - leitura obrigatória para o público ou apenas opcional
      *  publico     - 'todos' | 'departamentos' | 'colaboradores', com a lista em 'valores'
-     *  empresa     - 'todas' | uma de EMPRESAS (combina com o público)
+     *  empresa     - 'todas' (global) | nome de uma empresa do cadastro (combina com o público)
      */
     public function config(string $arquivo): array
     {
@@ -53,7 +52,7 @@ class CadernosController
             'categoria' => in_array($dados['categoria'] ?? '', $this->categorias(), true) ? $dados['categoria'] : 'Outros',
             'obrigatorio' => !empty($dados['obrigatorio']),
             'publico' => $publico,
-            'empresa' => in_array($dados['empresa'] ?? '', self::EMPRESAS, true) ? $dados['empresa'] : 'todas',
+            'empresa' => EmpresaService::normalizar($dados['empresa'] ?? null) ?? 'todas',
             'valores' => $publico === 'todos' ? [] : array_values(array_filter(array_map('strval', (array)($dados['valores'] ?? []))))
         ];
         $todas = $this->lerJson($this->configFile);
@@ -106,7 +105,7 @@ class CadernosController
     public function visivelPara(array $colaborador, array $caderno): bool
     {
         $empresa = $caderno['empresa'] ?? 'todas';
-        if ($empresa !== 'todas' && self::empresaDe($colaborador) !== $empresa) {
+        if ($empresa !== 'todas' && EmpresaService::doColaborador($colaborador) !== EmpresaService::normalizar($empresa)) {
             return false;
         }
         return match ($caderno['publico']) {
@@ -114,11 +113,6 @@ class CadernosController
             'colaboradores' => in_array($colaborador['matricula'], $caderno['valores'], true),
             default => true,
         };
-    }
-
-    public static function empresaDe(array $colaborador): string
-    {
-        return in_array($colaborador['empresa'] ?? '', self::EMPRESAS, true) ? $colaborador['empresa'] : 'VB';
     }
 
     /** Cadernos que o colaborador pode ver, com a confirmação de leitura dele. */
@@ -324,7 +318,7 @@ class CadernosController
                 'atualizado_em' => date('d/m/Y', filemtime($caminho)),
                 // Versão da capa (data do arquivo) para atualizar a imagem no navegador; null = sem capa
                 'capa' => ($capa = $this->caminhoDaCapa($arquivo)) ? (string)filemtime($capa) : null
-            ] + $config;
+            ] + ['empresa' => ($config['empresa'] ?? 'todas') === 'todas' ? 'todas' : (EmpresaService::normalizar($config['empresa']) ?? $config['empresa'])] + $config;
         }
 
         usort($cadernos, fn($a, $b) => strcasecmp($a['titulo'], $b['titulo']));

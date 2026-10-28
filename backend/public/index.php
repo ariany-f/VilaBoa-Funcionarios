@@ -49,6 +49,7 @@ require_once __DIR__ . '/../services/PermissaoService.php';
 require_once __DIR__ . '/../services/HoleriteService.php';
 require_once __DIR__ . '/../services/EpiService.php';
 require_once __DIR__ . '/../services/WhatsAppNotificationService.php';
+require_once __DIR__ . '/../services/EmpresaService.php';
 require_once __DIR__ . '/../controllers/FeriasController.php';
 require_once __DIR__ . '/../controllers/ChamadosController.php';
 require_once __DIR__ . '/../controllers/CadernosController.php';
@@ -61,6 +62,7 @@ use App\Services\PermissaoService;
 use App\Services\HoleriteService;
 use App\Services\EpiService;
 use App\Services\WhatsAppNotificationService;
+use App\Services\EmpresaService;
 use App\Controllers\FeriasController;
 use App\Controllers\ChamadosController;
 use App\Controllers\CadernosController;
@@ -116,7 +118,7 @@ function responderAcessoLiberado(array $colaborador, PermissaoService $permissao
             'cpf' => $colaborador['cpf_formatado'],
             'cargo' => $colaborador['cargo'],
             'departamento' => $colaborador['departamento'],
-            'empresa' => \App\Controllers\CadernosController::empresaDe($colaborador),
+            'empresa' => EmpresaService::doColaborador($colaborador),
             'telefone_atual' => $colaborador['telefone_atual'],
             'telefone_confirmado_em' => $colaborador['telefone_confirmado_em'],
             'permissoes' => $permissaoService->matrizDoColaborador($colaborador),
@@ -979,6 +981,22 @@ if (str_starts_with($route, '/admin/') || str_starts_with($route, '/rh/')) {
         }
         registrarAuditoriaLgpd('RH_CADERNO_CONFIGURADO', $usuarioAdmin['email'], ['arquivo' => $body['arquivo']] + $config);
         echo json_encode(['sucesso' => true, 'config' => $config], JSON_UNESCAPED_UNICODE);
+        exit;
+    }
+
+    // Empresas do grupo: o RH que edita cadernos também gerencia as empresas
+    $rotasEmpresas = [
+        '/rh/empresas' => fn() => EmpresaService::adicionar((string)($body['nome'] ?? '')),
+        '/rh/empresas/renomear' => fn() => EmpresaService::renomear((string)($body['nome'] ?? ''), (string)($body['novo_nome'] ?? '')),
+        '/rh/empresas/remover' => fn() => EmpresaService::remover((string)($body['nome'] ?? '')),
+        '/rh/empresas/colaborador' => fn() => EmpresaService::definirDoColaborador((string)($body['matricula'] ?? ''), (string)($body['empresa'] ?? ''))
+    ];
+    if ($method === 'POST' && isset($rotasEmpresas[$route])) {
+        exigirPermissao($permissoesLogado, 'rh_cadernos', 'editar');
+        $resp = $rotasEmpresas[$route]();
+        if (!empty($resp['erro'])) http_response_code(400);
+        else registrarAuditoriaLgpd('RH_EMPRESAS', $usuarioAdmin['email'], ['rota' => $route] + array_intersect_key($body, array_flip(['nome', 'novo_nome', 'matricula', 'empresa'])));
+        echo json_encode($resp, JSON_UNESCAPED_UNICODE);
         exit;
     }
 

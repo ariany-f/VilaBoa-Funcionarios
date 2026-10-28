@@ -4,6 +4,7 @@ namespace App\Controllers;
 
 use App\Services\ColaboradorService;
 use App\Services\HoleriteService;
+use App\Services\EmpresaService;
 
 /**
  * Painel do RH: acompanhamento de holerites recebidos, espelhos de ponto assinados
@@ -39,7 +40,7 @@ class RhController
                 'nome' => $c['nome'],
                 'cargo' => $c['cargo'],
                 'departamento' => $c['departamento'] ?? '',
-                'empresa' => CadernosController::empresaDe($c),
+                'empresa' => EmpresaService::doColaborador($c),
                 'telefone' => $c['telefone_atual'] ?? '',
                 'holerites' => [
                     'total' => count($hols),
@@ -92,7 +93,7 @@ class RhController
                 ];
             }, $cadernos),
             'categorias' => $this->cadernos->categorias(),
-            'empresas' => CadernosController::EMPRESAS,
+            'empresas' => EmpresaService::listar(),
             'departamentos' => array_values(array_unique(array_filter(array_map(fn($c) => $c['departamento'] ?? '', $this->colaboradores->getAll()))))
         ];
     }

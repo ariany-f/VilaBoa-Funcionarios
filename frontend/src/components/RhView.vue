@@ -387,6 +387,72 @@
       </div>
     </template>
 
+    <!-- ===================== EMPRESAS ===================== -->
+    <template v-else-if="aba === 'empresas'">
+      <div class="grid gap-6 items-start lg:grid-cols-[360px_minmax(0,1fr)]">
+        <div class="bg-white rounded-2xl border border-slate-200 p-5 space-y-4">
+          <div>
+            <h3 class="text-sm font-semibold uppercase tracking-wider text-slate-800">Empresas</h3>
+            <p class="text-xs text-slate-500 mt-0.5">Cada colaborador pertence a uma empresa. Cadernos podem ser de todas ou de uma só.</p>
+          </div>
+          <p v-if="mensagemEmpresas" class="text-xs" :class="mensagemEmpresasErro ? 'text-rose-700' : 'text-emerald-700'">{{ mensagemEmpresas }}</p>
+          <ul class="divide-y divide-slate-100 border-t border-slate-100">
+            <li v-for="e in empresas" :key="e" class="py-3 flex items-center gap-2">
+              <template v-if="empresaEditando === e">
+                <input v-model="nomeEditado" type="text" maxlength="60" class="flex-1 min-w-0 h-10 px-3 rounded-lg border border-slate-200 bg-slate-50 text-sm outline-none focus:bg-white focus:border-slate-400" @keydown.enter.prevent="renomearEmpresa(e)" />
+                <button type="button" @click="renomearEmpresa(e)" class="w-8 h-8 rounded-lg text-emerald-700 hover:bg-emerald-50 flex items-center justify-center cursor-pointer" aria-label="Salvar nome"><AppIcon name="check" size="14" /></button>
+                <button type="button" @click="empresaEditando = null" class="w-8 h-8 rounded-lg text-slate-400 hover:bg-slate-100 flex items-center justify-center cursor-pointer" aria-label="Cancelar"><AppIcon name="x" size="14" /></button>
+              </template>
+              <template v-else>
+                <span class="min-w-0 flex-1">
+                  <span class="block text-sm font-medium text-slate-800 truncate">{{ e }}</span>
+                  <span class="block text-xs text-slate-400">{{ contarColaboradores(e) }} colaborador(es) · {{ contarCadernos(e) }} caderno(s) só desta empresa</span>
+                </span>
+                <template v-if="pode(colaborador, 'rh_cadernos', 'editar')">
+                  <button type="button" @click="empresaEditando = e; nomeEditado = e" class="w-8 h-8 rounded-lg text-slate-400 hover:bg-slate-100 hover:text-slate-800 flex items-center justify-center cursor-pointer" title="Renomear" :aria-label="`Renomear ${e}`"><AppIcon name="edit" size="14" /></button>
+                  <button type="button" @click="removerEmpresa(e)" class="w-8 h-8 rounded-lg text-slate-400 hover:bg-rose-50 hover:text-rose-700 flex items-center justify-center cursor-pointer" title="Remover" :aria-label="`Remover ${e}`"><AppIcon name="x" size="15" /></button>
+                </template>
+              </template>
+            </li>
+          </ul>
+          <form v-if="pode(colaborador, 'rh_cadernos', 'editar')" class="flex gap-2" @submit.prevent="adicionarEmpresa">
+            <input v-model="novaEmpresa" type="text" maxlength="60" placeholder="Nova empresa" class="flex-1 min-w-0 h-10 px-3 rounded-lg border border-slate-200 bg-slate-50 text-sm outline-none focus:bg-white focus:border-slate-400" />
+            <button type="submit" class="h-10 px-4 rounded-full bg-[#9c2337] hover:bg-[#831b2d] text-white text-sm font-semibold cursor-pointer">Adicionar</button>
+          </form>
+        </div>
+
+        <div class="bg-white rounded-2xl border border-slate-200 p-5 sm:p-6">
+          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b border-slate-100">
+            <h3 class="text-sm font-semibold uppercase tracking-wider text-slate-800">Empresa de cada colaborador</h3>
+            <div class="flex flex-wrap items-center gap-2">
+              <select v-model="empresaFiltro" class="h-9 px-3 rounded-lg border border-slate-200 bg-slate-50 text-sm text-slate-700 outline-none">
+                <option value="">Todas as empresas</option>
+                <option v-for="e in empresas" :key="e" :value="e">{{ e }}</option>
+              </select>
+              <input v-model="busca" type="text" placeholder="Buscar nome ou matrícula..." class="h-9 w-full sm:w-56 px-3 rounded-lg border border-slate-200 bg-slate-50 text-sm outline-none focus:bg-white focus:border-slate-400" />
+            </div>
+          </div>
+          <ul class="divide-y divide-slate-100">
+            <li v-for="c in colaboradoresDaEmpresa" :key="c.matricula" class="py-3 flex items-center gap-3">
+              <span class="min-w-0 flex-1">
+                <span class="block text-sm font-medium text-slate-800 truncate">{{ c.nome }}</span>
+                <span class="block text-xs text-slate-400 truncate">{{ c.matricula }} · {{ c.cargo }}</span>
+              </span>
+              <select
+                :value="c.empresa"
+                :disabled="!pode(colaborador, 'rh_cadernos', 'editar')"
+                @change="trocarEmpresa(c, $event.target.value)"
+                class="h-9 px-3 rounded-lg border border-slate-200 bg-slate-50 text-sm text-slate-700 outline-none shrink-0 max-w-[45%]"
+              >
+                <option v-for="e in empresas" :key="e" :value="e">{{ e }}</option>
+              </select>
+            </li>
+            <li v-if="!colaboradoresDaEmpresa.length" class="py-10 text-center text-sm text-slate-400">Nenhum colaborador encontrado.</li>
+          </ul>
+        </div>
+      </div>
+    </template>
+
     <!-- ===================== HOLERITES ===================== -->
     <template v-else-if="aba === 'holerites'">
       <div class="bg-white rounded-2xl border border-slate-200 overflow-hidden">
@@ -611,6 +677,7 @@ const props = defineProps({
 const abas = computed(() => [
   { id: 'acompanhamento', rotulo: 'Acompanhamento', tela: 'rh_acompanhamento' },
   { id: 'cadernos', rotulo: 'Cadernos', tela: 'rh_cadernos' },
+  { id: 'empresas', rotulo: 'Empresas', tela: 'rh_cadernos' },
   { id: 'ponto', rotulo: 'Espelho de ponto', tela: 'rh_ponto' },
   { id: 'holerites', rotulo: 'Holerites', tela: 'rh_holerites' }
 ].filter((a) => pode(props.colaborador, a.tela, 'visualizar')));
@@ -818,7 +885,7 @@ const tipoFiltro = ref('todos');
 const mostraColuna = (tipo) => tipoFiltro.value === 'todos' || tipoFiltro.value === tipo;
 
 // Empresas do grupo (VB, Mondego)
-const empresas = computed(() => dados.value.empresas || ['VB', 'Mondego']);
+const empresas = computed(() => dados.value.empresas || []);
 const empresaFiltro = ref('');
 const empresaFiltroCadernos = ref('');
 // Caderno de "todas" aparece em qualquer empresa escolhida
@@ -899,6 +966,69 @@ function tirarCapa() {
   if (campoCapa.value) campoCapa.value.value = '';
 }
 const novaCategoria = ref('');
+
+// ---------------- Empresas ----------------
+const novaEmpresa = ref('');
+const empresaEditando = ref(null);
+const nomeEditado = ref('');
+const mensagemEmpresas = ref('');
+const mensagemEmpresasErro = ref(false);
+const contarColaboradores = (e) => dados.value.colaboradores.filter((c) => c.empresa === e).length;
+const contarCadernos = (e) => dados.value.cadernos.filter((cad) => cad.empresa === e).length;
+const colaboradoresDaEmpresa = computed(() => {
+  const termo = busca.value.trim().toLowerCase();
+  return dados.value.colaboradores.filter((c) =>
+    (!empresaFiltro.value || c.empresa === empresaFiltro.value) &&
+    (!termo || c.nome.toLowerCase().includes(termo) || c.matricula.toLowerCase().includes(termo))
+  );
+});
+
+async function postEmpresas(rota, corpo, sucesso) {
+  const res = await fetch(`/api/rh/empresas${rota}`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...auth() },
+    body: JSON.stringify(corpo)
+  });
+  const data = await res.json();
+  mensagemEmpresasErro.value = !res.ok;
+  mensagemEmpresas.value = res.ok ? sucesso : data.erro;
+  return res.ok ? data : null;
+}
+
+async function adicionarEmpresa() {
+  const nome = novaEmpresa.value.trim();
+  if (!nome) return;
+  const data = await postEmpresas('', { nome }, `Empresa "${nome}" criada.`);
+  if (data) {
+    dados.value.empresas = data.empresas;
+    novaEmpresa.value = '';
+  }
+}
+
+async function renomearEmpresa(atual) {
+  const novo = nomeEditado.value.trim();
+  if (!novo || novo === atual) { empresaEditando.value = null; return; }
+  const data = await postEmpresas('/renomear', { nome: atual, novo_nome: novo }, `"${atual}" agora se chama "${novo}".`);
+  if (data) {
+    empresaEditando.value = null;
+    await carregar();
+  }
+}
+
+async function removerEmpresa(nome) {
+  if (!confirm(`Remover a empresa "${nome}"?`)) return;
+  const data = await postEmpresas('/remover', { nome }, `Empresa "${nome}" removida.`);
+  if (data) dados.value.empresas = data.empresas;
+}
+
+// O público dos cadernos muda junto, então recarrega o resumo
+async function trocarEmpresa(c, empresa) {
+  const anterior = c.empresa;
+  c.empresa = empresa;
+  const data = await postEmpresas('/colaborador', { matricula: c.matricula, empresa }, `${c.nome} agora é da ${empresa}.`);
+  if (!data) c.empresa = anterior;
+  else await carregar();
+}
 
 async function adicionarCategoria() {
   const nome = novaCategoria.value.trim();

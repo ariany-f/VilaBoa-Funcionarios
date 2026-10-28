@@ -309,6 +309,7 @@ const urlPortal = window.location.pathname.replace(/admin\/?$/, '');
 const secoes = computed(() => [
   { id: 'acompanhamento', rotulo: 'Acompanhamento', rotuloCurto: 'Início', icone: 'shield-check', tela: 'rh_acompanhamento' },
   { id: 'cadernos', rotulo: 'Cadernos', icone: 'landmark', tela: 'rh_cadernos' },
+  { id: 'empresas', rotulo: 'Empresas', icone: 'hard-hat', tela: 'rh_cadernos' },
   { id: 'ponto', rotulo: 'Espelho de ponto', rotuloCurto: 'Ponto', icone: 'calendar', tela: 'rh_ponto' },
   { id: 'holerites', rotulo: 'Holerites', icone: 'document', tela: 'rh_holerites' }
 ].filter((s) => pode(usuario.value, s.tela, 'visualizar')));
