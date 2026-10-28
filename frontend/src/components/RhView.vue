@@ -232,7 +232,8 @@
           <ul class="divide-y divide-slate-100 border-t border-slate-100">
             <li v-for="cad in dados.cadernos" :key="cad.arquivo" class="py-3">
               <div class="flex items-center gap-3">
-              <span class="w-8 h-10 rounded bg-[#9c2337] text-white text-[9px] font-semibold flex items-end justify-center pb-1 shrink-0">PDF</span>
+              <img v-if="cad.capa" :src="capaDe(cad)" alt="" class="w-8 h-10 rounded object-cover shrink-0 border border-slate-200" />
+              <span v-else class="w-8 h-10 rounded bg-[#9c2337] text-white text-[9px] font-semibold flex items-end justify-center pb-1 shrink-0">PDF</span>
               <span class="min-w-0 flex-1">
                 <span class="block text-sm font-medium text-slate-800 truncate">{{ cad.titulo }}</span>
                 <span class="block text-xs text-slate-400 truncate">
@@ -276,6 +277,24 @@
             <span>Arquivo PDF</span>
             <input ref="campoPdf" type="file" @change="sugerirTitulo" accept="application/pdf,.pdf" required class="block w-full text-sm text-slate-600 file:mr-3 file:h-9 file:px-4 file:rounded-full file:border-0 file:bg-slate-100 file:text-slate-700 file:font-semibold file:cursor-pointer" />
           </label>
+
+          <!-- Foto de capa -->
+          <div class="text-xs font-medium text-slate-700 space-y-1.5">
+            <span>Foto de capa <span class="text-slate-400 font-normal">(opcional · JPG, PNG ou WEBP até 3 MB)</span></span>
+            <div class="flex items-center gap-3">
+              <div class="w-16 h-20 rounded-lg border border-slate-200 bg-slate-50 overflow-hidden flex items-center justify-center shrink-0">
+                <img v-if="previaCapa" :src="previaCapa" alt="Prévia da capa" class="w-full h-full object-cover" />
+                <AppIcon v-else name="document" size="20" class="text-slate-300" />
+              </div>
+              <div class="space-y-1.5 min-w-0">
+                <label class="inline-flex items-center h-9 px-4 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold cursor-pointer">
+                  {{ previaCapa ? 'Trocar foto' : 'Escolher foto' }}
+                  <input ref="campoCapa" type="file" accept="image/jpeg,image/png,image/webp" class="hidden" @change="escolherCapa" />
+                </label>
+                <button v-if="previaCapa" type="button" @click="tirarCapa" class="block text-[11px] text-slate-500 hover:text-rose-700 cursor-pointer">Remover capa</button>
+              </div>
+            </div>
+          </div>
 
           <label class="block text-xs font-medium text-slate-700 space-y-1.5">
             <span>Nome do caderno</span>
@@ -557,6 +576,7 @@
 import { ref, computed, watch, onMounted, nextTick } from 'vue';
 import AppIcon from './AppIcon.vue';
 import { pode } from '../utils/permissoes.js';
+import { urlCapa } from '../utils/capas.js';
 import { tokenAdmin } from '../utils/sessaoAdmin.js';
 import { usarFecharComEsc } from '../utils/fecharComEsc.js';
 import { avisoCaderno, avisoPonto, avisoHolerite, cobrancaGeral } from '../utils/avisosWhatsapp.js';
@@ -823,6 +843,34 @@ const indicadores = computed(() => {
 
 
 const campoPdf = ref(null);
+
+// Capa do caderno: arquivo escolhido (enviado ao salvar), prévia e pedido de remoção
+const campoCapa = ref(null);
+const capaEscolhida = ref(null);
+const previaCapa = ref('');
+const removerCapaAoSalvar = ref(false);
+const capaDe = (cad) => urlCapa(cad);
+
+function escolherCapa(e) {
+  const arquivo = e.target.files?.[0];
+  if (!arquivo) return;
+  if (arquivo.size > 3 * 1024 * 1024) {
+    mensagemCadernosErro.value = true;
+    mensagemCadernos.value = 'A imagem da capa pode ter no máximo 3 MB.';
+    e.target.value = '';
+    return;
+  }
+  capaEscolhida.value = arquivo;
+  removerCapaAoSalvar.value = false;
+  previaCapa.value = URL.createObjectURL(arquivo);
+}
+
+function tirarCapa() {
+  capaEscolhida.value = null;
+  previaCapa.value = '';
+  removerCapaAoSalvar.value = !!formCaderno.value.arquivo;
+  if (campoCapa.value) campoCapa.value.value = '';
+}
 const novaCategoria = ref('');
 
 async function adicionarCategoria() {
@@ -876,6 +924,9 @@ function descreverPublico(cad) {
 
 function editarCaderno(cad) {
   formCaderno.value = { arquivo: cad.arquivo, titulo: cad.titulo, categoria: cad.categoria, obrigatorio: cad.obrigatorio, publico: cad.publico, valores: [...cad.valores] };
+  capaEscolhida.value = null;
+  removerCapaAoSalvar.value = false;
+  previaCapa.value = urlCapa(cad) || '';
   mensagemCadernos.value = '';
 }
 
@@ -888,6 +939,10 @@ function sugerirTitulo(e) {
 function limparFormCaderno() {
   formCaderno.value = formVazio();
   if (campoPdf.value) campoPdf.value.value = '';
+  capaEscolhida.value = null;
+  previaCapa.value = '';
+  removerCapaAoSalvar.value = false;
+  if (campoCapa.value) campoCapa.value.value = '';
 }
 
 async function salvarCaderno() {
@@ -914,12 +969,30 @@ async function salvarCaderno() {
       const fd = new FormData();
       fd.append('arquivo', arquivo);
       fd.append('config', JSON.stringify(config));
+      if (capaEscolhida.value) fd.append('capa', capaEscolhida.value);
       res = await fetch('/api/rh/cadernos', { method: 'POST', headers: auth(), body: fd });
     }
     const data = await res.json();
     if (!res.ok) throw new Error(data.erro);
-    mensagemCadernosErro.value = false;
-    mensagemCadernos.value = f.arquivo ? 'Caderno atualizado.' : 'Caderno publicado.';
+
+    // Na edição, a capa vai numa chamada própria
+    let avisoCapa = data.aviso || '';
+    if (f.arquivo && capaEscolhida.value) {
+      const fdCapa = new FormData();
+      fdCapa.append('arquivo', f.arquivo);
+      fdCapa.append('capa', capaEscolhida.value);
+      const r = await fetch('/api/rh/cadernos/capa', { method: 'POST', headers: auth(), body: fdCapa });
+      if (!r.ok) avisoCapa = 'Caderno salvo, mas a capa não: ' + ((await r.json()).erro || 'erro ao enviar.');
+    } else if (f.arquivo && removerCapaAoSalvar.value) {
+      await fetch('/api/rh/cadernos/capa/remover', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', ...auth() },
+        body: JSON.stringify({ arquivo: f.arquivo })
+      });
+    }
+
+    mensagemCadernosErro.value = !!avisoCapa;
+    mensagemCadernos.value = avisoCapa || (f.arquivo ? 'Caderno atualizado.' : 'Caderno publicado.');
     limparFormCaderno();
     carregar();
   } catch (e) {

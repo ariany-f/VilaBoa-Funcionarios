@@ -100,7 +100,8 @@
           :disabled="abrindo === c.arquivo"
           class="flex items-center gap-3.5 p-4 rounded-xl border border-slate-200 hover:border-slate-300 hover:bg-slate-50 text-left transition cursor-pointer group disabled:opacity-60"
         >
-          <span class="w-10 h-12 rounded-md bg-[#9c2337] text-white text-[10px] font-semibold flex items-end justify-center pb-1.5 shrink-0 shadow-sm">PDF</span>
+          <img v-if="c.capa" :src="urlCapa(c)" alt="" loading="lazy" class="w-14 h-[72px] rounded-md object-cover shrink-0 shadow-sm border border-slate-200" />
+          <span v-else class="w-14 h-[72px] rounded-md bg-[#9c2337] text-white text-[10px] font-semibold flex items-end justify-center pb-1.5 shrink-0 shadow-sm">PDF</span>
           <span class="min-w-0 flex-1">
             <span class="block text-[10px] font-semibold uppercase tracking-wider text-slate-400">{{ c.categoria || 'Outros' }}</span>
             <span class="block text-sm font-medium text-slate-800 group-hover:text-[#9c2337] transition line-clamp-2">{{ c.titulo }}</span>
@@ -136,6 +137,7 @@
 <script setup>
 import { ref, computed, watch, onMounted, defineAsyncComponent } from 'vue';
 import AppIcon from './AppIcon.vue';
+import { urlCapa } from '../utils/capas.js';
 // O leitor (pdf.js) só é baixado quando um caderno é aberto
 const PdfReader = defineAsyncComponent(() => import('./PdfReader.vue'));
 import { resumirProgresso } from '../utils/progressoCadernos.js';

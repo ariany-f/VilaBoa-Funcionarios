@@ -199,6 +199,53 @@ class CadernosController
         return ['sucesso' => true, 'arquivo' => $nome];
     }
 
+    // ---------------- Capas (imagem de capa de cada caderno, em data/cadernos/capas) ----------------
+
+    private const CAPA_TIPOS = ['image/jpeg' => 'jpg', 'image/png' => 'png', 'image/webp' => 'webp'];
+    private const CAPA_TAMANHO_MAXIMO = 3 * 1024 * 1024;
+
+    private function pastaCapas(): string
+    {
+        return $this->pasta . '/capas';
+    }
+
+    /** Caminho da capa do caderno (qualquer extensão aceita), ou null. */
+    public function caminhoDaCapa(string $arquivo): ?string
+    {
+        if (!$this->caminhoDoArquivo($arquivo)) return null;
+        $base = pathinfo(basename($arquivo), PATHINFO_FILENAME);
+        foreach (self::CAPA_TIPOS as $ext) {
+            $caminho = $this->pastaCapas() . '/' . $base . '.' . $ext;
+            if (is_file($caminho)) return $caminho;
+        }
+        return null;
+    }
+
+    /** Salva (ou troca) a capa de um caderno. Aceita JPG, PNG ou WEBP de até 3 MB. */
+    public function salvarCapa(string $arquivo, array $imagem): array
+    {
+        if (!$this->caminhoDoArquivo($arquivo)) return ['erro' => 'Caderno não encontrado.'];
+        if (($imagem['error'] ?? 1) !== UPLOAD_ERR_OK) return ['erro' => 'Falha no envio da imagem.'];
+        if (($imagem['size'] ?? 0) > self::CAPA_TAMANHO_MAXIMO) return ['erro' => 'A imagem da capa pode ter no máximo 3 MB.'];
+        $info = @getimagesize($imagem['tmp_name']);
+        $ext = $info ? (self::CAPA_TIPOS[$info['mime']] ?? null) : null;
+        if (!$ext) return ['erro' => 'Envie a capa em JPG, PNG ou WEBP.'];
+
+        if (!is_dir($this->pastaCapas())) @mkdir($this->pastaCapas(), 0775, true);
+        $this->removerCapa($arquivo);
+        $destino = $this->pastaCapas() . '/' . pathinfo(basename($arquivo), PATHINFO_FILENAME) . '.' . $ext;
+        if (!is_writable($this->pastaCapas()) || !move_uploaded_file($imagem['tmp_name'], $destino)) {
+            return ['erro' => 'O servidor não tem permissão para gravar a capa. Peça para a TI liberar a escrita em backend/data/cadernos.'];
+        }
+        return ['sucesso' => true, 'capa' => (string)filemtime($destino)];
+    }
+
+    public function removerCapa(string $arquivo): void
+    {
+        $caminho = $this->caminhoDaCapa($arquivo);
+        if ($caminho) @unlink($caminho);
+    }
+
     /** Remove o PDF; devolve o motivo quando não consegue (arquivo sumido ou pasta sem permissão de escrita). */
     public function remover(string $arquivo): array
     {
@@ -208,11 +255,21 @@ class CadernosController
             error_log("Falha ao remover caderno {$caminho}: " . (error_get_last()['message'] ?? 'sem detalhe'));
             return ['erro' => 'O servidor não tem permissão para apagar arquivos na pasta de cadernos. Peça para a TI liberar a escrita em backend/data/cadernos.', 'status' => 500];
         }
+        $this->removerCapaPeloNome(basename($caminho));
         // Sem o arquivo, a configuração não vale mais (um novo upload com o mesmo nome começa do zero)
         $todas = $this->lerJson($this->configFile);
         unset($todas[basename($caminho)]);
         file_put_contents($this->configFile, json_encode($todas, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE), LOCK_EX);
         return ['sucesso' => true];
+    }
+
+    /** Remove a capa pelo nome do PDF, mesmo que o PDF já não exista. */
+    private function removerCapaPeloNome(string $arquivo): void
+    {
+        $base = pathinfo($arquivo, PATHINFO_FILENAME);
+        foreach (self::CAPA_TIPOS as $ext) {
+            @unlink($this->pastaCapas() . '/' . $base . '.' . $ext);
+        }
     }
 
     private function chave(string $matricula, string $arquivo, string $hash): string
@@ -250,7 +307,9 @@ class CadernosController
                 'tamanho_bytes' => filesize($caminho),
                 'hash' => hash_file('sha256', $caminho),
                 'paginas' => $this->contarPaginas($caminho),
-                'atualizado_em' => date('d/m/Y', filemtime($caminho))
+                'atualizado_em' => date('d/m/Y', filemtime($caminho)),
+                // Versão da capa (data do arquivo) para atualizar a imagem no navegador; null = sem capa
+                'capa' => ($capa = $this->caminhoDaCapa($arquivo)) ? (string)filemtime($capa) : null
             ] + $config;
         }
 

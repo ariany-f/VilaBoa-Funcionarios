@@ -73,6 +73,7 @@ class RhController
                     'titulo' => $cad['titulo'],
                     'atualizado_em' => $cad['atualizado_em'],
                     'paginas' => $cad['paginas'] ?? null,
+                    'capa' => $cad['capa'] ?? null,
                     'categoria' => $cad['categoria'],
                     'obrigatorio' => $cad['obrigatorio'],
                     'publico' => $cad['publico'],

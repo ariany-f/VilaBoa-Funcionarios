@@ -812,6 +812,21 @@ function exigirPermissao(array $matriz, string $tela, string $acao): void
 // ============================================================================
 // PAINEL DO RH (/admin): login próprio por e-mail e senha, separado do colaborador
 // ============================================================================
+// Capa de caderno: imagem sem dado pessoal, servida sem login para poder usar em <img>
+if ($method === 'GET' && $route === '/cadernos/capa') {
+    $capa = $cadernosController->caminhoDaCapa($_GET['nome'] ?? '');
+    if (!$capa) {
+        http_response_code(404);
+        echo json_encode(['erro' => 'Capa não encontrada.']);
+        exit;
+    }
+    header('Content-Type: ' . (mime_content_type($capa) ?: 'image/jpeg'));
+    header('Cache-Control: public, max-age=86400');
+    header('Content-Length: ' . filesize($capa));
+    readfile($capa);
+    exit;
+}
+
 if ($method === 'GET' && $route === '/admin/usuarios-demo') {
     if (!ADMIN_DEMO_ATIVO) {
         echo json_encode(['usuarios_para_teste' => []]);
@@ -926,9 +941,30 @@ if (str_starts_with($route, '/admin/') || str_starts_with($route, '/rh/')) {
         if (empty($resp['erro']) && isset($_POST['config'])) {
             $cadernosController->salvarConfig($resp['arquivo'], json_decode($_POST['config'], true) ?: []);
         }
+        if (empty($resp['erro']) && !empty($_FILES['capa']['tmp_name'])) {
+            $capa = $cadernosController->salvarCapa($resp['arquivo'], $_FILES['capa']);
+            if (!empty($capa['erro'])) $resp['aviso'] = 'Caderno publicado, mas a capa não foi salva: ' . $capa['erro'];
+        }
         if (!empty($resp['erro'])) http_response_code(400);
         else registrarAuditoriaLgpd('RH_CADERNO_ENVIADO', $usuarioAdmin['email'], ['arquivo' => $resp['arquivo']]);
         echo json_encode($resp, JSON_UNESCAPED_UNICODE);
+        exit;
+    }
+
+    if ($method === 'POST' && $route === '/rh/cadernos/capa') {
+        exigirPermissao($permissoesLogado, 'rh_cadernos', 'editar');
+        $arquivoCaderno = (string)($_POST['arquivo'] ?? '');
+        $resp = $cadernosController->salvarCapa($arquivoCaderno, $_FILES['capa'] ?? []);
+        if (!empty($resp['erro'])) http_response_code(400);
+        else registrarAuditoriaLgpd('RH_CADERNO_CAPA', $usuarioAdmin['email'], ['arquivo' => $arquivoCaderno]);
+        echo json_encode($resp, JSON_UNESCAPED_UNICODE);
+        exit;
+    }
+
+    if ($method === 'POST' && $route === '/rh/cadernos/capa/remover') {
+        exigirPermissao($permissoesLogado, 'rh_cadernos', 'editar');
+        $cadernosController->removerCapa((string)($body['arquivo'] ?? ''));
+        echo json_encode(['sucesso' => true]);
         exit;
     }
 
