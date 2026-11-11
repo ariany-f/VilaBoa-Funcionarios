@@ -607,7 +607,7 @@
         </header>
 
         <!-- CONTAINER PRINCIPAL DINÂMICO COM SCROLL DEDICADO -->
-        <main class="flex-1 min-h-0 overflow-y-auto max-w-[1600px] w-full mx-auto p-4 sm:p-6 lg:p-8">
+        <main class="flex-1 min-h-0 overflow-y-auto overflow-x-hidden max-w-[1600px] w-full mx-auto p-4 sm:p-6 lg:p-8">
           
           <!-- MÓDULO 1: HOLERITES & SALÁRIOS (POLISHED EXECUTIVE FINTECH STORYTELLING) -->
           <div v-if="abaAtiva === 'holerites'" class="grid xl:grid-cols-[minmax(0,1fr)_300px] gap-6 items-start">
