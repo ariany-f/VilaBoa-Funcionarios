@@ -8,6 +8,9 @@ const NIVEIS = [
   { minimo: 1, nome: 'Leitor Vila Boa' }
 ];
 
+// Pontos do caderno: o valor configurado nele (`pontos`), ou o padrão (100 obrigatório, 50 opcional)
+const somar = (lista, padrao) => lista.reduce((t, c) => t + (Number.isFinite(Number(c.pontos)) && c.pontos !== '' && c.pontos != null ? Number(c.pontos) : padrao), 0);
+
 export function resumirProgresso(cadernos) {
   const obrigatorios = cadernos.filter((c) => c.obrigatorio);
   const opcionais = cadernos.filter((c) => !c.obrigatorio);
@@ -31,8 +34,8 @@ export function resumirProgresso(cadernos) {
     percentual: Math.round(fracao * 100),
     opcionaisTotal: opcionais.length,
     opcionaisLidos: lidosOpc,
-    pontos: lidosObrig * 100 + lidosOpc * 50,
-    pontosMaximos: obrigatorios.length * 100 + opcionais.length * 50,
+    pontos: somar(obrigatorios.filter((c) => c.leitura), 100) + somar(opcionais.filter((c) => c.leitura), 50),
+    pontosMaximos: somar(obrigatorios, 100) + somar(opcionais, 50),
     nivel,
     conquistas,
     proximo: obrigatorios.find((c) => !c.leitura) || null
