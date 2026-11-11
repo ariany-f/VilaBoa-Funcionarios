@@ -23,7 +23,7 @@
 
     <template v-else-if="dados">
       <!-- ===================== FILTROS ===================== -->
-      <div class="bg-white rounded-2xl border border-slate-200 p-2.5 flex flex-wrap items-end gap-2" role="search" aria-label="Filtros do painel">
+      <div class="bg-white rounded-2xl border border-slate-200 p-2.5 grid grid-cols-2 gap-2 sm:flex sm:flex-wrap sm:items-end" role="search" aria-label="Filtros do painel">
         <label class="campo">
           <span>Empresa</span>
           <select v-model="empresaFiltro">
@@ -50,18 +50,18 @@
             <option v-for="p in periodos" :key="p.id" :value="p.id">{{ p.rotulo }}</option>
           </select>
         </label>
-        <label class="campo grow sm:max-w-[14rem]">
+        <label class="campo col-span-2 sm:col-span-1 sm:grow sm:max-w-[14rem]">
           <span>Buscar</span>
           <input v-model="busca" type="search" placeholder="Nome ou matrícula..." autocomplete="off" />
         </label>
-        <div class="flex items-center gap-2 ml-auto">
+        <div class="col-span-2 sm:col-span-1 flex items-center justify-end gap-2 sm:ml-auto">
           <button v-if="filtrosAtivos" type="button" @click="limparFiltros" class="h-9 px-3 rounded-lg text-xs font-semibold text-slate-600 hover:bg-slate-100 cursor-pointer">Limpar filtros</button>
           <button type="button" @click="exportarCsv" :disabled="!lista.length" class="inline-flex items-center gap-1.5 h-9 px-3 rounded-lg bg-slate-100 text-slate-700 hover:bg-slate-200 disabled:opacity-40 text-xs font-semibold cursor-pointer" title="Baixar em CSV o que está filtrado">
             <AppIcon name="download" size="14" /> Exportar CSV
           </button>
         </div>
-        <p v-if="atualizando" class="w-full text-[11px] text-slate-400" role="status">Atualizando dados...</p>
-        <p v-if="erro" class="w-full text-[11px] text-rose-700" role="alert">{{ erro }}</p>
+        <p v-if="atualizando" class="col-span-2 w-full text-[11px] text-slate-400" role="status">Atualizando dados...</p>
+        <p v-if="erro" class="col-span-2 w-full text-[11px] text-rose-700" role="alert">{{ erro }}</p>
       </div>
 
       <div v-if="!lista.length" class="py-14 text-center text-sm text-slate-500 bg-white rounded-2xl border border-slate-200">
@@ -1012,7 +1012,8 @@ function exportarCsv() {
 <style scoped>
 .campo { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
 .campo > span { font-size: 10px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; color: #64748b; }
-.campo select, .campo input { height: 36px; padding: 0 10px; border-radius: 8px; border: 1px solid #e2e8f0; background: #f8fafc; font-size: 13px; color: #334155; outline: none; max-width: 100%; }
+.campo select, .campo input { height: 36px; width: 100%; padding: 0 10px; border-radius: 8px; border: 1px solid #e2e8f0; background: #f8fafc; font-size: 13px; color: #334155; outline: none; max-width: 100%; }
+@media (max-width: 639px) { .campo select, .campo input { height: 44px; font-size: 16px; } }
 .campo select:focus-visible, .campo input:focus-visible { border-color: #9c2337; box-shadow: 0 0 0 3px rgba(156, 35, 55, .15); background: #fff; }
 
 .cap { background: #fff; border: 1px solid #e2e8f0; border-radius: 1rem; padding: 1rem; scroll-margin-top: 1rem; }

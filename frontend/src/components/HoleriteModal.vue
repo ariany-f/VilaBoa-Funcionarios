@@ -12,19 +12,19 @@
 
       <!-- Cabeçalho do Modal / Handle para Mobile -->
       <div class="px-5 pt-2 sm:pt-3 pb-3 border-b border-slate-100 flex items-center justify-between bg-slate-50 shrink-0 no-print">
-        <div class="flex items-center space-x-3">
-          <img :src="logoEmpresa" alt="Logo da empresa" class="h-7 w-auto object-contain" />
-          <div class="border-l border-slate-200 pl-3">
-            <h3 class="text-xs font-bold text-slate-800">Demonstrativo de Pagamento</h3>
-            <p class="text-[10px] text-slate-500">Ref: {{ holerite.competencia }} • {{ holerite.tipo_folha }}</p>
+        <div class="flex items-center space-x-3 min-w-0 flex-1">
+          <img :src="logoEmpresa" alt="Logo da empresa" class="h-7 w-auto max-w-[96px] sm:max-w-none object-contain shrink-0" />
+          <div class="border-l border-slate-200 pl-3 min-w-0">
+            <h3 class="text-xs font-bold text-slate-800 truncate">Demonstrativo de Pagamento</h3>
+            <p class="text-[10px] text-slate-500 truncate">Ref: {{ holerite.competencia }} • {{ holerite.tipo_folha }}</p>
           </div>
         </div>
 
-        <div class="flex items-center gap-2">
+        <div class="flex items-center gap-2 shrink-0 ml-2">
         <button
           type="button"
           @click="valoresOcultos = !valoresOcultos"
-          class="w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-500 hover:text-slate-800 flex items-center justify-center transition-all cursor-pointer active:scale-90 border border-slate-200 shadow-2xs"
+          class="w-10 h-10 sm:w-9 sm:h-9 shrink-0 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-500 hover:text-slate-800 flex items-center justify-center transition-all cursor-pointer active:scale-90 border border-slate-200 shadow-2xs"
           :title="valoresOcultos ? 'Mostrar valores' : 'Ocultar valores'"
           :aria-label="valoresOcultos ? 'Mostrar valores' : 'Ocultar valores'"
         >
@@ -32,7 +32,7 @@
         </button>
         <button 
           @click="$emit('close')" 
-          class="w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-slate-100 hover:bg-slate-200 active:bg-slate-300 text-slate-500 hover:text-slate-800 flex items-center justify-center transition-all cursor-pointer active:scale-90 border border-slate-200 shadow-2xs"
+          class="w-10 h-10 sm:w-9 sm:h-9 shrink-0 rounded-full bg-slate-100 hover:bg-slate-200 active:bg-slate-300 text-slate-500 hover:text-slate-800 flex items-center justify-center transition-all cursor-pointer active:scale-90 border border-slate-200 shadow-2xs"
           aria-label="Fechar"
         >
           <AppIcon name="x" size="14" />

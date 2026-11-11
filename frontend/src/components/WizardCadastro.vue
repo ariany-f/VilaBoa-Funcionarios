@@ -1,15 +1,15 @@
 <template>
   <Teleport to="body">
     <div v-if="aberto" class="fixed inset-0 z-[80] flex items-end sm:items-center justify-center p-0 sm:p-4 bg-slate-900/60 backdrop-blur-sm" role="dialog" aria-modal="true" :aria-labelledby="idTitulo" @mousedown.self="pedirFechar">
-      <div class="bg-white w-full sm:max-w-5xl h-[96vh] sm:h-[90vh] rounded-t-3xl sm:rounded-2xl shadow-2xl flex flex-col overflow-hidden border border-slate-200 animate-slide-up">
+      <div class="bg-white w-full sm:max-w-5xl h-[96vh] h-[96dvh] sm:h-[90vh] rounded-t-3xl sm:rounded-2xl shadow-2xl flex flex-col overflow-hidden border border-slate-200 animate-slide-up">
         <!-- Cabeçalho + progresso -->
-        <header class="px-6 pt-5 pb-4 border-b border-slate-100 shrink-0 space-y-4">
+        <header class="px-4 sm:px-6 pt-4 sm:pt-5 pb-4 border-b border-slate-100 shrink-0 space-y-4">
           <div class="flex items-start justify-between gap-4">
             <div class="min-w-0">
               <h3 :id="idTitulo" class="text-lg font-semibold text-slate-900 tracking-tight">{{ titulo }}</h3>
               <p v-if="descricao" class="text-xs text-slate-500 mt-0.5">{{ descricao }}</p>
             </div>
-            <button type="button" @click="pedirFechar" class="w-9 h-9 -mr-2 rounded-full hover:bg-slate-100 text-slate-500 flex items-center justify-center cursor-pointer shrink-0" aria-label="Fechar">
+            <button type="button" @click="pedirFechar" class="w-11 h-11 sm:w-9 sm:h-9 -mr-2 rounded-full hover:bg-slate-100 text-slate-500 flex items-center justify-center cursor-pointer shrink-0" aria-label="Fechar">
               <AppIcon name="x" size="16" />
             </button>
           </div>
@@ -38,7 +38,7 @@
 
         <!-- Conteúdo do passo (e prévia opcional ao lado) -->
         <div class="flex-1 min-h-0 flex">
-          <div class="flex-1 min-w-0 overflow-y-auto px-6 py-6 space-y-5">
+          <div class="flex-1 min-w-0 overflow-y-auto overscroll-contain px-4 sm:px-6 py-5 sm:py-6 space-y-5">
             <div>
               <h4 class="text-base font-semibold text-slate-900">{{ passoAtual.titulo }}</h4>
               <p v-if="passoAtual.descricao" class="text-xs text-slate-500 mt-0.5">{{ passoAtual.descricao }}</p>
@@ -54,12 +54,12 @@
         </div>
 
         <!-- Rodapé -->
-        <footer class="px-6 py-4 border-t border-slate-100 bg-slate-50 flex items-center justify-between gap-3 shrink-0">
-          <button type="button" @click="voltar" :disabled="atual === 0" class="h-10 px-5 rounded-full text-sm font-semibold text-slate-600 hover:bg-slate-200 disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer">← Voltar</button>
+        <footer class="px-4 sm:px-6 pt-3 sm:pt-4 pb-[calc(0.75rem+env(safe-area-inset-bottom,0px))] sm:pb-4 border-t border-slate-100 bg-slate-50 flex items-center justify-between gap-2 sm:gap-3 shrink-0">
+          <button type="button" @click="voltar" :disabled="atual === 0" class="h-11 sm:h-10 px-4 sm:px-5 rounded-full text-sm font-semibold text-slate-600 hover:bg-slate-200 disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer">← Voltar</button>
           <div class="flex items-center gap-2">
-            <button v-if="atual === passos.length - 1 && podeRascunho" type="button" @click="$emit('rascunho')" :disabled="enviando" class="h-10 px-5 rounded-full border border-slate-300 text-sm font-semibold text-slate-700 hover:bg-white disabled:opacity-50 cursor-pointer">Salvar rascunho</button>
-            <button v-if="atual < passos.length - 1" type="button" @click="avancar" class="h-10 px-6 rounded-full bg-[#141414] hover:bg-black text-white text-sm font-semibold cursor-pointer">Continuar →</button>
-            <button v-else type="button" @click="concluir" :disabled="enviando" class="h-10 px-6 rounded-full bg-[#9c2337] hover:bg-[#831b2d] disabled:opacity-50 text-white text-sm font-semibold cursor-pointer">
+            <button v-if="atual === passos.length - 1 && podeRascunho" type="button" @click="$emit('rascunho')" :disabled="enviando" class="h-11 sm:h-10 px-4 sm:px-5 rounded-full border border-slate-300 text-sm font-semibold text-slate-700 hover:bg-white disabled:opacity-50 cursor-pointer">Salvar rascunho</button>
+            <button v-if="atual < passos.length - 1" type="button" @click="avancar" class="h-11 sm:h-10 px-5 sm:px-6 rounded-full bg-[#141414] hover:bg-black text-white text-sm font-semibold cursor-pointer">Continuar →</button>
+            <button v-else type="button" @click="concluir" :disabled="enviando" class="h-11 sm:h-10 px-5 sm:px-6 rounded-full bg-[#9c2337] hover:bg-[#831b2d] disabled:opacity-50 text-white text-sm font-semibold cursor-pointer">
               {{ enviando ? 'Salvando...' : rotuloConcluir }}
             </button>
           </div>

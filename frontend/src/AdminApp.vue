@@ -183,17 +183,17 @@
 
         <!-- Seções no celular: barra de abas fixa embaixo, como num app -->
         <nav class="md:hidden fixed bottom-0 inset-x-0 z-40 bg-white/95 backdrop-blur border-t border-slate-200 pb-[env(safe-area-inset-bottom,0px)]">
-          <div class="grid" :style="{ gridTemplateColumns: `repeat(${secoes.length}, minmax(0, 1fr))` }">
+          <div class="flex overflow-x-auto overscroll-x-contain [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
             <button
               v-for="s in secoes"
               :key="s.id"
               type="button"
               @click="secao = s.id"
-              class="h-16 flex flex-col items-center justify-center gap-1 cursor-pointer active:scale-95 transition"
+              class="h-16 flex-1 min-w-[4.75rem] px-1 flex flex-col items-center justify-center gap-1 cursor-pointer active:scale-95 transition"
               :class="secao === s.id ? 'text-[#9c2337]' : 'text-slate-500'"
             >
               <AppIcon :name="s.icone" size="20" />
-              <span class="text-[10px] leading-none" :class="secao === s.id ? 'font-semibold' : ''">{{ s.rotuloCurto || s.rotulo }}</span>
+              <span class="text-[10px] leading-none whitespace-nowrap" :class="secao === s.id ? 'font-semibold' : ''">{{ s.rotuloCurto || s.rotulo }}</span>
             </button>
           </div>
         </nav>
