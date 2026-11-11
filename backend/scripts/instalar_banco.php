@@ -125,7 +125,10 @@ if (isset($opcoes['sem-dados'])) {
         $q = fn($c) => '"' . $c . '"';
         $preparados = []; // um comando por conjunto de colunas (linhas de JSON podem ter campos a menos)
         $novas = 0;
+        // Só entram campos que existem na tabela (arquivos antigos podem trazer campos a mais)
+        $existentes = array_column($banco->consultar("SELECT column_name FROM information_schema.columns WHERE table_schema = 'public' AND table_name = ?", [$tabela]), 'column_name');
         foreach ($linhas as $l) {
+            $l = array_intersect_key($l, array_flip($existentes));
             $colunas = array_keys($l);
             $assinatura = implode(',', $colunas);
             if (!isset($preparados[$assinatura])) {
