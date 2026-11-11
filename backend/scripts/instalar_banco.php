@@ -52,15 +52,25 @@ if ($adm['username'] !== '' && in_array($driver, ['pgsql', 'mysql'], true)) {
         'password' => $adm['password'],
         'charset' => $cfg['charset'],
     ];
-    $root = Banco::avulsa($admCfg);
+    try {
+        $root = Banco::avulsa($admCfg);
+    } catch (Throwable $e) {
+        falhar("Não foi possível entrar como administrador (usuário \"{$adm['username']}\" em {$admCfg['host']}): confira DB_ADMIN_USERNAME e DB_ADMIN_PASSWORD no .env.\n" . $e->getMessage());
+    }
     $pdo = $root->pdo();
     $ident = fn(string $s) => ($driver === 'mysql' ? '`' : '"') . preg_replace('/[^A-Za-z0-9_]/', '', $s) . ($driver === 'mysql' ? '`' : '"');
 
     if ($driver === 'pgsql') {
-        if ($cfg['username'] !== $adm['username'] && !$root->consultar('SELECT 1 FROM pg_roles WHERE rolname = ?', [$cfg['username']])) {
-            if ($cfg['password'] === '') falhar('Defina DB_PASSWORD para criar o usuário do portal.');
-            $pdo->exec('CREATE ROLE ' . $ident($cfg['username']) . ' LOGIN PASSWORD ' . $pdo->quote($cfg['password']));
-            info("Usuário {$cfg['username']} criado.");
+        if ($cfg['username'] !== $adm['username']) {
+            if ($cfg['password'] === '') falhar('Defina DB_PASSWORD (a senha do usuário do portal).');
+            if (!$root->consultar('SELECT 1 FROM pg_roles WHERE rolname = ?', [$cfg['username']])) {
+                $pdo->exec('CREATE ROLE ' . $ident($cfg['username']) . ' LOGIN PASSWORD ' . $pdo->quote($cfg['password']));
+                info("Usuário {$cfg['username']} criado.");
+            } else {
+                // O DB_PASSWORD do .env é a fonte da verdade: mantém o usuário existente com essa senha
+                $pdo->exec('ALTER ROLE ' . $ident($cfg['username']) . ' LOGIN PASSWORD ' . $pdo->quote($cfg['password']));
+                info("Usuário {$cfg['username']} já existe: senha ajustada para o DB_PASSWORD do .env.");
+            }
         }
         if (!$root->consultar('SELECT 1 FROM pg_database WHERE datname = ?', [$cfg['database']])) {
             $dono = $cfg['username'] !== $adm['username'] ? ' OWNER ' . $ident($cfg['username']) : '';
