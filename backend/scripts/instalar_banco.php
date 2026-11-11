@@ -122,19 +122,24 @@ if (isset($opcoes['sem-dados'])) {
     $totais = [];
 
     $gravar = function (string $tabela, array $pk, array $linhas) use ($banco, $sobrescrever, &$totais): void {
-        if (!$linhas) { $totais[$tabela] = 0; return; }
-        $colunas = array_keys($linhas[0]);
         $q = fn($c) => '"' . $c . '"';
-        $atualizaveis = array_values(array_diff($colunas, $pk));
-        $acao = ($sobrescrever && $atualizaveis)
-            ? 'DO UPDATE SET ' . implode(', ', array_map(fn($c) => $q($c) . ' = EXCLUDED.' . $q($c), $atualizaveis))
-            : 'DO NOTHING';
-        $sql = sprintf('INSERT INTO %s (%s) VALUES (%s) ON CONFLICT (%s) %s', $q($tabela), implode(', ', array_map($q, $colunas)), implode(', ', array_fill(0, count($colunas), '?')), implode(', ', array_map($q, $pk)), $acao);
-        $stmt = $banco->pdo()->prepare($sql);
+        $preparados = []; // um comando por conjunto de colunas (linhas de JSON podem ter campos a menos)
         $novas = 0;
         foreach ($linhas as $l) {
-            $stmt->execute(array_values($l));
-            $novas += $stmt->rowCount();
+            $colunas = array_keys($l);
+            $assinatura = implode(',', $colunas);
+            if (!isset($preparados[$assinatura])) {
+                $atualizaveis = array_values(array_diff($colunas, $pk));
+                $acao = ($sobrescrever && $atualizaveis)
+                    ? 'DO UPDATE SET ' . implode(', ', array_map(fn($c) => $q($c) . ' = EXCLUDED.' . $q($c), $atualizaveis))
+                    : 'DO NOTHING';
+                $preparados[$assinatura] = $banco->pdo()->prepare(sprintf(
+                    'INSERT INTO %s (%s) VALUES (%s) ON CONFLICT (%s) %s',
+                    $q($tabela), implode(', ', array_map($q, $colunas)), implode(', ', array_fill(0, count($colunas), '?')), implode(', ', array_map($q, $pk)), $acao
+                ));
+            }
+            $preparados[$assinatura]->execute(array_values($l));
+            $novas += $preparados[$assinatura]->rowCount();
         }
         $totais[$tabela] = $novas;
     };
