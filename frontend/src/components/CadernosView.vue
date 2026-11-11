@@ -100,6 +100,19 @@
           </div>
         </div>
 
+        <!-- Filtro de categorias: fica fora dos grupos para não sumir quando a categoria escolhida está vazia -->
+        <div v-if="!busca.trim() && cadernos.some((c) => c.obrigatorio)" class="flex flex-wrap gap-2">
+          <button
+            v-for="cat in categorias"
+            :key="cat"
+            type="button"
+            @click="categoriaAtiva = cat"
+            class="h-8 px-3.5 rounded-full border text-xs font-semibold transition cursor-pointer"
+            :class="categoriaAtiva === cat ? 'bg-[#141414] border-[#141414] text-white' : 'bg-white border-slate-200 text-slate-600 hover:border-slate-300'"
+          >{{ cat }}</button>
+        </div>
+        <p v-if="!busca.trim() && cadernos.some((c) => c.obrigatorio) && !grupos.some((g) => !g.opcional)" class="py-8 text-center text-sm text-slate-400">Nenhum caderno em {{ categoriaAtiva }} para você no momento.</p>
+
         <section
           v-for="grupo in grupos"
           :key="grupo.chave"
@@ -109,17 +122,6 @@
             <h4 class="text-xs font-semibold uppercase tracking-wider text-slate-500 mb-1">{{ grupo.categoria }}</h4>
             <p class="text-xs text-slate-400 mb-3">Materiais complementares, para ler quando quiser.</p>
           </template>
-          <!-- Filtro de categorias -->
-          <div v-else-if="!busca.trim()" class="flex flex-wrap gap-2 mb-4">
-            <button
-              v-for="cat in categorias"
-              :key="cat"
-              type="button"
-              @click="categoriaAtiva = cat"
-              class="h-8 px-3.5 rounded-full border text-xs font-semibold transition cursor-pointer"
-              :class="categoriaAtiva === cat ? 'bg-[#141414] border-[#141414] text-white' : 'bg-white border-slate-200 text-slate-600 hover:border-slate-300'"
-            >{{ cat }}</button>
-          </div>
           <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-5">
         <button
           v-for="c in grupo.itens"
