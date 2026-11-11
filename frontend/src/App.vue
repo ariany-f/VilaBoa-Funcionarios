@@ -1019,7 +1019,7 @@
           <CadernosView v-else-if="abaAtiva === 'cadernos'" tipo="politica" :key="buscaCadernoInicial" :buscaInicial="buscaCadernoInicial" :abrirArquivo="cadernoParaAbrir" @aberto="cadernoParaAbrir = ''" @progresso="progressoCadernos = $event" />
 
           <!-- ACADEMIA VILA BOA (trilhas com cadernos e vídeos, certificado ao concluir) -->
-          <AcademiaView v-else-if="abaAtiva === 'academia'" :colaborador="usuarioLogado" @atualizou="carregarTrilhasPendentes(localStorage.getItem('vb_auth_token') || '')" />
+          <AcademiaView v-else-if="abaAtiva === 'academia'" :colaborador="usuarioLogado" @atualizou="recarregarTrilhas()" />
 
           <!-- MÓDULO 2: GESTÃO & CONSULTA DE FÉRIAS -->
           <FeriasView v-else-if="abaAtiva === 'ferias'" :ferias="ferias" />
@@ -1028,7 +1028,7 @@
           <EpiFichaView
             v-else-if="abaAtiva === 'epis'"
             :epis="epis"
-            @assinado="carregarEpis(localStorage.getItem('vb_auth_token'))"
+            @assinado="recarregarEpis()"
           />
 
           <!-- MÓDULO 5: CHAMADOS & AUTOATENDIMENTO AO RH -->
@@ -2394,6 +2394,10 @@ async function carregarChamados(token) {
     console.error('Falha ao carregar chamados:', e);
   }
 }
+
+// O template não enxerga localStorage: estes atalhos leem o token na hora do clique
+const recarregarTrilhas = () => carregarTrilhasPendentes(localStorage.getItem('vb_auth_token') || '');
+const recarregarEpis = () => carregarEpis(localStorage.getItem('vb_auth_token'));
 
 const holeriteParaWhatsapp = ref(null);
 const tokenAutenticado = computed(() => {
