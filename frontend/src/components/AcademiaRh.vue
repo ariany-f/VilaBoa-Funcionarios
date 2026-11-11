@@ -420,6 +420,7 @@
 
 <script setup>
 import { ref, reactive, computed, onMounted, nextTick, h } from 'vue';
+import { doContexto } from '../utils/empresaContexto.js';
 import AppIcon from './AppIcon.vue';
 import WizardCadastro from './WizardCadastro.vue';
 import ModalCadastro from './ModalCadastro.vue';
@@ -457,8 +458,10 @@ const passa = {
   funcao: (t) => !t.obrigatoria,
   rascunhos: (t) => t.publicada === false
 };
-const contagem = (id) => lista.value.filter(passa[id]).length;
-const filtradas = computed(() => lista.value.filter(passa[filtro.value]));
+// Só as trilhas da empresa escolhida no menu lateral (as de "todas" aparecem sempre)
+const listaCtx = computed(() => lista.value.filter((t) => doContexto(t.empresa)));
+const contagem = (id) => listaCtx.value.filter(passa[id]).length;
+const filtradas = computed(() => listaCtx.value.filter(passa[filtro.value]));
 const qtd = (t, tipo) => t.itens.filter((i) => i.tipo === tipo).length;
 
 const auth = () => ({ Authorization: `Bearer ${tokenAdmin()}` });

@@ -1235,12 +1235,8 @@
         </main>
 
         <!-- FOOTER / STATUS BAR FIXA NO DESKTOP (ESTILO APP NATIVO SHELL) -->
-        <footer class="hidden md:flex h-9 shrink-0 bg-white border-t border-slate-200 px-6 items-center justify-between text-[11px] text-slate-500 select-none z-20">
+        <footer class="hidden md:flex h-9 shrink-0 bg-white border-t border-slate-200 px-6 items-center text-[11px] text-slate-500 select-none z-20">
           <span class="font-medium text-slate-600">Portal do Colaborador · Vila Boa Construções e Serviços</span>
-          <span class="inline-flex items-center gap-1.5">
-            <AppIcon name="shield-check" size="12" class="text-slate-500" />
-            <span>Conformidade eSocial S-1210 · Art. 464 CLT</span>
-          </span>
         </footer>
 
         <!-- BOTTOM NAVIGATION BAR FIXA EXCLUSIVA PARA CELULARES (PINNED FOOTER ESTILO NATIVO SUPERAPP) -->

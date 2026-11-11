@@ -401,6 +401,7 @@ import Rosca from './acompanhamento/Rosca.vue';
 import ColunasEmpilhadas from './acompanhamento/ColunasEmpilhadas.vue';
 import BarrasHorizontais from './acompanhamento/BarrasHorizontais.vue';
 import { pode } from '../utils/permissoes.js';
+import { empresaContexto } from '../utils/empresaContexto.js';
 import { tokenAdmin } from '../utils/sessaoAdmin.js';
 import { usarFecharComEsc } from '../utils/fecharComEsc.js';
 import { avisoCaderno, avisoPonto, avisoHolerite, cobrancaGeral } from '../utils/avisosWhatsapp.js';
@@ -471,7 +472,10 @@ async function carregar() {
 onMounted(carregar);
 
 // ---------------------------------------------------------------- filtros
-const empresaFiltro = ref('');
+const empresaFiltro = ref(empresaContexto.value);
+// Acompanha a empresa escolhida no menu lateral (e vice-versa)
+watch(empresaContexto, (v) => { empresaFiltro.value = v; });
+watch(empresaFiltro, (v) => { empresaContexto.value = v; });
 const deptoFiltro = ref('');
 const periodoId = ref('ano');
 const busca = ref('');

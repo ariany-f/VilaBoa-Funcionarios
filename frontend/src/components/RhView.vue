@@ -117,7 +117,7 @@
               <p class="text-xs text-slate-400 mt-0.5">A consulta do RH não registra recebimento no lugar do colaborador.</p>
             </div>
             <div class="flex flex-col sm:flex-row gap-2">
-              <SeletorColaborador v-model="matriculaHolerite" :colaboradores="dados.colaboradores" @change="carregarHolerites" />
+              <SeletorColaborador v-model="matriculaHolerite" :colaboradores="colabsContexto" @change="carregarHolerites" />
               <select v-model="anoHolerite" @change="carregarHolerites" class="h-10 px-3 rounded-lg border border-slate-200 bg-slate-50 text-sm outline-none">
                 <option v-for="a in anos" :key="a" :value="a">{{ a }}</option>
               </select>
@@ -177,7 +177,7 @@
             </div>
             <div class="flex flex-col sm:flex-row gap-2">
               <div class="flex items-center gap-1">
-                <SeletorColaborador v-model="matriculaPonto" :colaboradores="dados.colaboradores" class="flex-1" />
+                <SeletorColaborador v-model="matriculaPonto" :colaboradores="colabsContexto" class="flex-1" />
                 <button v-if="matriculaPonto" type="button" @click="matriculaPonto = ''" class="w-10 h-10 rounded-lg text-slate-400 hover:bg-slate-100 hover:text-slate-700 flex items-center justify-center cursor-pointer shrink-0" title="Ver todos os colaboradores" aria-label="Ver todos os colaboradores">
                   <AppIcon name="x" size="14" />
                 </button>
@@ -323,6 +323,7 @@ import { usarFecharComEsc } from '../utils/fecharComEsc.js';
 import { avisoCaderno, avisoPonto, avisoHolerite, cobrancaGeral } from '../utils/avisosWhatsapp.js';
 import PontoView from './PontoView.vue';
 import SeletorColaborador from './SeletorColaborador.vue';
+import { empresaContexto, empresasContexto, conferirEmpresaContexto } from '../utils/empresaContexto.js';
 import HoleriteModal from './HoleriteModal.vue';
 
 const props = defineProps({
@@ -548,6 +549,22 @@ const mostraColuna = (tipo) => tipoFiltro.value === 'todos' || tipoFiltro.value 
 const empresas = computed(() => dados.value.empresas || []);
 const empresaFiltro = ref('');
 const empresaFiltroCadernos = ref('');
+// Empresa escolhida no menu lateral do painel: vale para todas as telas (vazio = todas)
+watch(empresas, (l) => { empresasContexto.value = l; conferirEmpresaContexto(); }, { immediate: true });
+watch(empresaContexto, (v) => { empresaFiltro.value = v; empresaFiltroCadernos.value = v; }, { immediate: true });
+watch(empresaFiltro, (v) => { empresaContexto.value = v; });
+watch(empresaFiltroCadernos, (v) => { empresaContexto.value = v; });
+const colabsContexto = computed(() => dados.value.colaboradores.filter((c) => !empresaContexto.value || c.empresa === empresaContexto.value));
+// Trocou a empresa: o colaborador selecionado precisa ser dela
+watch(empresaContexto, () => {
+  const matriculas = colabsContexto.value.map((c) => c.matricula);
+  const primeiro = matriculas[0] || '';
+  if (!matriculas.includes(matriculaPonto.value)) matriculaPonto.value = primeiro;
+  if (!matriculas.includes(matriculaHolerite.value)) {
+    matriculaHolerite.value = primeiro;
+    if (aba.value === 'holerites') carregarHolerites();
+  }
+});
 // Caderno de "todas" aparece em qualquer empresa escolhida
 const cadernosFiltrados = computed(() =>
   dados.value.cadernos.filter((cad) => !empresaFiltroCadernos.value || (cad.empresa || 'todas') === 'todas' || cad.empresa === empresaFiltroCadernos.value)

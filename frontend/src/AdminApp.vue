@@ -84,7 +84,14 @@
     <div v-else class="flex h-[100dvh] overflow-hidden">
       <aside class="hidden md:flex w-60 shrink-0 flex-col bg-white border-r border-slate-200">
         <div class="h-16 px-4 flex items-center border-b border-slate-200">
-          <img src="/img/logo-vilaboa-color.png" alt="Vila Boa Construções e Serviços" class="h-8 w-auto object-contain" />
+          <img src="/img/logo-vilaboa-horizontal-v2.png" alt="Vila Boa Construções e Serviços" class="h-8 w-auto object-contain" />
+        </div>
+        <div class="px-4 pt-4">
+          <label for="empresa-contexto" class="block text-[10px] font-semibold uppercase tracking-wider text-slate-400 mb-1.5">Empresa</label>
+          <select id="empresa-contexto" v-model="empresaContexto" class="w-full h-10 px-3 rounded-xl border border-slate-200 bg-slate-50 text-xs font-bold text-slate-700 outline-none focus:border-[#9c2337] cursor-pointer">
+            <option value="">Todas as empresas</option>
+            <option v-for="e in empresasContexto" :key="e" :value="e">{{ e }}</option>
+          </select>
         </div>
         <span class="block px-6 pt-5 pb-1 text-[10px] font-semibold uppercase tracking-wider text-slate-400">Painel do RH</span>
         <nav class="px-3 space-y-1">
@@ -203,7 +210,7 @@
           <div class="absolute inset-0 bg-slate-900/60 backdrop-blur-xs gaveta-fundo" @click="menuAberto = false" aria-hidden="true"></div>
           <aside class="gaveta relative w-[82%] max-w-xs h-full bg-white flex flex-col shadow-2xl" role="dialog" aria-modal="true" aria-label="Menu do painel">
             <div class="px-4 pb-4 pt-[calc(1rem+env(safe-area-inset-top,0px))] border-b border-slate-100 flex items-center justify-between">
-              <img src="/img/logo-vilaboa-color.png" alt="Vila Boa Construções e Serviços" class="h-8 w-auto object-contain" />
+              <img src="/img/logo-vilaboa-horizontal-v2.png" alt="Vila Boa Construções e Serviços" class="h-8 w-auto object-contain" />
               <button type="button" @click="menuAberto = false" class="w-9 h-9 rounded-full bg-slate-100 text-slate-500 flex items-center justify-center active:scale-95 cursor-pointer" aria-label="Fechar menu">
                 <AppIcon name="close" size="14" />
               </button>
@@ -216,6 +223,13 @@
                   <span class="block text-xs text-slate-500 truncate">{{ usuario.email }}</span>
                 </span>
               </div>
+            </div>
+            <div class="px-4 pb-3">
+              <label for="empresa-contexto-mob" class="block text-[10px] font-semibold uppercase tracking-wider text-slate-400 mb-1.5">Empresa</label>
+              <select id="empresa-contexto-mob" v-model="empresaContexto" class="w-full h-12 px-3 rounded-xl border border-slate-200 bg-slate-50 text-sm font-semibold text-slate-700 outline-none focus:border-[#9c2337] cursor-pointer">
+                <option value="">Todas as empresas</option>
+                <option v-for="e in empresasContexto" :key="e" :value="e">{{ e }}</option>
+              </select>
             </div>
             <span class="px-6 pb-1 text-[10px] font-semibold uppercase tracking-wider text-slate-400">Painel do RH</span>
             <nav class="flex-1 overflow-y-auto px-3 space-y-1">
@@ -258,6 +272,7 @@ import { ref, computed, watch, onMounted } from 'vue';
 import AppIcon from './components/AppIcon.vue';
 import LogoLoader from './components/LogoLoader.vue';
 import RhView from './components/RhView.vue';
+import { empresaContexto, empresasContexto } from './utils/empresaContexto.js';
 import ResumoColaboradorModal from './components/ResumoColaboradorModal.vue';
 import { pode } from './utils/permissoes.js';
 import { tokenAdmin, CHAVE_TOKEN_ADMIN } from './utils/sessaoAdmin.js';

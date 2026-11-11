@@ -227,6 +227,7 @@
 
 <script setup>
 import { ref, computed, onMounted } from 'vue';
+import { empresaContexto, doContexto } from '../utils/empresaContexto.js';
 import AppIcon from './AppIcon.vue';
 import ModalCadastro from './ModalCadastro.vue';
 import WizardCadastro from './WizardCadastro.vue';
@@ -287,15 +288,17 @@ const aba = ref('publicados');
 const busca = ref('');
 const buscaColab = ref('');
 
+// Só os avisos da empresa escolhida no menu lateral (os de "todas" aparecem sempre)
+const listaCtx = computed(() => lista.value.filter((c) => doContexto(c.empresa)));
 const contagem = computed(() => {
   const n = { publicados: 0, agendados: 0, rascunhos: 0, arquivados: 0 };
-  lista.value.forEach((c) => { n[abaDaSituacao[c.situacao]]++; });
+  listaCtx.value.forEach((c) => { n[abaDaSituacao[c.situacao]]++; });
   return n;
 });
 const visiveis = computed(() => {
   const q = busca.value.trim().toLowerCase();
   // Buscando, procura em todas as abas
-  return lista.value.filter((c) => (q ? true : abaDaSituacao[c.situacao] === aba.value) && (!q || `${c.titulo} ${c.texto} ${c.categoria}`.toLowerCase().includes(q)));
+  return listaCtx.value.filter((c) => (q ? true : abaDaSituacao[c.situacao] === aba.value) && (!q || `${c.titulo} ${c.texto} ${c.categoria}`.toLowerCase().includes(q)));
 });
 
 const resumoTexto = (t) => (t || '').replace(/\*\*/g, '').replace(/\[([^\]]+)\]\([^)]+\)/g, '$1').replace(/\s+/g, ' ').trim();
