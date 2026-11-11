@@ -19,7 +19,8 @@
       <div class="w-full sm:max-w-xl lg:max-w-5xl xl:max-w-6xl bg-white sm:rounded-2xl lg:rounded-3xl sm:shadow-2xl overflow-hidden flex flex-col lg:flex-row sm:border border-slate-200">
         
         <!-- Lado Esquerdo Institucional (Desktop / Tablet) - Sólido Corporativo Sem Gradiente -->
-        <div class="lg:w-1/2 bg-[#141414] text-white p-6 pt-[calc(1.5rem+env(safe-area-inset-top,0px))] sm:p-8 lg:p-12 flex flex-col justify-between relative border-b lg:border-b-0 lg:border-r border-slate-800">
+        <div class="lg:w-1/2 min-h-[240px] bg-[#141414] bg-cover bg-center text-white p-6 pt-[calc(1.5rem+env(safe-area-inset-top,0px))] sm:p-8 lg:p-12 flex flex-col justify-between relative overflow-hidden border-b lg:border-b-0 lg:border-r border-slate-800" :style="{ backgroundImage: `url(${imagemLoginColaborador})` }">
+          <div class="absolute inset-0 bg-gradient-to-b from-[#141414]/85 via-[#141414]/60 to-[#141414]/85" aria-hidden="true"></div>
           <div class="relative z-10 space-y-6">
             <div class="inline-flex items-center space-x-3 bg-white/10 px-4 py-2.5 rounded-2xl border border-white/15">
               <img src="/img/logo-vilaboa-white.png" alt="Vila Boa Construções e Serviços" class="h-9 w-auto object-contain" />
@@ -2399,6 +2400,7 @@ async function carregarChamados(token) {
 const recarregarTrilhas = () => carregarTrilhasPendentes(localStorage.getItem('vb_auth_token') || '');
 const recarregarEpis = () => carregarEpis(localStorage.getItem('vb_auth_token'));
 
+const imagemLoginColaborador = `${window.location.pathname.replace(/admin\/?$/, '')}img/login-colaborador.webp`;
 const holeriteParaWhatsapp = ref(null);
 const tokenAutenticado = computed(() => {
   return typeof localStorage !== 'undefined' ? (localStorage.getItem('vb_auth_token') || '') : '';

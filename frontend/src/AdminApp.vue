@@ -9,7 +9,7 @@
     <!-- Mesmo layout do login do colaborador; o lado institucional em vinho marca a área do RH -->
     <div v-else-if="!usuario" class="min-h-[100dvh] flex items-stretch sm:items-center justify-center sm:p-6 lg:p-8 bg-white sm:bg-slate-100">
       <div class="w-full sm:max-w-xl lg:max-w-5xl bg-white sm:rounded-2xl lg:rounded-3xl sm:shadow-2xl overflow-hidden flex flex-col lg:flex-row sm:border border-slate-200">
-        <!-- Lado institucional: foto dos hexágonos (public/img/login-rh.jpg), sem logo, texto escuro sobre fundo claro -->
+        <!-- Lado institucional: foto dos hexágonos (public/img/login-rh.webp), sem logo, texto escuro sobre fundo claro -->
         <div
           class="lg:w-1/2 min-h-[260px] lg:min-h-[560px] bg-[#f1efee] bg-cover bg-bottom text-slate-900 p-6 pt-[calc(1.5rem+env(safe-area-inset-top,0px))] sm:p-8 lg:p-12 flex flex-col justify-between"
           :style="{ backgroundImage: `url(${imagemLoginRh})` }"
@@ -262,7 +262,7 @@ import ResumoColaboradorModal from './components/ResumoColaboradorModal.vue';
 import { pode } from './utils/permissoes.js';
 import { tokenAdmin, CHAVE_TOKEN_ADMIN } from './utils/sessaoAdmin.js';
 
-const imagemLoginRh = `${window.location.pathname.replace(/admin\/?$/, '')}img/login-rh.jpg`;
+const imagemLoginRh = `${window.location.pathname.replace(/admin\/?$/, '')}img/login-rh.webp`;
 const verificando = ref(true);
 const usuario = ref(null);
 const email = ref('');
