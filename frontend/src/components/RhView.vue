@@ -33,7 +33,7 @@
     <AcademiaRh v-else-if="aba === 'academia'" :colaborador="colaborador" />
 
     <template v-else-if="aba === 'cadernos'">
-      <div class="grid gap-6 items-start">
+      <div class="grid grid-cols-1 gap-6 items-start">
         <div class="bg-white rounded-2xl border border-slate-200 p-5 sm:p-6 space-y-4">
           <div>
             <div class="flex flex-wrap items-center justify-between gap-3">
@@ -166,7 +166,7 @@
     <!-- ===================== ESPELHO DE PONTO ===================== -->
     <template v-else-if="aba === 'ponto'">
       <!-- Lista à esquerda; importação à direita, sempre à vista -->
-      <div class="grid gap-6 items-start" :class="pode(colaborador, 'rh_ponto', 'importar') ? 'xl:grid-cols-[minmax(0,1fr)_360px]' : ''">
+      <div class="grid grid-cols-1 gap-6 items-start" :class="pode(colaborador, 'rh_ponto', 'importar') ? 'xl:grid-cols-[minmax(0,1fr)_360px]' : ''">
       <!-- Lista de todos os espelhos (colaborador × competência) -->
       <div class="bg-white rounded-2xl border border-slate-200 overflow-hidden min-w-0">
         <div class="p-5 sm:p-6 space-y-4 border-b border-slate-100">

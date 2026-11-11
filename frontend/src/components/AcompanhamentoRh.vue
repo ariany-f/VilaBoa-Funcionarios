@@ -70,7 +70,7 @@
       </div>
 
       <template v-else>
-      <div class="grid xl:grid-cols-[minmax(0,1fr)_440px] gap-4 items-start">
+      <div class="grid grid-cols-1 xl:grid-cols-[minmax(0,1fr)_440px] gap-4 items-start">
         <div class="min-w-0 space-y-4">
         <!-- ===================== MANCHETE ===================== -->
         <header class="relative overflow-hidden rounded-3xl bg-gradient-to-br from-[#141414] via-[#2b1117] to-[#9c2337] text-white p-4 sm:p-5">
@@ -111,7 +111,7 @@
         </ul>
 
         <!-- ===================== CAPÍTULOS ===================== -->
-        <div class="grid 2xl:grid-cols-2 gap-4 items-start">
+        <div class="grid grid-cols-1 2xl:grid-cols-2 gap-4 items-start">
         <!-- 1. Holerites -->
         <article id="cap-holerites" class="cap" aria-labelledby="t-holerites">
           <p class="cap-num">Capítulo 1 · Holerites</p>
@@ -132,7 +132,7 @@
 
         </div>
 
-        <div class="grid 2xl:grid-cols-2 gap-4 items-start">
+        <div class="grid grid-cols-1 2xl:grid-cols-2 gap-4 items-start">
         <!-- 3. Diretrizes -->
         <article id="cap-diretrizes" class="cap" aria-labelledby="t-diretrizes">
           <p class="cap-num">Capítulo 3 · Diretrizes e treinamentos</p>
@@ -148,7 +148,7 @@
           <p class="cap-num">Capítulo 4 · Ficha de EPI</p>
           <h3 id="t-epi" class="cap-titulo">As entregas de EPI foram assinadas?</h3>
           <p class="cap-insight"><AppIcon name="info" size="15" class="shrink-0 mt-0.5" /> <span>{{ insightEpi }}</span></p>
-          <div v-if="resumoEpi.total" class="grid gap-4">
+          <div v-if="resumoEpi.total" class="grid grid-cols-1 gap-4">
             <div class="flex items-center gap-5 justify-center sm:justify-start">
               <Rosca :ok="resumoEpi.ok" :total="resumoEpi.total" :rotulo="`${resumoEpi.ok} de ${resumoEpi.total} fichas de EPI assinadas`" />
               <ul class="text-xs text-slate-600 space-y-1.5">
@@ -182,7 +182,7 @@
           <p class="cap-num">Capítulo 5 · Academia Vila Boa</p>
           <h3 id="t-academia" class="cap-titulo">Como andam as trilhas e quem já se certificou?</h3>
           <p class="cap-insight"><AppIcon name="info" size="15" class="shrink-0 mt-0.5" /> <span>{{ insightAcademia }}</span></p>
-          <div v-if="barrasTrilhas.length" class="grid lg:grid-cols-2 gap-8">
+          <div v-if="barrasTrilhas.length" class="grid grid-cols-1 lg:grid-cols-2 gap-8">
             <div class="min-w-0">
               <h4 class="sub">Trilhas concluídas por quem deve fazê-las</h4>
               <BarrasHorizontais :itens="barrasTrilhas" cor-padrao="#9c2337" />
@@ -201,7 +201,7 @@
           <p class="cap-num">Capítulo 6 · Comunicados</p>
           <h3 id="t-comunicados" class="cap-titulo">O que o RH comunicou no período?</h3>
           <p class="cap-insight"><AppIcon name="info" size="15" class="shrink-0 mt-0.5" /> <span>{{ insightComunicados }}</span></p>
-          <div v-if="comunicadosPeriodo.length" class="grid lg:grid-cols-2 gap-8">
+          <div v-if="comunicadosPeriodo.length" class="grid grid-cols-1 lg:grid-cols-2 gap-8">
             <div class="min-w-0">
               <h4 class="sub">Publicados por mês</h4>
               <ColunasEmpilhadas :itens="comunicadosPorMes" modo="abs" rotulo-ok="ativo(s)" rotulo-pend="encerrado(s)" cor-ok="#9c2337" cor-pend="#cbd5e1" descricao="Comunicados publicados por mês" :altura="110" />

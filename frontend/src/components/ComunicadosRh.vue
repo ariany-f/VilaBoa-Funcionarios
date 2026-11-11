@@ -35,7 +35,7 @@
       <p class="text-sm text-slate-500">{{ busca ? 'Nenhum comunicado encontrado para essa busca.' : 'Nenhum comunicado nesta aba.' }}</p>
       <button v-if="!busca && aba === 'publicados' && pode(colaborador, 'rh_cadernos', 'publicar')" type="button" @click="abrirNovo" class="text-sm font-semibold text-[#9c2337] hover:underline cursor-pointer">Criar o primeiro comunicado</button>
     </div>
-    <ul v-else class="grid gap-3 md:grid-cols-2">
+    <ul v-else class="grid grid-cols-1 gap-3 md:grid-cols-2">
       <li v-for="c in visiveis" :key="c.id" class="bg-white rounded-2xl border p-5 flex flex-col gap-3" :class="c.prioridade === 'importante' ? 'border-amber-300' : 'border-slate-200'">
         <div class="flex items-start gap-3">
           <span class="w-10 h-10 rounded-xl flex items-center justify-center shrink-0" :class="tipoDe(c.categoria).fundo"><AppIcon :name="tipoDe(c.categoria).icone" size="18" /></span>
@@ -147,7 +147,7 @@
             <option v-for="e in empresas" :key="e" :value="e">{{ e }}</option>
           </select>
         </label>
-        <div class="grid sm:grid-cols-3 gap-2">
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
           <button v-for="p in publicos" :key="p.id" type="button" @click="escolherPublico(p.id)" class="text-left p-3.5 rounded-xl border-2 cursor-pointer transition" :class="form.publico === p.id ? 'border-[#9c2337] bg-[#fdf2f4]' : 'border-slate-200 hover:border-slate-300'">
             <span class="block text-sm font-semibold text-slate-900">{{ p.titulo }}</span>
             <span class="block text-xs text-slate-500">{{ p.descricao }}</span>
