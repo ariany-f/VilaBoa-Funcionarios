@@ -17,7 +17,37 @@ class EpiService
             return [];
         }
         $content = file_get_contents($this->dataFile);
-        return json_decode($content, true) ?: [];
+        $lista = json_decode($content, true) ?: [];
+        return array_map([$this, 'normalizar'], $lista);
+    }
+
+    /**
+     * Garante todos os campos da ficha física de EPI (competência, chapa, equipe,
+     * e por item: data, quantidade, unidade, código, C.A., valor e situação).
+     */
+    private function normalizar(array $e): array
+    {
+        $dataIso = $e['data_entrega'] ?? '';
+        if (empty($e['competencia']) && preg_match('/^(\d{4})-(\d{2})/', $dataIso, $m)) {
+            $e['competencia'] = $m[2] . '/' . $m[1];
+        }
+        $e['competencia'] = $e['competencia'] ?? '';
+        $e['chapa'] = $e['chapa'] ?? preg_replace('/\D/', '', (string)($e['matricula'] ?? ''));
+        $e['equipe'] = $e['equipe'] ?? '';
+        $e['empresa'] = $e['empresa'] ?? 'Vila Boa Construcoes e Servicos Limitada';
+        $e['cnpj'] = $e['cnpj'] ?? '02.785.261/0001-90';
+        $e['local_data'] = $e['local_data'] ?? '';
+        foreach (($e['itens'] ?? []) as $i => $it) {
+            $it['data'] = $it['data'] ?? ($e['data_entrega_formatada'] ?? '');
+            $it['quantidade'] = $it['quantidade'] ?? '';
+            $it['unidade'] = $it['unidade'] ?? '';
+            $it['codigo'] = $it['codigo'] ?? '';
+            $it['ca'] = $it['ca'] ?? '';
+            $it['valor'] = $it['valor'] ?? '';
+            $it['situacao'] = $it['situacao'] ?? 'Primeira Entrega';
+            $e['itens'][$i] = $it;
+        }
+        return $e;
     }
 
     private function salvar(array $epis): bool

@@ -3,7 +3,7 @@ import { baseDoPortal } from './capas.js';
 
 // Logo exibido no portal do colaborador: o da empresa dele, ou o da Vila Boa quando a empresa não tem logo.
 // Caminho relativo à pasta do portal (ele pode estar numa subpasta do servidor)
-export const LOGO_PADRAO = `${baseDoPortal()}img/logo-vilaboa-color.png`;
+export const LOGO_PADRAO = `${baseDoPortal()}img/logo-vilaboa-horizontal.png`;
 const CHAVE = 'vb_logo_empresa';
 
 export function urlLogoEmpresa(nome, versao) {

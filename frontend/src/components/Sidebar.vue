@@ -36,9 +36,7 @@
           <AppIcon name="hard-hat" size="15" />
         </span>
         <span class="leading-tight min-w-0">
-          <span class="text-xs font-semibold text-slate-800 block truncate">Vila Boa Construções e Serviços</span>
-          <span class="text-[10px] text-slate-400 block truncate">Matriz · Obras & Infraestrutura</span>
-        </span>
+          <span class="text-xs font-semibold text-slate-800 block truncate">Vila Boa Construções e Serviços</span>        </span>
       </div>
     </div>
 
@@ -57,39 +55,26 @@
         <AppIcon :name="modulo.icone" size="18" :class="recolhida ? 'mx-auto' : 'mr-3 text-slate-400 group-hover:text-slate-700'" />
         <span v-if="!recolhida" class="flex-1 min-w-0 text-left">
           <span class="block truncate">{{ modulo.rotulo }}</span>
-          <span v-if="modulo.id === 'cadernos' && progressoCadernos?.total" class="flex items-center gap-2 mt-1.5">
+          <span v-if="progressoDe(modulo.id)?.total" class="flex items-center gap-2 mt-1.5">
             <span class="flex-1 h-1 rounded-full bg-slate-200 overflow-hidden">
               <span
                 class="block h-full rounded-full transition-all duration-500"
-                :class="progressoCadernos.lidos === progressoCadernos.total ? 'bg-emerald-500' : 'bg-[#9c2337]'"
-                :style="{ width: Math.round((progressoCadernos.lidos / progressoCadernos.total) * 100) + '%' }"
+                :class="progressoDe(modulo.id).lidos === progressoDe(modulo.id).total ? 'bg-emerald-500' : 'bg-[#9c2337]'"
+                :style="{ width: Math.round((progressoDe(modulo.id).lidos / progressoDe(modulo.id).total) * 100) + '%' }"
               ></span>
             </span>
             <span
               class="text-[10px] font-semibold tabular-nums"
-              :class="progressoCadernos.lidos === progressoCadernos.total ? 'text-emerald-600' : 'text-slate-500'"
-            >{{ progressoCadernos.lidos === progressoCadernos.total ? '✓' : '' }} {{ progressoCadernos.lidos }}/{{ progressoCadernos.total }}</span>
+              :class="progressoDe(modulo.id).lidos === progressoDe(modulo.id).total ? 'text-emerald-600' : 'text-slate-500'"
+            >{{ progressoDe(modulo.id).lidos === progressoDe(modulo.id).total ? '✓' : '' }} {{ progressoDe(modulo.id).lidos }}/{{ progressoDe(modulo.id).total }}</span>
           </span>
         </span>
         <span
-          v-if="recolhida && modulo.id === 'cadernos' && progressoCadernos && progressoCadernos.lidos < progressoCadernos.total"
+          v-if="recolhida && progressoDe(modulo.id) && progressoDe(modulo.id).lidos < progressoDe(modulo.id).total"
           class="absolute top-2 right-2 w-2 h-2 rounded-full bg-[#9c2337]"
         ></span>
       </button>
       </template>
-
-      <!-- Bloco Informativo de Conformidade (Apenas quando expandida) -->
-      <div v-if="!recolhida" class="pt-6 px-1">
-        <div class="p-3 rounded-2xl bg-[#f4f4f5] border border-slate-200 space-y-1.5">
-          <div class="flex items-center gap-1.5">
-            <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-            <span class="text-[10px] font-bold text-slate-600 uppercase tracking-wider">Conformidade eSocial</span>
-          </div>
-          <p class="text-[10px] text-slate-400 leading-relaxed">
-            Demonstrativos com ciência registrada sob o Art. 464 da CLT.
-          </p>
-        </div>
-      </div>
     </div>
 
     <!-- Rodapé da Sidebar: Perfil do Colaborador + Botão Sair Integrado -->
@@ -172,15 +157,25 @@ const props = defineProps({
   progressoCadernos: {
     type: Object,
     default: null
+  },
+  progressoAcademia: {
+    type: Object,
+    default: null
   }
 });
+
+// Barra de progresso do item do menu (Diretrizes: leituras; Academia: etapas das trilhas)
+const progressoDe = (id) => (id === 'cadernos' ? props.progressoCadernos : id === 'academia' ? props.progressoAcademia : null);
 
 defineEmits(['toggle', 'selecionar', 'logout', 'gerar-pacote']);
 
 const todosModulos = [
-  { id: 'holerites', rotulo: 'Holerites & Salários', icone: 'document' },
+  { id: 'comunicados', rotulo: 'Comunicados', icone: 'megaphone' },
+  { id: 'holerites', rotulo: 'Holerites', icone: 'document' },
   { id: 'ponto', rotulo: 'Espelho de Ponto', icone: 'calendar' },
-  { id: 'cadernos', rotulo: 'Cadernos', icone: 'landmark' }
+  { id: 'epis', rotulo: 'Ficha de EPI', icone: 'hard-hat' },
+  { id: 'cadernos', rotulo: 'Diretrizes Vila Boa', icone: 'landmark' },
+  { id: 'academia', rotulo: 'Academia Vila Boa', icone: 'graduation-cap' }
 ];
 
 // O Painel do RH agora fica separado, em /admin

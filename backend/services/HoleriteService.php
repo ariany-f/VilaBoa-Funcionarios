@@ -416,6 +416,23 @@ class HoleriteService
                 'valor' => $valeRefeicao
             ];
 
+            // Exemplo: saldo insuficiente para descontar integralmente o empréstimo (Crédito do Trabalhador)
+            $descontoParcial = null;
+            if ($ano === '2026' && $m['numero'] === '08') {
+                $descontoParcial = [
+                    'competencia' => "{$m['numero']}/{$ano}",
+                    'emprestimos' => [
+                        [
+                            'instituicao' => '908',
+                            'contrato' => '687708701',
+                            'previsto' => 494.79,
+                            'descontado' => 360.83,
+                            'nao_descontado' => 133.96
+                        ]
+                    ]
+                ];
+            }
+
             $holerites[] = [
                 'id' => $id,
                 'competencia' => "{$m['numero']}/{$ano}",
@@ -438,6 +455,7 @@ class HoleriteService
                     'conta' => '48.910-X'
                 ],
                 'itens' => $itens,
+                'desconto_parcial' => $descontoParcial,
                 'autenticacao_digital' => strtoupper(hash('sha256', $id . 'VILA_BOA_AUTH_KEY'))
             ];
         }

@@ -397,6 +397,7 @@
       <!-- SIDEBAR RETRÁTIL DESKTOP -->
       <Sidebar 
         :progressoCadernos="progressoCadernos"
+        :progressoAcademia="progressoAcademia"
         :recolhida="sidebarRecolhida" 
         :abaAtiva="abaAtiva"
         :colaborador="usuarioLogado"
@@ -410,6 +411,7 @@
       <!-- DRAWER MÓVEL (SUPER APP FEEL) -->
       <MobileDrawer 
         :progressoCadernos="progressoCadernos"
+        :progressoAcademia="progressoAcademia"
         :aberto="drawerMobileAberto"
         :abaAtiva="abaAtiva"
         :colaborador="usuarioLogado"
@@ -497,7 +499,7 @@
                   @blur="fecharBuscaGlobal"
                   @keydown.enter.prevent="resultadosBusca[0] && selecionarResultado(resultadosBusca[0])"
                   type="text"
-                  placeholder="Buscar no portal: holerites, cadernos, ponto..."
+                  placeholder="Buscar no portal: holerites, diretrizes, ponto..."
                   class="flex-1 min-w-0 h-full px-3 text-sm text-slate-800 placeholder-slate-400 outline-none"
                 />
               </div>
@@ -1010,172 +1012,24 @@
           <PontoView v-else-if="abaAtiva === 'ponto'" :key="competenciaPontoInicial" :colaborador="usuarioLogado" :competenciaInicial="competenciaPontoInicial" />
 
           <!-- CADERNOS DO COLABORADOR (PDFs) -->
-          <CadernosView v-else-if="abaAtiva === 'cadernos'" :key="buscaCadernoInicial" :buscaInicial="buscaCadernoInicial" :abrirArquivo="cadernoParaAbrir" @aberto="cadernoParaAbrir = ''" @progresso="progressoCadernos = $event" />
+          <!-- COMUNICADOS (MURAL DE AVISOS) -->
+          <ComunicadosView v-else-if="abaAtiva === 'comunicados'" />
+
+          <!-- DIRETRIZES VILA BOA (PDFs com confirmação de leitura) -->
+          <CadernosView v-else-if="abaAtiva === 'cadernos'" tipo="politica" :key="buscaCadernoInicial" :buscaInicial="buscaCadernoInicial" :abrirArquivo="cadernoParaAbrir" @aberto="cadernoParaAbrir = ''" @progresso="progressoCadernos = $event" />
+
+          <!-- ACADEMIA VILA BOA (trilhas com cadernos e vídeos, certificado ao concluir) -->
+          <AcademiaView v-else-if="abaAtiva === 'academia'" :colaborador="usuarioLogado" @atualizou="carregarTrilhasPendentes(localStorage.getItem('vb_auth_token') || '')" />
 
           <!-- MÓDULO 2: GESTÃO & CONSULTA DE FÉRIAS -->
           <FeriasView v-else-if="abaAtiva === 'ferias'" :ferias="ferias" />
 
-          <!-- MÓDULO 4: GESTÃO DE EPIS (NR-06 COM ASSINATURA ELETRÔNICA) -->
-          <div v-else-if="abaAtiva === 'epis'" class="space-y-6">
-            <!-- Banner Superior do Módulo de SST (Sólido Corporativo) -->
-            <div class="bg-[#141414] border-l-4 border-[#9c2337] text-white rounded-2xl p-6 sm:p-7 shadow-sm flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-              <div class="space-y-1.5">
-                <div class="flex items-center gap-2">
-                  <span class="text-xs bg-white/10 text-white font-bold px-2.5 py-0.5 rounded-full uppercase tracking-wider border border-white/10">
-                    SST • NR-06
-                  </span>
-                  <span class="text-xs text-rose-200">Portaria MTP nº 672/2021</span>
-                </div>
-                <h2 class="text-xl sm:text-2xl font-semibold tracking-tight">Ficha Eletrônica de EPIs</h2>
-                <p class="text-xs text-slate-300 max-w-xl leading-relaxed">
-                  Controle digital de fornecimento, guarda e conservação de Equipamentos de Proteção Individual da Vila Boa Construções e Serviços LTDA.
-                </p>
-              </div>
-
-              <!-- Resumo Rápido -->
-              <div class="flex items-center gap-2 self-stretch sm:self-auto">
-                <div class="flex-1 sm:flex-none bg-black/25 backdrop-blur-md px-4 py-3 rounded-2xl border border-white/10 text-center">
-                  <span class="text-[10px] text-rose-200 uppercase font-bold block">Pendentes</span>
-                  <span class="text-xl font-semibold" :class="epis.total_pendentes > 0 ? 'text-amber-300' : 'text-white'">
-                    {{ epis.total_pendentes }}
-                  </span>
-                </div>
-                <div class="flex-1 sm:flex-none bg-black/25 backdrop-blur-md px-4 py-3 rounded-2xl border border-white/10 text-center">
-                  <span class="text-[10px] text-rose-200 uppercase font-bold block">Assinadas</span>
-                  <span class="text-xl font-semibold text-emerald-300">
-                    {{ epis.total_assinados }}
-                  </span>
-                </div>
-              </div>
-            </div>
-
-            <!-- SEÇÃO 1: ENTREGAS PENDENTES DE ASSINATURA -->
-            <div v-if="epis.pendentes && epis.pendentes.length > 0" class="space-y-3">
-              <div class="flex items-center justify-between px-1">
-                <h3 class="text-xs sm:text-sm font-semibold text-slate-800 uppercase tracking-wider flex items-center gap-1.5">
-                  <span class="w-2.5 h-2.5 rounded-full bg-amber-500 animate-ping"></span>
-                  <span>Aguardando Sua Assinatura Digital</span>
-                </h3>
-                <span class="text-xs font-bold text-amber-800 bg-amber-100 px-2.5 py-0.5 rounded-full">
-                  Obrigatório (NR-06)
-                </span>
-              </div>
-
-              <div 
-                v-for="entrega in epis.pendentes" 
-                :key="entrega.id"
-                class="bg-white rounded-2xl p-5 sm:p-6 border-2 border-amber-300 shadow-md space-y-4"
-              >
-                <div class="flex flex-col sm:flex-row sm:items-center justify-between pb-3 border-b border-slate-100 gap-2">
-                  <div>
-                    <div class="flex items-center gap-2">
-                      <span class="text-xs font-mono font-bold text-slate-400">ID: {{ entrega.id }}</span>
-                      <span class="text-xs bg-amber-100 text-amber-900 font-bold px-2 py-0.5 rounded-md">
-                        Pendente de Assinatura
-                      </span>
-                    </div>
-                    <h4 class="text-sm font-bold text-slate-900 mt-1">{{ entrega.motivo }}</h4>
-                    <p class="text-xs text-slate-500">Canteiro: {{ entrega.canteiro_obra }}</p>
-                  </div>
-
-                  <div class="text-left sm:text-right text-xs">
-                    <span class="text-slate-400 block text-[10px]">DATA DE FORNECIMENTO:</span>
-                    <strong class="text-slate-800 text-sm">{{ entrega.data_entrega_formatada }}</strong>
-                    <span class="text-slate-500 block text-[10px]">{{ entrega.tecnico_responsavel }}</span>
-                  </div>
-                </div>
-
-                <div class="bg-slate-50 rounded-2xl p-3 space-y-1.5 border border-slate-200">
-                  <span class="text-[10px] uppercase font-bold text-slate-500 block">Itens para conferência física no canteiro:</span>
-                  <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
-                    <div 
-                      v-for="item in entrega.itens" 
-                      :key="item.item" 
-                      class="flex items-center justify-between bg-white p-2 rounded-xl border border-slate-200"
-                    >
-                      <div>
-                        <span class="font-bold text-slate-800 text-xs">{{ item.descricao }}</span>
-                        <span class="text-[10px] text-slate-400 block font-mono">CA {{ item.ca }} • {{ item.fabricante }}</span>
-                      </div>
-                      <span class="text-xs font-bold text-[#9c2337] ml-2 shrink-0">{{ item.quantidade }} {{ item.unidade }}</span>
-                    </div>
-                  </div>
-                </div>
-
-                <div class="flex flex-col sm:flex-row items-center justify-between pt-1 gap-3">
-                  <span class="text-[11px] text-slate-500 leading-tight">
-                    Ao assinar, você confirma o recebimento dos EPIs e a capacitação para o uso no canteiro de obras.
-                  </span>
-
-                  <button 
-                    type="button" 
-                    @click="abrirAssinaturaEpi(entrega)"
-                    class="w-full sm:w-auto py-3.5 px-6 rounded-2xl bg-[#9c2337] hover:bg-[#831b2d] active:scale-[0.98] text-white font-bold text-xs sm:text-sm flex items-center justify-center gap-2 shadow-lg shadow-[#9c2337]/25 transition cursor-pointer"
-                  >
-                    <AppIcon name="pen-tool" size="14" />
-                    <span>Assinar Termo de Recebimento</span>
-                  </button>
-                </div>
-              </div>
-            </div>
-
-            <!-- SEÇÃO 2: HISTÓRICO DE FICHAS ASSINADAS -->
-            <div class="bg-white rounded-2xl p-5 sm:p-7 border border-slate-200 shadow-sm space-y-4">
-              <div class="flex items-center justify-between border-b border-slate-100 pb-3">
-                <div>
-                  <h3 class="text-sm sm:text-base font-bold text-slate-900">Histórico de Fichas Assinadas</h3>
-                  <p class="text-xs text-slate-400">Comprovantes com autenticidade eletrônica válida</p>
-                </div>
-                <span class="text-xs font-bold text-emerald-800 bg-emerald-50 border border-emerald-200 px-3 py-1 rounded-full">
-                  {{ epis.total_assinados }} Ficha(s) Válida(s)
-                </span>
-              </div>
-
-              <div v-if="epis.assinados && epis.assinados.length > 0" class="divide-y divide-slate-100">
-                <div 
-                  v-for="entrega in epis.assinados" 
-                  :key="entrega.id"
-                  class="py-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 hover:bg-slate-50 p-3 rounded-2xl transition"
-                >
-                  <div class="flex items-start space-x-3.5">
-                    <div class="w-11 h-11 rounded-2xl bg-slate-100 text-slate-600 border border-slate-200 flex items-center justify-center font-bold text-lg shrink-0">
-                      <AppIcon name="check" size="18" />
-                    </div>
-                    <div>
-                      <div class="flex items-center gap-2">
-                        <span class="text-xs font-mono font-bold text-slate-400">ID: {{ entrega.id }}</span>
-                        <span class="text-[10px] bg-emerald-100 text-emerald-800 font-bold px-2 py-0.5 rounded">
-                          Assinatura Eletrônica Válida
-                        </span>
-                      </div>
-                      <h4 class="text-xs sm:text-sm font-bold text-slate-900 mt-0.5">{{ entrega.motivo }}</h4>
-                      <p class="text-[11px] text-slate-400">
-                        {{ entrega.itens.length }} item(ns) entregue(s) • Canteiro: {{ entrega.canteiro_obra }}
-                      </p>
-                      <p class="text-[10px] font-mono text-slate-400 mt-1">
-                        Assinado em: {{ entrega.assinatura?.data_hora }} • Hash: {{ entrega.assinatura?.hash_autenticidade?.slice(0, 16) }}...
-                      </p>
-                    </div>
-                  </div>
-
-                  <div class="flex items-center sm:self-center">
-                    <button 
-                      type="button" 
-                      @click="abrirReciboEpi(entrega)"
-                      class="w-full sm:w-auto px-4 py-2.5 rounded-xl bg-slate-100 hover:bg-[#9c2337] hover:text-white text-slate-700 font-bold text-xs flex items-center justify-center gap-2 transition cursor-pointer"
-                    >
-                      <AppIcon name="document" size="14" />
-                      <span>Visualizar Ficha / PDF</span>
-                    </button>
-                  </div>
-                </div>
-              </div>
-
-              <div v-else class="text-center py-8 text-xs text-slate-400">
-                Nenhuma ficha anterior registrada.
-              </div>
-            </div>
-          </div>
+          <!-- MÓDULO 4: FICHA DE EPI (NR-06 COM ASSINATURA ELETRÔNICA) -->
+          <EpiFichaView
+            v-else-if="abaAtiva === 'epis'"
+            :epis="epis"
+            @assinado="carregarEpis(localStorage.getItem('vb_auth_token'))"
+          />
 
           <!-- MÓDULO 5: CHAMADOS & AUTOATENDIMENTO AO RH -->
           <ChamadosView 
@@ -1431,11 +1285,13 @@
               <AppIcon name="landmark" size="20" />
               <span v-if="abaAtiva === 'cadernos'" class="w-1.5 h-1.5 rounded-full bg-[#9c2337] absolute -bottom-1 left-1/2 -translate-x-1/2"></span>
             </div>
-            <span class="text-[10px] mt-1 tracking-normal" :class="abaAtiva === 'cadernos' ? 'font-semibold' : 'font-normal'">Cadernos</span>
+            <span class="text-[10px] mt-1 tracking-normal" :class="abaAtiva === 'cadernos' ? 'font-semibold' : 'font-normal'">Diretrizes</span>
           </button>
         </nav>
       </div>
     </div>
+
+    <PendenciasModal :aberto="pendenciasModalAberto" :itens="notificacoes" @abrir="abrirPendencia" @fechar="pendenciasModalAberto = false" />
 
     <!-- Modal de Detalhes do Holerite -->
     <!-- Modal de Envio e Confirmação de WhatsApp com Token -->
@@ -1533,7 +1389,10 @@ import MobileDrawer from './components/MobileDrawer.vue';
 import FeriasView from './components/FeriasView.vue';
 import PontoView from './components/PontoView.vue';
 import CadernosView from './components/CadernosView.vue';
+import ComunicadosView from './components/ComunicadosView.vue';
+import AcademiaView from './components/AcademiaView.vue';
 import NotificacoesBotao from './components/NotificacoesBotao.vue';
+import PendenciasModal from './components/PendenciasModal.vue';
 import { temMenu, pode } from './utils/permissoes.js';
 import { lerDestinoDaUrl } from './utils/avisosWhatsapp.js';
 import { resumirProgresso } from './utils/progressoCadernos.js';
@@ -1545,6 +1404,7 @@ import InformeRendimentoModal from './components/InformeRendimentoModal.vue';
 import ValidacaoPublicaView from './components/ValidacaoPublicaView.vue';
 import EpiSignatureModal from './components/EpiSignatureModal.vue';
 import EpiReciboModal from './components/EpiReciboModal.vue';
+import EpiFichaView from './components/EpiFichaView.vue';
 import LgpdModal from './components/LgpdModal.vue';
 import LogoLoader from './components/LogoLoader.vue';
 
@@ -1587,7 +1447,7 @@ function mascararCpf(cpf) {
 
 // ==================== SISTEMA DE ROTAS & PERSISTÊNCIA ====================
 // Módulos liberados; os demais seguem desativados.
-const ROTAS_VALIDAS = ['holerites', 'ponto', 'cadernos'];
+const ROTAS_VALIDAS = ['comunicados', 'holerites', 'ponto', 'epis', 'cadernos', 'academia'];
 
 function obterRotaValida() {
   if (typeof window === 'undefined') return 'holerites';
@@ -1989,7 +1849,7 @@ const colaboradoresDemo = ref([]);
 
 const tituloAbaAtiva = computed(() => {
   switch (abaAtiva.value) {
-    case 'holerites': return 'Holerites & Salários';
+    case 'holerites': return 'Holerites';
     case 'perfil': return 'Meus Dados Cadastrais';
     default: return 'Holerites & Salários';
   }
@@ -2221,6 +2081,7 @@ async function carregarTodosModulos(token) {
     carregarFerias(token),
     carregarChamados(token),
     carregarProgressoCadernos(token),
+    carregarTrilhasPendentes(token),
     carregarPontosPendentes(token)
   ]);
 }
@@ -2228,12 +2089,30 @@ async function carregarTodosModulos(token) {
 // Progresso de leitura dos cadernos exibido no menu lateral
 const progressoCadernos = ref(null);
 const cadernosPendentes = ref([]);
+// Trilhas obrigatórias da Academia ainda não concluídas (aviso diferenciado no modal de pendências)
+const trilhasPendentes = ref([]);
+// Progresso da Academia no menu: etapas concluídas de todas as trilhas do colaborador
+const progressoAcademia = ref(null);
+async function carregarTrilhasPendentes(token) {
+  try {
+    const res = await fetch('/api/academia', { headers: { 'Authorization': `Bearer ${token}` } });
+    const data = await res.json();
+    if (res.ok) {
+      const trilhas = data.trilhas || [];
+      trilhasPendentes.value = trilhas.filter((t) => t.obrigatoria && !t.completa);
+      progressoAcademia.value = { lidos: trilhas.reduce((t, x) => t + (x.concluidos || 0), 0), total: trilhas.reduce((t, x) => t + (x.total || 0), 0) };
+    }
+  } catch (e) {
+    // sem aviso de trilhas
+  }
+}
 async function carregarProgressoCadernos(token) {
   try {
     const res = await fetch('/api/cadernos', { headers: { 'Authorization': `Bearer ${token}` } });
     const data = await res.json();
     if (!res.ok) return;
-    const p = resumirProgresso(data.cadernos || []);
+    const politicas = (data.cadernos || []).filter((c) => c.tipo !== 'treinamento');
+    const p = resumirProgresso(politicas);
     progressoCadernos.value = { lidos: p.lidos, total: p.total };
     cadernosPendentes.value = (data.cadernos || []).filter((c) => c.obrigatorio && !c.leitura);
   } catch (e) {
@@ -2257,6 +2136,7 @@ async function carregarPontosPendentes(token) {
 function carregarPendencias() {
   const token = localStorage.getItem('vb_auth_token') || '';
   carregarProgressoCadernos(token);
+  carregarTrilhasPendentes(token);
   carregarPontosPendentes(token);
 }
 
@@ -2280,15 +2160,55 @@ const notificacoes = computed(() => {
     cor: 'bg-amber-50 text-amber-700',
     acao: () => navegarParaAba('ponto')
   }));
-  cadernosPendentes.value.forEach((c) => lista.push({
-    titulo: 'Leia o caderno',
-    descricao: c.titulo,
-    icone: 'landmark',
+  (epis.value.pendentes || []).length && lista.push({
+    titulo: epis.value.pendentes.length === 1 ? 'Assine a ficha de EPI' : `Assine ${epis.value.pendentes.length} fichas de EPI`,
+    descricao: 'Entrega de equipamentos aguardando sua assinatura',
+    icone: 'hard-hat',
+    cor: 'bg-amber-50 text-amber-700',
+    acao: () => navegarParaAba('epis')
+  });
+  trilhasPendentes.value.forEach((t) => lista.push({
+    titulo: 'Conclua a trilha obrigatória',
+    descricao: `${t.titulo} · ${t.concluidos} de ${t.total} etapas`,
+    icone: 'graduation-cap',
     cor: 'bg-slate-100 text-slate-700',
-    acao: () => { buscaCadernoInicial.value = c.titulo; navegarParaAba('cadernos'); }
+    obrigatorio: true,
+    acao: () => navegarParaAba('academia')
   }));
+  cadernosPendentes.value.forEach((c) => {
+    const treinamento = c.tipo === 'treinamento';
+    lista.push({
+      titulo: treinamento ? 'Conclua o treinamento obrigatório' : 'Leia a diretriz',
+      descricao: c.titulo,
+      icone: treinamento ? 'graduation-cap' : 'landmark',
+      cor: 'bg-slate-100 text-slate-700',
+      // Treinamento obrigatório não concluído: aviso diferenciado no modal de pendências
+      obrigatorio: treinamento,
+      acao: () => (treinamento ? navegarParaAba('academia') : (buscaCadernoInicial.value = c.titulo, navegarParaAba('cadernos')))
+    });
+  });
   return lista;
 });
+
+// Modal de pendências: abre uma vez por acesso, quando falta ler ou assinar algum documento
+const pendenciasModalAberto = ref(false);
+let pendenciasJaExibidas = false;
+let temporizadorPendencias = null;
+watch(() => notificacoes.value.length, (qtd) => {
+  if (pendenciasJaExibidas || qtd === 0 || etapaAtual.value !== 'dashboard') return;
+  // Espera as consultas (holerites, ponto, cadernos, EPIs) terminarem para listar tudo de uma vez
+  clearTimeout(temporizadorPendencias);
+  temporizadorPendencias = setTimeout(() => {
+    if (!pendenciasJaExibidas && notificacoes.value.length && etapaAtual.value === 'dashboard') {
+      pendenciasJaExibidas = true;
+      pendenciasModalAberto.value = true;
+    }
+  }, 1200);
+});
+function abrirPendencia(n) {
+  pendenciasModalAberto.value = false;
+  n.acao?.();
+}
 
 async function carregarNotificacoesWhatsapp(token) {
   try {
@@ -2526,9 +2446,12 @@ const resultadosBusca = computed(() => {
   const bate = (...textos) => textos.some(t => (t || '').toString().toLowerCase().includes(termo));
 
   const modulos = [
-    { titulo: 'Holerites & Salários', aba: 'holerites', icone: 'document', chaves: 'holerite demonstrativo salario pagamento folha' },
+    { titulo: 'Holerites', aba: 'holerites', icone: 'document', chaves: 'holerite demonstrativo salario pagamento folha' },
     { titulo: 'Espelho de Ponto', aba: 'ponto', icone: 'calendar', chaves: 'ponto espelho marcacao jornada banco de horas assinatura' },
-    { titulo: 'Cadernos', aba: 'cadernos', icone: 'landmark', chaves: 'cadernos manual programa politica pdf' }
+    { titulo: 'Comunicados', aba: 'comunicados', icone: 'megaphone', chaves: 'comunicados avisos mural campanha prazo' },
+    { titulo: 'Ficha de EPI', aba: 'epis', icone: 'hard-hat', chaves: 'epi equipamento protecao seguranca ficha' },
+    { titulo: 'Diretrizes Vila Boa', aba: 'cadernos', icone: 'landmark', chaves: 'cadernos manual programa politica pdf' },
+    { titulo: 'Academia Vila Boa', aba: 'academia', icone: 'graduation-cap', chaves: 'academia trilha treinamento curso video certificado integracao capacitacao' }
   ]
     .filter(m => bate(m.titulo, m.chaves))
     .map(m => ({ ...m, categoria: 'Página do portal', tipo: 'aba' }));
@@ -2539,7 +2462,7 @@ const resultadosBusca = computed(() => {
     .map(h => ({ titulo: `${h.mes_nome} / ${h.ano}`, categoria: `Holerite · ${h.tipo_folha || 'Folha Mensal'}`, icone: 'document', tipo: 'holerite', holerite: h }));
 
   const cadernosEncontrados = (cadernosBusca.value || [])
-    .filter(c => bate(c.titulo))
+    .filter(c => bate(c.titulo, c.categoria, ...(c.tags || [])))
     .slice(0, 6)
     .map(c => ({ titulo: c.titulo, categoria: 'Caderno (PDF)', icone: 'landmark', tipo: 'caderno', caderno: c }));
 
@@ -2651,6 +2574,8 @@ function voltarParaLogin() {
 watch(usuarioLogado, (u) => definirLogoEmpresa(u));
 
 function fazerLogout() {
+  pendenciasJaExibidas = false;
+  pendenciasModalAberto.value = false;
   localStorage.removeItem('vb_auth_token');
   localStorage.removeItem('vb_aba_ativa');
   window.history.replaceState(null, '', window.location.pathname);

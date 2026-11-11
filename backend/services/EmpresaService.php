@@ -42,6 +42,24 @@ class EmpresaService
         return self::normalizar($colaborador['empresa'] ?? null) ?? (self::listar()[0] ?? '');
     }
 
+    /** Vínculos de uma empresa: colaboradores, cadernos, trilhas e comunicados exclusivos dela. */
+    public static function vinculos(string $nome): array
+    {
+        $conta = fn(string $arquivo) => count(array_filter(self::lerJson($arquivo), fn($x) => is_array($x) && self::normalizarEm($x['empresa'] ?? null, $nome)));
+        return [
+            'colaboradores' => count(array_filter(self::lerJson('colaboradores.json'), fn($c) => self::doColaborador($c) === $nome)),
+            'cadernos' => $conta('cadernos_config.json'),
+            'trilhas' => $conta('academia_trilhas.json'),
+            'comunicados' => $conta('comunicados.json'),
+        ];
+    }
+
+    /** Empresas com logo e contagem de vínculos (tela de cadastro do RH). */
+    public static function listarDetalhado(): array
+    {
+        return array_map(fn($e) => $e + ['vinculos' => self::vinculos($e['nome'])], self::listarComLogo());
+    }
+
     public static function adicionar(string $nome): array
     {
         $nome = trim(preg_replace('/\s+/', ' ', $nome));
@@ -84,6 +102,17 @@ class EmpresaService
         }
         self::gravarJson('cadernos_config.json', $configs);
 
+        // Trilhas da Academia e comunicados também carregam a empresa
+        foreach (['academia_trilhas.json', 'comunicados.json'] as $arq) {
+            if (!file_exists(self::dataDir() . '/' . $arq)) continue;
+            $itens = self::lerJson($arq);
+            foreach ($itens as &$it) {
+                if (is_array($it) && self::normalizarEm($it['empresa'] ?? null, $atual)) $it['empresa'] = $novo;
+            }
+            unset($it);
+            self::gravarJson($arq, $itens);
+        }
+
         return ['sucesso' => true, 'empresas' => $lista];
     }
 
@@ -95,8 +124,10 @@ class EmpresaService
         if (count($lista) === 1) return ['erro' => 'É preciso ter ao menos uma empresa.'];
         $colabs = array_filter(self::lerJson('colaboradores.json'), fn($c) => self::doColaborador($c) === $nome);
         if ($colabs) return ['erro' => 'Há ' . count($colabs) . ' colaborador(es) nesta empresa. Mude a empresa deles antes de remover.'];
-        $cads = array_filter(self::lerJson('cadernos_config.json'), fn($cfg) => self::normalizarEm($cfg['empresa'] ?? null, $nome));
-        if ($cads) return ['erro' => 'Há ' . count($cads) . ' caderno(s) desta empresa. Mude a empresa deles antes de remover.'];
+        $v = self::vinculos($nome);
+        if ($v['cadernos']) return ['erro' => 'Há ' . $v['cadernos'] . ' caderno(s) desta empresa. Mude a empresa deles antes de remover.'];
+        if ($v['trilhas']) return ['erro' => 'Há ' . $v['trilhas'] . ' trilha(s) da Academia desta empresa. Mude a empresa delas antes de remover.'];
+        if ($v['comunicados']) return ['erro' => 'Há ' . $v['comunicados'] . ' comunicado(s) desta empresa. Mude a empresa deles antes de remover.'];
         self::removerLogo($nome);
         $lista = array_values(array_filter($lista, fn($e) => $e !== $nome));
         self::salvar($lista);

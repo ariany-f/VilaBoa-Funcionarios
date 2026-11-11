@@ -80,9 +80,9 @@
                     class="text-[10px] block mt-0.5 font-normal truncate"
                     :class="abaAtiva === modulo.id ? 'text-white/80' : 'text-slate-400'"
                   >
-                    <template v-if="modulo.id === 'cadernos' && progressoCadernos?.total">
-                      <span :class="progressoCadernos.lidos === progressoCadernos.total ? 'text-emerald-600 font-semibold' : ''">
-                        {{ progressoCadernos.lidos === progressoCadernos.total ? '✓ Todos lidos' : progressoCadernos.lidos + ' de ' + progressoCadernos.total + ' lidos' }}
+                    <template v-if="progressoDe(modulo.id)?.total">
+                      <span :class="progressoDe(modulo.id).lidos === progressoDe(modulo.id).total ? 'text-emerald-600 font-semibold' : ''">
+                        {{ progressoDe(modulo.id).lidos === progressoDe(modulo.id).total ? (modulo.id === 'academia' ? '✓ Tudo concluído' : '✓ Todos lidos') : progressoDe(modulo.id).lidos + ' de ' + progressoDe(modulo.id).total + (modulo.id === 'academia' ? ' etapas' : ' lidos') }}
                       </span>
                     </template>
                     <template v-else>{{ modulo.descricao }}</template>
@@ -180,15 +180,24 @@ const props = defineProps({
   progressoCadernos: {
     type: Object,
     default: null
+  },
+  progressoAcademia: {
+    type: Object,
+    default: null
   }
 });
+
+const progressoDe = (id) => (id === 'cadernos' ? props.progressoCadernos : id === 'academia' ? props.progressoAcademia : null);
 
 const emit = defineEmits(['close', 'selecionar', 'logout', 'gerar-pacote', 'abrir-lgpd']);
 
 const todosModulos = [
-  { id: 'holerites', rotulo: 'Holerites & Folha', descricao: 'Demonstrativos de pagamento', icone: 'document' },
+  { id: 'comunicados', rotulo: 'Comunicados', descricao: 'Avisos e campanhas da empresa', icone: 'megaphone' },
+  { id: 'holerites', rotulo: 'Holerites', descricao: 'Demonstrativos de pagamento', icone: 'document' },
   { id: 'ponto', rotulo: 'Espelho de Ponto', descricao: 'Marcações e assinatura do mês', icone: 'calendar' },
-  { id: 'cadernos', rotulo: 'Cadernos', descricao: 'Manuais e programas da empresa', icone: 'landmark' }
+  { id: 'epis', rotulo: 'Ficha de EPI', descricao: 'Entregas e assinatura de EPIs', icone: 'hard-hat' },
+  { id: 'cadernos', rotulo: 'Diretrizes Vila Boa', descricao: 'Regras, direitos, deveres e benefícios', icone: 'landmark' },
+  { id: 'academia', rotulo: 'Academia Vila Boa', descricao: 'Trilhas, vídeos e certificados', icone: 'graduation-cap' }
 ];
 
 // O Painel do RH agora fica separado, em /admin

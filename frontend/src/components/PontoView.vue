@@ -123,10 +123,10 @@
       </div>
     </template>
 
-    <!-- Detalhe do mês (mesmo formato do demonstrativo de pagamento) -->
+    <!-- Detalhe do mês: espelho completo, com todos os dados do relatório de ponto -->
     <Teleport to="body">
       <div v-if="detalheAberto" class="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 bg-slate-900/60 backdrop-blur-sm" @click.self="detalheAberto = false">
-        <div class="w-full max-w-4xl bg-white rounded-t-2xl sm:rounded-2xl shadow-2xl flex flex-col max-h-[94vh] sm:max-h-[90vh] overflow-hidden">
+        <div class="w-full max-w-6xl bg-white rounded-t-2xl sm:rounded-2xl shadow-2xl flex flex-col max-h-[94vh] sm:max-h-[92vh] overflow-hidden">
           <div class="px-5 pt-3 pb-3 border-b border-slate-100 flex items-center justify-between bg-slate-50 shrink-0">
             <div class="flex items-center space-x-3 min-w-0">
               <img :src="logoEmpresa" alt="Logo da empresa" class="h-7 w-auto object-contain" />
@@ -135,18 +135,66 @@
                 <p class="text-[10px] text-slate-500 truncate">{{ espelho?.mes_nome }} · {{ espelho?.assinatura ? 'Assinado em ' + espelho.assinatura.data_hora : 'Falta assinar' }}</p>
               </div>
             </div>
-            <button type="button" @click="detalheAberto = false" class="w-9 h-9 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-500 flex items-center justify-center cursor-pointer border border-slate-200" aria-label="Fechar">
-              <AppIcon name="x" size="14" />
-            </button>
+            <div class="flex items-center gap-2 shrink-0">
+              <button v-if="espelho" type="button" @click="baixarEspelho(espelho)" class="h-9 px-3 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold inline-flex items-center gap-1.5 cursor-pointer border border-slate-200">
+                <AppIcon name="printer" size="14" />
+                <span class="hidden sm:inline">Imprimir / PDF</span>
+              </button>
+              <button type="button" @click="detalheAberto = false" class="w-9 h-9 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-500 flex items-center justify-center cursor-pointer border border-slate-200" aria-label="Fechar">
+                <AppIcon name="x" size="14" />
+              </button>
+            </div>
           </div>
 
           <div v-if="carregandoDetalhe || !espelho" class="py-16 text-center text-sm text-slate-400">Carregando...</div>
           <div v-else class="p-4 sm:p-5 overflow-y-auto space-y-4">
-      <!-- Resumo do mês -->
+            <!-- Identificação (cabeçalho do relatório) -->
+            <div class="rounded-2xl border border-slate-200 p-4 grid grid-cols-2 lg:grid-cols-5 gap-x-4 gap-y-3 text-sm">
+              <div class="col-span-2 lg:col-span-2"><span class="block text-xs text-slate-500">Colaborador</span><strong class="text-slate-900">{{ nomeColab || '-' }}</strong></div>
+              <div><span class="block text-xs text-slate-500">Matrícula</span><strong class="text-slate-900">{{ matriculaColab || '-' }}</strong></div>
+              <div><span class="block text-xs text-slate-500">Função</span><strong class="text-slate-900">{{ espelho.funcao || colaborador?.cargo || '-' }}</strong></div>
+              <div><span class="block text-xs text-slate-500">Admissão</span><strong class="text-slate-900">{{ espelho.admissao || '-' }}</strong></div>
+            </div>
+
+            <!-- Resumo do mês -->
             <div class="grid grid-cols-2 lg:grid-cols-4 gap-3">
               <div v-for="r in resumo" :key="r.rotulo" class="bg-white rounded-2xl border border-slate-200 p-4">
                 <span class="block text-xs text-slate-500">{{ r.rotulo }}</span>
                 <span class="block text-xl font-semibold mt-1 tabular-nums" :class="r.cor">{{ r.valor }}</span>
+              </div>
+            </div>
+
+            <!-- Como ler (explicação didática) -->
+            <details class="rounded-2xl border border-sky-100 bg-sky-50/60 p-4 text-xs text-slate-600">
+              <summary class="cursor-pointer font-semibold text-sky-800 text-sm select-none">Como ler este espelho</summary>
+              <ul class="mt-3 grid sm:grid-cols-2 gap-x-6 gap-y-1.5 list-disc pl-4">
+                <li v-for="l in legenda" :key="l[0]"><strong class="text-slate-800">{{ l[0] }}:</strong> {{ l[1] }}</li>
+              </ul>
+              <p class="mt-3">Encontrou algo diferente do que você trabalhou? Confira cada dia abaixo e fale com o RH <strong>antes de assinar</strong> para contestar.</p>
+            </details>
+
+            <!-- Banco de horas -->
+            <div v-if="banco.atual" class="bg-white rounded-2xl border border-slate-200 p-4 sm:p-6 space-y-3">
+              <h3 class="text-sm font-semibold uppercase tracking-wider text-slate-800 pb-3 border-b border-slate-100">Banco de horas</h3>
+              <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                <div class="rounded-xl bg-slate-50 p-3">
+                  <span class="block text-xs text-slate-500">Saldo anterior</span>
+                  <span class="block text-lg font-semibold tabular-nums mt-0.5" :class="corValor(banco.anterior)">{{ banco.anterior }}</span>
+                  <span class="block text-[11px] text-slate-400 mt-0.5">O que você tinha ao começar o período</span>
+                </div>
+                <div class="rounded-xl bg-slate-50 p-3">
+                  <span class="block text-xs text-slate-500">Saldo do período <span v-if="banco.periodo?.inicio">({{ dataBR(banco.periodo.inicio) }} a {{ dataBR(banco.periodo.fim) }})</span></span>
+                  <span class="flex items-center gap-2 flex-wrap mt-0.5">
+                    <span class="text-lg font-semibold tabular-nums" :class="corValor(banco.periodo?.valor)">{{ banco.periodo?.valor }}</span>
+                    <span v-if="banco.periodo?.situacao" class="text-[10px] font-bold px-2 py-0.5 rounded-full" :class="banco.periodo.situacao === 'A PAGAR' ? 'bg-emerald-100 text-emerald-700' : 'bg-rose-100 text-rose-700'">{{ banco.periodo.situacao }}</span>
+                  </span>
+                  <span class="block text-[11px] text-slate-400 mt-0.5">A pagar: a empresa te deve estas horas · A compensar: horas a repor</span>
+                </div>
+                <div class="rounded-xl bg-slate-900 text-white p-3">
+                  <span class="block text-xs text-white/60">Saldo atual</span>
+                  <span class="block text-lg font-semibold tabular-nums mt-0.5">{{ banco.atual }}</span>
+                  <span class="block text-[11px] text-white/50 mt-0.5">Saldo anterior + saldo do período</span>
+                </div>
               </div>
             </div>
 
@@ -159,57 +207,93 @@
                   Só dias trabalhados
                 </label>
               </div>
+              <div class="flex flex-wrap gap-x-4 gap-y-1 pt-3 text-[11px] text-slate-500">
+                <span class="inline-flex items-center gap-1.5"><i class="w-3 h-3 rounded bg-amber-100 border border-amber-300"></i>Feriado</span>
+                <span class="inline-flex items-center gap-1.5"><i class="w-3 h-3 rounded bg-sky-100 border border-sky-300"></i>Abono / compensação</span>
+                <span class="inline-flex items-center gap-1.5"><i class="w-3 h-3 rounded bg-rose-100 border border-rose-300"></i>Falta</span>
+                <span class="inline-flex items-center gap-1.5"><i class="w-3 h-3 rounded bg-slate-100 border border-slate-300"></i>Folga / descanso</span>
+              </div>
 
-              <!-- Celular: uma linha por dia -->
-              <ul class="md:hidden divide-y divide-slate-100">
-                <li v-for="d in diasVisiveis" :key="d.data" class="py-3 flex items-center gap-3" :class="ehHoje(d) ? 'bg-amber-50/60 -mx-4 px-4' : ''">
-                  <div class="w-12 shrink-0 text-center" :class="trabalhado(d) ? 'text-slate-900' : 'text-slate-400'">
-                    <span class="block text-lg font-semibold leading-none">{{ d.data.slice(8, 10) }}</span>
-                    <span class="block text-[11px] mt-1">{{ d.dia_semana }}</span>
+              <!-- Celular: um cartão por dia, com todos os campos -->
+              <ul class="md:hidden space-y-2 mt-3">
+                <li v-for="d in diasVisiveis" :key="d.data" class="rounded-xl border p-3" :class="[classeDia(d), ehHoje(d) ? 'ring-2 ring-amber-300' : '']">
+                  <div class="flex items-center justify-between gap-2">
+                    <span class="text-sm font-semibold text-slate-900">{{ dataBR(d.data) }} <span class="text-xs font-medium text-slate-500">{{ d.dia_semana }}</span></span>
+                    <span v-if="obsDia(d)" class="text-[11px] font-semibold text-slate-600 text-right">{{ obsDia(d) }}</span>
                   </div>
-                  <div class="flex-1 min-w-0">
-                    <template v-if="trabalhado(d)">
-                      <p class="text-sm text-slate-800 tabular-nums"><span class="text-xs text-slate-400 w-12 inline-block">Manhã</span>{{ d.e1 }} – {{ d.s1 }}</p>
-                      <p class="text-sm text-slate-800 tabular-nums"><span class="text-xs text-slate-400 w-12 inline-block">Tarde</span>{{ d.e2 }} – {{ d.s2 }}</p>
-                      <p class="text-xs text-slate-500 mt-0.5">Trabalhou {{ horasLegiveis(d.total) }}</p>
-                    </template>
-                    <p v-else class="text-sm text-slate-400">{{ d.tipo }}</p>
-                  </div>
-                  <span v-if="trabalhado(d) && d.saldo !== '00:00'" class="shrink-0 text-xs font-semibold px-2 py-1 rounded-lg tabular-nums" :class="corSaldo(d)">
-                    {{ d.saldo }}
-                  </span>
+                  <template v-if="temDados(d)">
+                    <div class="grid grid-cols-3 gap-x-2 gap-y-1.5 mt-2">
+                      <div v-for="m in marcas(d)" :key="m[0]"><span class="block text-[10px] uppercase text-slate-400">{{ m[0] }}</span><span class="block text-sm tabular-nums" :class="m[1] === '--:--' ? 'text-slate-300' : 'text-slate-800'">{{ m[1] }}</span></div>
+                    </div>
+                    <div class="grid grid-cols-3 gap-x-2 gap-y-1.5 mt-2 pt-2 border-t border-slate-200/70">
+                      <div v-for="c in totaisDia(d)" :key="c[0]"><span class="block text-[10px] uppercase text-slate-400">{{ c[0] }}</span><span class="block text-sm tabular-nums" :class="c[2] || (c[1] ? 'text-slate-800' : 'text-slate-300')">{{ c[1] || '–' }}</span></div>
+                    </div>
+                  </template>
                 </li>
               </ul>
 
-              <!-- Computador: tabela -->
-              <table class="hidden md:table w-full text-sm mt-1">
-                <thead>
-                  <tr class="text-[11px] font-semibold uppercase tracking-wider text-slate-400 text-left">
-                    <th class="py-3 px-2">Dia</th>
-                    <th class="py-3 px-2">Manhã</th>
-                    <th class="py-3 px-2">Tarde</th>
-                    <th class="py-3 px-2">Trabalhou</th>
-                    <th class="py-3 px-2">Saldo</th>
-                    <th class="py-3 px-2">Ocorrência</th>
-                  </tr>
-                </thead>
+              <!-- Computador: tabela completa, igual ao relatório -->
+              <div class="hidden md:block overflow-x-auto mt-2">
+                <table class="w-full text-sm">
+                  <thead>
+                    <tr class="text-[10px] font-semibold uppercase tracking-wider text-slate-400 text-left">
+                      <th class="py-3 px-2">Data</th>
+                      <th class="py-3 px-1.5">Ent1</th><th class="py-3 px-1.5">Sai1</th><th class="py-3 px-1.5">Ent2</th><th class="py-3 px-1.5">Sai2</th><th class="py-3 px-1.5">Ent3</th><th class="py-3 px-1.5">Sai3</th>
+                      <th class="py-3 px-1.5">Exec</th><th class="py-3 px-1.5">Ad.Not</th><th class="py-3 px-1.5">Atraso</th><th class="py-3 px-1.5">Falta</th><th class="py-3 px-1.5">Abono</th><th class="py-3 px-1.5">Saldo do dia</th>
+                      <th class="py-3 px-2">Observação</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr v-for="d in diasVisiveis" :key="d.data" class="border-t border-slate-100" :class="[classeDia(d), ehHoje(d) ? 'outline outline-2 outline-amber-300' : '']">
+                      <td class="py-2 px-2 whitespace-nowrap"><span class="font-semibold text-slate-900">{{ dataBR(d.data) }}</span> <span class="text-xs text-slate-500">{{ d.dia_semana }}</span></td>
+                      <td v-for="m in marcas(d)" :key="m[0]" class="py-2 px-1.5 tabular-nums" :class="m[1] === '--:--' ? 'text-slate-300' : 'text-slate-800'">{{ m[1] }}</td>
+                      <td v-for="c in totaisDia(d).slice(0, 5)" :key="c[0]" class="py-2 px-1.5 tabular-nums" :class="c[2] || 'text-slate-800'">{{ c[1] }}</td>
+                      <td class="py-2 px-1.5"><span v-if="trabalhado(d) && d.saldo !== '00:00'" class="text-xs font-semibold px-2 py-0.5 rounded-md tabular-nums" :class="corSaldo(d)">{{ d.saldo }}</span></td>
+                      <td class="py-2 px-2 text-xs font-medium text-slate-600">{{ obsDia(d) }}</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            <!-- Eventos do movimento -->
+            <div class="bg-white rounded-2xl border border-slate-200 p-4 sm:p-6">
+              <h3 class="text-sm font-semibold uppercase tracking-wider text-slate-800 pb-3 border-b border-slate-100">Eventos do movimento no período</h3>
+              <p v-if="!(espelho.eventos || []).length" class="text-xs text-slate-400 pt-3">Nenhum evento no período.</p>
+              <table v-else class="w-full text-sm mt-1">
+                <thead><tr class="text-[10px] font-semibold uppercase tracking-wider text-slate-400 text-left"><th class="py-3 px-2">Código</th><th class="py-3 px-2">Descrição</th><th class="py-3 px-2 text-right">Horas</th></tr></thead>
                 <tbody class="divide-y divide-slate-100">
-                  <tr v-for="d in diasVisiveis" :key="d.data" :class="[trabalhado(d) ? 'text-slate-700' : 'text-slate-400 bg-slate-50/60', ehHoje(d) ? 'bg-amber-50' : '']">
-                    <td class="py-2.5 px-2 whitespace-nowrap">
-                      <span class="font-semibold" :class="trabalhado(d) ? 'text-slate-900' : ''">{{ formatarData(d.data) }}</span>
-                      <span class="text-xs ml-1.5">{{ d.dia_semana }}</span>
-                    </td>
-                    <td class="py-2.5 px-2 tabular-nums">{{ trabalhado(d) ? d.e1 + ' – ' + d.s1 : '' }}</td>
-                    <td class="py-2.5 px-2 tabular-nums">{{ trabalhado(d) ? d.e2 + ' – ' + d.s2 : '' }}</td>
-                    <td class="py-2.5 px-2 tabular-nums">{{ trabalhado(d) ? horasLegiveis(d.total) : '' }}</td>
-                    <td class="py-2.5 px-2">
-                      <span v-if="trabalhado(d) && d.saldo !== '00:00'" class="text-xs font-semibold px-2 py-0.5 rounded-md tabular-nums" :class="corSaldo(d)">{{ d.saldo }}</span>
-                    </td>
-                    <td class="py-2.5 px-2 text-xs">{{ trabalhado(d) ? '' : d.tipo }}</td>
-                  </tr>
+                  <tr v-for="ev in espelho.eventos" :key="ev.codigo"><td class="py-2 px-2 tabular-nums">{{ ev.codigo }}</td><td class="py-2 px-2">{{ ev.descricao }}</td><td class="py-2 px-2 text-right tabular-nums font-semibold">{{ ev.horas }}</td></tr>
                 </tbody>
               </table>
             </div>
+
+            <!-- Dias ponte -->
+            <div class="bg-white rounded-2xl border border-slate-200 p-4 sm:p-6">
+              <h3 class="text-sm font-semibold uppercase tracking-wider text-slate-800 pb-3 border-b border-slate-100">Dias ponte</h3>
+              <p class="text-[11px] text-slate-400 pt-2">Dia emendado em feriado ou folga: as horas do período são incrementadas (+) ou decrementadas (−) do seu banco.</p>
+              <p v-if="!(espelho.pontes || []).length" class="text-xs text-slate-400 pt-2">Nenhum dia ponte no período.</p>
+              <div v-else class="overflow-x-auto">
+                <table class="w-full text-sm mt-1">
+                  <thead><tr class="text-[10px] font-semibold uppercase tracking-wider text-slate-400 text-left"><th class="py-3 px-2">Data do dia ponte</th><th class="py-3 px-2">Início</th><th class="py-3 px-2">Fim</th><th class="py-3 px-2 text-right">Horas a incrementar/decrementar</th></tr></thead>
+                  <tbody class="divide-y divide-slate-100">
+                    <tr v-for="p in espelho.pontes" :key="p.data"><td class="py-2 px-2 tabular-nums">{{ dataBR(p.data) }}</td><td class="py-2 px-2 tabular-nums">{{ dataBR(p.inicio) }}</td><td class="py-2 px-2 tabular-nums">{{ dataBR(p.fim) }}</td><td class="py-2 px-2 text-right tabular-nums font-semibold" :class="corValor(p.horas)">{{ p.horas }}</td></tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            <!-- Horário no período -->
+            <div class="bg-white rounded-2xl border border-slate-200 p-4 sm:p-6">
+              <h3 class="text-sm font-semibold uppercase tracking-wider text-slate-800 pb-3 border-b border-slate-100">Horário no período</h3>
+              <p v-if="!(espelho.horario || []).length" class="text-xs text-slate-400 pt-3">Horário não informado.</p>
+              <ul v-else class="pt-3 space-y-1 text-sm text-slate-700">
+                <li v-for="h in espelho.horario" :key="h.codigo" class="tabular-nums"><strong>{{ h.codigo }}</strong> {{ h.descricao }}</li>
+              </ul>
+            </div>
+
+            <!-- Assinatura eletrônica -->
+            <p v-if="espelho.assinatura" class="text-[11px] text-slate-500 break-all">Assinado eletronicamente em {{ espelho.assinatura.data_hora }} · Código de autenticidade {{ espelho.assinatura.hash_autenticidade }}</p>
           </div>
 
           <!-- Ações, como no rodapé do demonstrativo -->
@@ -255,36 +339,6 @@ usarFecharComEsc(() => { detalheAberto.value = false; }, detalheAberto);
 const competencias = ref([]);
 const somenteTrabalhados = ref(false);
 
-// Abre o espelho formatado para imprimir ou salvar em PDF (opção "Salvar como PDF" do celular/navegador)
-function baixarEspelho(e, janelaAberta = null) {
-  const nome = props.colaborador?.nome || '';
-  const matricula = props.colaborador?.matricula || props.matricula || '';
-  const linhas = e.dias.map((d) => trabalhado(d)
-    ? `<tr><td>${formatarData(d.data)} ${d.dia_semana}</td><td>${d.e1} – ${d.s1}</td><td>${d.e2} – ${d.s2}</td><td>${horasLegiveis(d.total)}</td><td>${d.saldo}</td><td></td></tr>`
-    : `<tr class="folga"><td>${formatarData(d.data)} ${d.dia_semana}</td><td></td><td></td><td></td><td></td><td>${d.tipo}</td></tr>`
-  ).join('');
-  const resumoHtml = resumoDe(e).map((r) => `<div><span>${r.rotulo}</span><strong>${r.valor}</strong></div>`).join('');
-  const assinatura = e.assinatura
-    ? `Assinado eletronicamente em ${e.assinatura.data_hora} · Código de autenticidade ${e.assinatura.hash_autenticidade}`
-    : 'Espelho ainda não assinado pelo colaborador.';
-  const html = `<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><title>Espelho de ponto ${e.mes_nome}</title>
-<style>
-  body{font-family:Arial,sans-serif;color:#141414;margin:32px;font-size:12px}
-  h1{font-size:18px;margin:0}.topo{border-bottom:3px solid #9c2337;padding-bottom:10px;margin-bottom:14px;display:flex;justify-content:space-between;align-items:flex-end}
-  .resumo{display:flex;gap:10px;margin:14px 0}.resumo div{flex:1;border:1px solid #ddd;border-radius:8px;padding:8px}.resumo span{display:block;color:#666;font-size:10px}.resumo strong{font-size:15px}
-  table{width:100%;border-collapse:collapse}th,td{text-align:left;padding:5px 6px;border-bottom:1px solid #eee}th{font-size:10px;text-transform:uppercase;color:#666}
-  tr.folga td{color:#999;background:#fafafa}.ass{margin-top:18px;font-size:10px;color:#444}
-</style></head><body>
-<div class="topo"><div><h1>Espelho de Ponto · ${e.mes_nome}</h1><div>${nome} ${matricula ? '· Matrícula ' + matricula : ''}</div></div><div>Vila Boa Construções e Serviços</div></div>
-<div class="resumo">${resumoHtml}</div>
-<table><thead><tr><th>Dia</th><th>Manhã</th><th>Tarde</th><th>Trabalhou</th><th>Saldo</th><th>Ocorrência</th></tr></thead><tbody>${linhas}</tbody></table>
-<p class="ass">${assinatura}</p>
-<script>window.onload=()=>{window.print();}<\/script></body></html>`;
-  const janela = janelaAberta || window.open('', '_blank');
-  if (!janela) return;
-  janela.document.write(html);
-  janela.document.close();
-}
 
 // Envia um resumo do mês para o WhatsApp do colaborador, com o link para abrir no portal
 function enviarWhatsapp(e, janelaAberta = null) {
@@ -301,6 +355,113 @@ function enviarWhatsapp(e, janelaAberta = null) {
   const url = `https://api.whatsapp.com/send?${destino}text=${encodeURIComponent(texto)}`;
   if (janelaAberta) janelaAberta.location.href = url;
   else window.open(url, '_blank');
+}
+
+const nomeColab = computed(() => props.colaborador?.nome || '');
+const matriculaColab = computed(() => props.colaborador?.matricula || props.matricula || '');
+
+const SEM = '--:--';
+const dataBR = (iso) => (iso ? iso.split('-').reverse().join('/') : '');
+const corValor = (v) => (String(v || '').startsWith('-') ? 'text-rose-700' : 'text-emerald-700');
+const execDe = (d) => d.exec || (trabalhado(d) ? d.total : '');
+
+// Seis marcações do dia (Ent1 ... Sai3)
+const marcas = (d) => [['Ent1', d.e1 || SEM], ['Sai1', d.s1 || SEM], ['Ent2', d.e2 || SEM], ['Sai2', d.s2 || SEM], ['Ent3', d.e3 || SEM], ['Sai3', d.s3 || SEM]];
+// Exec, Ad.Not, Atraso, Falta, Abono (+ saldo do dia): [rótulo, valor, classe de cor]
+const totaisDia = (d) => [
+  ['Exec', execDe(d), ''],
+  ['Ad.Not', d.ad_not || '', ''],
+  ['Atraso', d.atraso || '', 'text-amber-700 font-semibold'],
+  ['Falta', d.falta || '', 'text-rose-700 font-semibold'],
+  ['Abono', d.abono || '', 'text-sky-700 font-semibold'],
+  ['Saldo', trabalhado(d) && d.saldo !== '00:00' ? d.saldo : '', d.saldo?.startsWith('-') ? 'text-rose-700 font-semibold' : 'text-emerald-700 font-semibold']
+];
+const temDados = (d) => marcas(d).some((m) => m[1] !== SEM) || totaisDia(d).some((c) => c[1]);
+// Texto de feriado (ex.: "N. Sª Aparecida") e ocorrência do dia
+function obsDia(d) {
+  const tipo = d.tipo || '';
+  const partes = [];
+  if (!/^Trabalhado( \(Hoje\))?$/.test(tipo)) partes.push(tipo);
+  if (d.feriado && !tipo.includes(d.feriado)) partes.push(d.feriado);
+  return partes.join(' · ');
+}
+function classeDia(d) {
+  if (d.falta) return 'bg-rose-50 border-rose-200';
+  if (d.feriado || (d.tipo || '').startsWith('Feriado')) return 'bg-amber-50 border-amber-200';
+  if (d.abono || (d.tipo || '').startsWith('Folga Compens')) return 'bg-sky-50 border-sky-200';
+  if (!trabalhado(d)) return 'bg-slate-50 border-slate-200 text-slate-500';
+  return 'bg-white border-slate-200';
+}
+
+const legenda = [
+  ['Ent1 / Sai1 · Ent2 / Sai2 · Ent3 / Sai3', 'horários de entrada e saída que o relógio registrou'],
+  ['Exec', 'horas realmente trabalhadas no dia'],
+  ['Ad.Not', 'horas de adicional noturno'],
+  ['Atraso', 'tempo que faltou para completar a jornada'],
+  ['Falta', 'dia (ou horas) sem trabalho e sem justificativa'],
+  ['Abono', 'horas justificadas (atestado, compensação, folga concedida)'],
+  ['Saldo do dia', 'diferença entre o que você trabalhou e a jornada de 8h'],
+  ['A pagar / A compensar', 'a pagar = a empresa te deve horas; a compensar = horas a repor']
+];
+
+const banco = computed(() => {
+  const b = espelho.value?.banco_horas || {};
+  return { anterior: b.saldo_anterior || '', periodo: b.saldo_periodo || null, atual: b.saldo_atual || b.saldo_total || '' };
+});
+
+// Abre o espelho completo formatado para imprimir ou salvar em PDF
+function baixarEspelho(e, janelaAberta = null) {
+  const esc = (v) => String(v ?? '').replace(/[&<>]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[c]));
+  const nome = nomeColab.value;
+  const matricula = matriculaColab.value;
+  const b = e.banco_horas || {};
+  const per = b.saldo_periodo;
+  const linhas = e.dias.map((d) => {
+    const cls = d.falta ? 'falta' : (d.feriado || (d.tipo || '').startsWith('Feriado')) ? 'feriado' : (d.abono || (d.tipo || '').startsWith('Folga Compens')) ? 'abono' : !trabalhado(d) ? 'folga' : '';
+    const cel = [...marcas(d).map((m) => m[1]), ...totaisDia(d).map((c) => c[1])];
+    return `<tr class="${cls}"><td class="nw">${dataBR(d.data)} ${esc(d.dia_semana)}</td>${cel.map((v) => `<td>${esc(v)}</td>`).join('')}<td>${esc(obsDia(d))}</td></tr>`;
+  }).join('');
+  const resumoHtml = resumoDe(e).map((r) => `<div><span>${esc(r.rotulo)}</span><strong>${esc(r.valor)}</strong></div>`).join('');
+  const eventos = (e.eventos || []).map((v) => `<tr><td>${esc(v.codigo)}</td><td>${esc(v.descricao)}</td><td class="r">${esc(v.horas)}</td></tr>`).join('') || '<tr><td colspan="3">Nenhum evento no período.</td></tr>';
+  const pontes = (e.pontes || []).map((p) => `<tr><td>${dataBR(p.data)}</td><td>${dataBR(p.inicio)}</td><td>${dataBR(p.fim)}</td><td class="r">${esc(p.horas)}</td></tr>`).join('') || '<tr><td colspan="4">Nenhum dia ponte no período.</td></tr>';
+  const horario = (e.horario || []).map((h) => `<div><strong>${esc(h.codigo)}</strong> ${esc(h.descricao)}</div>`).join('') || '<div>Horário não informado.</div>';
+  const assinatura = e.assinatura
+    ? `Assinado eletronicamente em ${esc(e.assinatura.data_hora)} · Código de autenticidade ${esc(e.assinatura.hash_autenticidade)}`
+    : 'Espelho ainda não assinado pelo colaborador.';
+  const html = `<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><title>Espelho de ponto ${esc(e.mes_nome)}</title>
+<style>
+  @page{size:A4 landscape;margin:12mm}
+  body{font-family:Arial,sans-serif;color:#141414;margin:0;font-size:11px}
+  h1{font-size:17px;margin:0}h2{font-size:12px;margin:16px 0 6px;text-transform:uppercase;letter-spacing:.04em}
+  .topo{border-bottom:3px solid #9c2337;padding-bottom:8px;margin-bottom:10px;display:flex;justify-content:space-between;align-items:flex-end}
+  .id{display:flex;gap:24px;flex-wrap:wrap;margin-bottom:8px}.id span{color:#666;font-size:10px;display:block}
+  .resumo{display:flex;gap:8px;margin:8px 0}.resumo div{flex:1;border:1px solid #ddd;border-radius:6px;padding:6px}.resumo span{display:block;color:#666;font-size:10px}.resumo strong{font-size:14px}
+  table{width:100%;border-collapse:collapse}th,td{text-align:left;padding:3px 5px;border-bottom:1px solid #e5e5e5}th{font-size:9px;text-transform:uppercase;color:#666;border-bottom:1px solid #999}
+  td.r{text-align:right}td.nw{white-space:nowrap}
+  tr.folga td{color:#888;background:#f6f6f6}tr.feriado td{background:#fff4d6}tr.abono td{background:#e3f2fb}tr.falta td{background:#fde4e4}
+  .banco{display:flex;gap:8px}.banco div{flex:1;border:1px solid #ddd;border-radius:6px;padding:6px}.banco span{display:block;color:#666;font-size:10px}.banco strong{font-size:14px}
+  .leg{color:#555;font-size:9.5px;margin-top:6px}.ass{margin-top:14px;font-size:10px;color:#444;word-break:break-all}
+  .bloco{break-inside:avoid}tr{break-inside:avoid}thead{display:table-header-group}
+  *{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+</style></head><body>
+<div class="topo"><div><h1>Espelho de Ponto · ${esc(e.mes_nome)}</h1></div><div>${esc(e.empresa || 'Vila Boa Construções e Serviços')}</div></div>
+<div class="id"><div><span>Colaborador</span><strong>${esc(nome)}</strong></div><div><span>Matrícula</span><strong>${esc(matricula)}</strong></div><div><span>Função</span><strong>${esc(e.funcao || props.colaborador?.cargo || '')}</strong></div><div><span>Admissão</span><strong>${esc(e.admissao || '')}</strong></div></div>
+<div class="resumo">${resumoHtml}</div>
+<table><thead><tr><th>Data</th><th>Ent1</th><th>Sai1</th><th>Ent2</th><th>Sai2</th><th>Ent3</th><th>Sai3</th><th>Exec</th><th>Ad.Not</th><th>Atraso</th><th>Falta</th><th>Abono</th><th>Saldo do dia</th><th>Observação</th></tr></thead><tbody>${linhas}</tbody></table>
+<div class="leg">Exec: horas trabalhadas · Ad.Not: adicional noturno · Atraso: falta para completar a jornada · Falta: ausência sem justificativa · Abono: horas justificadas · Saldo do dia: diferença para a jornada de 8h.</div>
+<div class="bloco"><h2>Banco de horas</h2><div class="banco">
+<div><span>Saldo anterior</span><strong>${esc(b.saldo_anterior || '-')}</strong></div>
+<div><span>Saldo do período${per ? ` (${dataBR(per.inicio)} a ${dataBR(per.fim)})` : ''}</span><strong>${esc(per?.valor || b.horas_mes_atual || '-')} ${esc(per?.situacao || '')}</strong></div>
+<div><span>Saldo atual</span><strong>${esc(b.saldo_atual || b.saldo_total || '-')}</strong></div></div></div>
+<div class="bloco"><h2>Eventos do movimento no período</h2><table><thead><tr><th>Código</th><th>Descrição</th><th class="r">Horas</th></tr></thead><tbody>${eventos}</tbody></table></div>
+<div class="bloco"><h2>Dias ponte</h2><table><thead><tr><th>Data do dia ponte</th><th>Início</th><th>Fim</th><th class="r">Horas a incrementar/decrementar</th></tr></thead><tbody>${pontes}</tbody></table></div>
+<div class="bloco"><h2>Horário no período</h2>${horario}</div>
+<p class="ass">${assinatura}</p>
+<script>window.onload=()=>{window.print();}<\/script></body></html>`;
+  const janela = janelaAberta || window.open('', '_blank');
+  if (!janela) return;
+  janela.document.write(html);
+  janela.document.close();
 }
 
 const trabalhado = (d) => d.tipo.startsWith('Trabalhado');

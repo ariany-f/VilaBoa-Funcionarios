@@ -1,4 +1,5 @@
 <template>
+  <Teleport to="body">
   <div v-if="holerite" class="holerite-print-root fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 bg-slate-900/60 backdrop-blur-sm transition-all duration-300">
     <div 
       class="holerite-print-card bg-white w-full max-w-xl md:max-w-2xl lg:max-w-3xl max-h-[94vh] sm:max-h-[90vh] rounded-t-3xl sm:rounded-2xl shadow-2xl flex flex-col overflow-hidden animate-slide-up border border-slate-200"
@@ -259,6 +260,64 @@
           </div>
         </div>
 
+        <!-- Comunicado de desconto parcial ou não realizado em folha (aparece também na impressão/PDF) -->
+        <div
+          v-if="descontoParcial"
+          class="comunicado-desconto bg-amber-50 border border-amber-300 rounded-xl p-3.5 text-[11px] text-amber-950 space-y-3"
+        >
+          <div class="flex items-start gap-2">
+            <AppIcon name="info" size="15" class="text-amber-700 shrink-0 mt-0.5 no-print" />
+            <h4 class="font-bold uppercase tracking-tight text-[11px] sm:text-xs">
+              Comunicado de desconto parcial ou não realizado em folha
+            </h4>
+          </div>
+
+          <p class="leading-relaxed">
+            Informamos que, na competência <strong>{{ descontoParcial.competencia || holerite.competencia }}</strong>, não foi possível realizar integralmente o desconto em folha das parcelas dos empréstimos do Crédito do Trabalhador relacionados abaixo, em razão de saldo insuficiente.
+          </p>
+
+          <div>
+            <p class="font-bold uppercase text-[10px] mb-1">Detalhamento dos empréstimos</p>
+            <div class="border border-amber-300 rounded-lg overflow-hidden bg-white">
+              <div class="grid grid-cols-5 gap-1 px-2 py-1.5 bg-amber-100 text-[9px] sm:text-[10px] font-bold uppercase border-b border-amber-300">
+                <span>Instituição</span>
+                <span>Contrato</span>
+                <span class="text-right">R$ Previsto</span>
+                <span class="text-right">R$ Descontado</span>
+                <span class="text-right">R$ Não Descontado</span>
+              </div>
+              <div
+                v-for="(emp, i) in descontoParcial.emprestimos"
+                :key="i"
+                class="grid grid-cols-5 gap-1 px-2 py-1.5 text-[10px] sm:text-[11px] border-b border-amber-100 last:border-b-0"
+              >
+                <span class="font-mono">{{ emp.instituicao }}</span>
+                <span class="font-mono break-all">{{ emp.contrato }}</span>
+                <span class="text-right font-mono">{{ moeda(emp.previsto) }}</span>
+                <span class="text-right font-mono">{{ moeda(emp.descontado) }}</span>
+                <span class="text-right font-mono font-bold text-rose-700">{{ moeda(emp.nao_descontado) }}</span>
+              </div>
+            </div>
+          </div>
+
+          <div>
+            <p class="font-bold uppercase text-[10px] mb-1">Orientações</p>
+            <ul class="list-disc pl-4 space-y-0.5 leading-relaxed">
+              <li>Entre em contato com a instituição financeira responsável pelo empréstimo para regularizar o valor não descontado.</li>
+              <li>O Departamento Pessoal permanece à disposição para esclarecimentos.</li>
+            </ul>
+          </div>
+
+          <div>
+            <p class="font-bold uppercase text-[10px] mb-1">Ciência do funcionário</p>
+            <p class="leading-relaxed">Declaro estar ciente das informações acima.</p>
+            <div class="grid grid-cols-2 gap-6 pt-5 text-[10px] text-amber-900">
+              <div class="border-t border-amber-700 pt-0.5">Assinatura do funcionário</div>
+              <div class="border-t border-amber-700 pt-0.5">Data</div>
+            </div>
+          </div>
+        </div>
+
         <!-- Bloco Institucional de Validação por QR Code (Autenticidade para Bancos / Terceiros) -->
         <div class="p-3 bg-slate-50 border border-slate-200 rounded-2xl flex items-center gap-3">
           <div v-if="qrCodeDataUrl" class="shrink-0 bg-white p-1 rounded-xl border border-slate-200 shadow-2xs">
@@ -370,6 +429,7 @@
       </div>
     </div>
   </div>
+  </Teleport>
 </template>
 
 <script setup>
@@ -506,6 +566,12 @@ function getRubricaBadgeTexto(tipo) {
   }
 }
 
+// Só exibe o comunicado quando o holerite trouxer empréstimos com desconto parcial
+const descontoParcial = computed(() => {
+  const d = props.holerite?.desconto_parcial;
+  return d && Array.isArray(d.emprestimos) && d.emprestimos.length ? d : null;
+});
+
 const badgeTipoFolhaClasse = computed(() => {
   const codigo = props.holerite?.tipo_folha_codigo || '';
   const tipo = (props.holerite?.tipo_folha || '').toLowerCase();
@@ -543,7 +609,14 @@ function compartilharNoWhatsapp() {
   window.open(`https://api.whatsapp.com/send?text=${texto}`, '_blank');
 }
 
+// Imprime só o holerite: o resto do portal (#app) sai do layout durante a impressão
 function imprimir() {
+  document.body.classList.add('imprimindo-holerite');
+  const limpar = () => {
+    document.body.classList.remove('imprimindo-holerite');
+    window.removeEventListener('afterprint', limpar);
+  };
+  window.addEventListener('afterprint', limpar);
   window.print();
 }
 </script>
@@ -599,6 +672,11 @@ function imprimir() {
   .no-print {
     display: none !important;
   }
+  .comunicado-desconto {
+    break-inside: avoid;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
   /* Modal fixo se repete/desloca na impressão: vira bloco comum */
   .holerite-print-root,
   .holerite-print-card {
@@ -613,5 +691,13 @@ function imprimir() {
     box-shadow: none !important;
     border: 0 !important;
   }
+}
+</style>
+
+<style>
+/* Sem escopo: o modal vai para o <body> (Teleport) e o portal atrás não pode ocupar páginas na impressão */
+@media print {
+  body.imprimindo-holerite > #app { display: none !important; }
+  body.imprimindo-holerite { background: #fff !important; overflow: visible !important; height: auto !important; }
 }
 </style>

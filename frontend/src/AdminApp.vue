@@ -9,22 +9,21 @@
     <!-- Mesmo layout do login do colaborador; o lado institucional em vinho marca a área do RH -->
     <div v-else-if="!usuario" class="min-h-[100dvh] flex items-stretch sm:items-center justify-center sm:p-6 lg:p-8 bg-white sm:bg-slate-100">
       <div class="w-full sm:max-w-xl lg:max-w-5xl bg-white sm:rounded-2xl lg:rounded-3xl sm:shadow-2xl overflow-hidden flex flex-col lg:flex-row sm:border border-slate-200">
-        <div class="lg:w-1/2 bg-[#9c2337] text-white p-6 pt-[calc(1.5rem+env(safe-area-inset-top,0px))] sm:p-8 lg:p-12 flex flex-col justify-between">
-          <div class="space-y-5">
-            <div class="flex items-center justify-between gap-3">
-              <div class="inline-flex items-center bg-white/10 px-4 py-2.5 rounded-2xl border border-white/20">
-                <img src="/img/logo-vilaboa-white.png" alt="Vila Boa Construções e Serviços" class="h-8 sm:h-9 w-auto object-contain" />
-              </div>
-              <span class="inline-flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider bg-white text-[#9c2337] px-3 py-1.5 rounded-full whitespace-nowrap shrink-0">
-                <AppIcon name="shield-check" size="12" />
-                Área restrita · RH
-              </span>
-            </div>
-            <div class="pt-1">
-              <h1 class="text-2xl sm:text-3xl lg:text-4xl font-semibold leading-tight tracking-tight">Painel do RH</h1>
+        <!-- Lado institucional: foto dos hexágonos (public/img/login-rh.jpg), sem logo, texto escuro sobre fundo claro -->
+        <div
+          class="lg:w-1/2 min-h-[260px] lg:min-h-[560px] bg-[#f1efee] bg-cover bg-bottom text-slate-900 p-6 pt-[calc(1.5rem+env(safe-area-inset-top,0px))] sm:p-8 lg:p-12 flex flex-col justify-between"
+          :style="{ backgroundImage: `url(${imagemLoginRh})` }"
+        >
+          <div class="space-y-6">
+            <span class="inline-flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider border border-[#9c2337] text-[#9c2337] px-3 py-1.5 rounded-full whitespace-nowrap">
+              <AppIcon name="shield-check" size="12" />
+              Área restrita · RH
+            </span>
+            <div class="space-y-2">
+              <h1 class="text-3xl sm:text-4xl lg:text-5xl font-semibold leading-tight tracking-tight">Painel do RH</h1>
+              <p class="text-sm sm:text-base text-slate-500">Acesso exclusivo da equipe de Recursos Humanos</p>
             </div>
           </div>
-          <div class="hidden lg:block pt-6 text-[11px] text-white/60 font-medium">Acesso exclusivo da equipe de Recursos Humanos</div>
         </div>
 
         <form class="lg:w-1/2 p-6 sm:p-8 lg:p-10 space-y-5 bg-white" @submit.prevent="entrar">
@@ -263,6 +262,7 @@ import ResumoColaboradorModal from './components/ResumoColaboradorModal.vue';
 import { pode } from './utils/permissoes.js';
 import { tokenAdmin, CHAVE_TOKEN_ADMIN } from './utils/sessaoAdmin.js';
 
+const imagemLoginRh = `${window.location.pathname.replace(/admin\/?$/, '')}img/login-rh.jpg`;
 const verificando = ref(true);
 const usuario = ref(null);
 const email = ref('');
@@ -270,7 +270,7 @@ const senha = ref('');
 const erro = ref('');
 const entrando = ref(false);
 // Cada seção do painel tem sua rota: /admin#/acompanhamento, #/cadernos, #/ponto, #/holerites
-const SECOES_VALIDAS = ['acompanhamento', 'cadernos', 'ponto', 'holerites'];
+const SECOES_VALIDAS = ['acompanhamento', 'comunicados', 'academia', 'cadernos', 'empresas', 'ponto', 'holerites'];
 const secaoDaUrl = () => {
   const h = window.location.hash.replace(/^#\/?/, '').split('?')[0];
   return SECOES_VALIDAS.includes(h) ? h : '';
@@ -308,7 +308,9 @@ const urlPortal = window.location.pathname.replace(/admin\/?$/, '');
 
 const secoes = computed(() => [
   { id: 'acompanhamento', rotulo: 'Acompanhamento', rotuloCurto: 'Início', icone: 'shield-check', tela: 'rh_acompanhamento' },
-  { id: 'cadernos', rotulo: 'Cadernos', icone: 'landmark', tela: 'rh_cadernos' },
+  { id: 'comunicados', rotulo: 'Comunicados', icone: 'megaphone', tela: 'rh_cadernos' },
+  { id: 'academia', rotulo: 'Academia Vila Boa', rotuloCurto: 'Academia', icone: 'graduation-cap', tela: 'rh_cadernos' },
+  { id: 'cadernos', rotulo: 'Diretrizes e treinamentos', rotuloCurto: 'Diretrizes', icone: 'landmark', tela: 'rh_cadernos' },
   { id: 'empresas', rotulo: 'Empresas', icone: 'hard-hat', tela: 'rh_cadernos' },
   { id: 'ponto', rotulo: 'Espelho de ponto', rotuloCurto: 'Ponto', icone: 'calendar', tela: 'rh_ponto' },
   { id: 'holerites', rotulo: 'Holerites', icone: 'document', tela: 'rh_holerites' }

@@ -27,6 +27,7 @@ class CadernosController
     /**
      * Configuração de cada caderno (definida pelo RH):
      *  categoria   - agrupamento exibido ao colaborador
+     *  tipo        - 'politica' (padrão) ou 'treinamento' (com certificado ao concluir)
      *  obrigatorio - leitura obrigatória para o público ou apenas opcional
      *  publico     - 'todos' | 'departamentos' | 'colaboradores', com a lista em 'valores'
      *  empresa     - 'todas' (global) | nome de uma empresa do cadastro (combina com o público)
@@ -35,7 +36,7 @@ class CadernosController
     {
         $todas = $this->lerJson($this->configFile);
         return array_merge(
-            ['titulo' => '', 'categoria' => 'Outros', 'obrigatorio' => false, 'publico' => 'todos', 'valores' => [], 'empresa' => 'todas'],
+            ['titulo' => '', 'categoria' => 'Outros', 'obrigatorio' => false, 'publico' => 'todos', 'valores' => [], 'empresa' => 'todas', 'tipo' => 'politica', 'carga_horaria' => '', 'prazo' => '', 'tags' => []],
             $todas[$arquivo] ?? []
         );
     }
@@ -51,6 +52,15 @@ class CadernosController
             'titulo' => mb_substr($titulo, 0, 120),
             'categoria' => in_array($dados['categoria'] ?? '', $this->categorias(), true) ? $dados['categoria'] : 'Outros',
             'obrigatorio' => !empty($dados['obrigatorio']),
+            // 'politica' (política interna) ou 'treinamento' (emite certificado ao concluir a leitura)
+            'tipo' => ($dados['tipo'] ?? '') === 'treinamento' ? 'treinamento' : 'politica',
+            'carga_horaria' => mb_substr(trim((string)($dados['carga_horaria'] ?? '')), 0, 20),
+            // Prazo opcional (AAAA-MM-DD). Quem não envia o campo mantém o prazo já salvo; vazio remove.
+            'prazo' => (function ($p) {
+                return preg_match('/^\d{4}-\d{2}-\d{2}$/', (string)$p) ? $p : '';
+            })(array_key_exists('prazo', $dados) ? $dados['prazo'] : ($this->lerJson($this->configFile)[basename($arquivo)]['prazo'] ?? '')),
+            // Palavras-chave para a busca do portal (até 12, em minúsculas)
+            'tags' => $this->normalizarTags($dados['tags'] ?? []),
             'publico' => $publico,
             'empresa' => EmpresaService::normalizar($dados['empresa'] ?? null) ?? 'todas',
             'valores' => $publico === 'todos' ? [] : array_values(array_filter(array_map('strval', (array)($dados['valores'] ?? []))))
@@ -59,6 +69,17 @@ class CadernosController
         $todas[basename($arquivo)] = $config;
         file_put_contents($this->configFile, json_encode($todas, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE), LOCK_EX);
         return $config;
+    }
+
+    /** Tags: sem espaços sobrando, minúsculas, sem repetir; no máximo 12 de até 30 caracteres. */
+    private function normalizarTags($tags): array
+    {
+        $limpas = [];
+        foreach ((array)$tags as $t) {
+            $t = mb_substr(mb_strtolower(trim(preg_replace('/\s+/', ' ', ltrim((string)$t, '#')))), 0, 30);
+            if ($t !== '' && !in_array($t, $limpas, true)) $limpas[] = $t;
+        }
+        return array_slice($limpas, 0, 12);
     }
 
     public function categorias(): array

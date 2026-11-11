@@ -7,6 +7,11 @@ export function baseDoPortal() {
   return pasta;
 }
 
+// Capa de uma trilha da Academia (t.capa é a versão; sem capa = null)
+export function urlCapaTrilha(t) {
+  return t?.capa ? `${baseDoPortal()}api/academia/capa?id=${encodeURIComponent(t.id)}&v=${t.capa}` : null;
+}
+
 export function urlCapa(cad) {
   return cad?.capa ? `${baseDoPortal()}api/cadernos/capa?nome=${encodeURIComponent(cad.arquivo)}&v=${cad.capa}` : null;
 }

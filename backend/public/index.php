@@ -53,6 +53,8 @@ require_once __DIR__ . '/../services/EmpresaService.php';
 require_once __DIR__ . '/../controllers/FeriasController.php';
 require_once __DIR__ . '/../controllers/ChamadosController.php';
 require_once __DIR__ . '/../controllers/CadernosController.php';
+require_once __DIR__ . '/../controllers/ComunicadosController.php';
+require_once __DIR__ . '/../controllers/AcademiaController.php';
 require_once __DIR__ . '/../controllers/PontoController.php';
 require_once __DIR__ . '/../controllers/RhController.php';
 
@@ -66,6 +68,8 @@ use App\Services\EmpresaService;
 use App\Controllers\FeriasController;
 use App\Controllers\ChamadosController;
 use App\Controllers\CadernosController;
+use App\Controllers\ComunicadosController;
+use App\Controllers\AcademiaController;
 use App\Controllers\PontoController;
 use App\Controllers\RhController;
 
@@ -77,8 +81,10 @@ $whatsAppService = new WhatsAppNotificationService();
 $feriasController = new FeriasController();
 $chamadosController = new ChamadosController();
 $cadernosController = new CadernosController();
+$comunicadosController = new ComunicadosController();
+$academiaController = new AcademiaController($cadernosController);
 $pontoController = new PontoController();
-$rhController = new RhController($colaboradorService, $holeriteService, $pontoController, $cadernosController);
+$rhController = new RhController($colaboradorService, $holeriteService, $pontoController, $cadernosController, $academiaController, $epiService, $comunicadosController);
 
 $tentativasSegurancaFile = dirname(__DIR__) . '/data/tentativas_seguranca.json';
 
@@ -270,6 +276,18 @@ if ($method === 'GET' && ($route === '/' || $route === '/colaboradores-demo')) {
         'versao' => '1.0.0',
         'colaboradores_para_teste' => $demoList
     ], JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE);
+    exit;
+}
+
+// 1.2. Validador público do certificado da Academia Vila Boa (pelo código impresso no certificado)
+if ($method === 'GET' && $route === '/validar-certificado') {
+    $resultado = $academiaController->validarCertificado((string)($_GET['codigo'] ?? ''));
+    if (!$resultado) {
+        http_response_code(404);
+        echo json_encode(['valido' => false, 'erro' => 'Certificado não encontrado.'], JSON_UNESCAPED_UNICODE);
+        exit;
+    }
+    echo json_encode($resultado, JSON_UNESCAPED_UNICODE);
     exit;
 }
 
@@ -846,6 +864,21 @@ if ($method === 'GET' && $route === '/cadernos/capa') {
     exit;
 }
 
+// Capa de trilha da Academia: imagem sem dado pessoal, servida sem login para poder usar em <img>
+if ($method === 'GET' && $route === '/academia/capa') {
+    $capa = $academiaController->caminhoDaCapa((string)($_GET['id'] ?? ''));
+    if (!$capa) {
+        http_response_code(404);
+        echo json_encode(['erro' => 'Capa não encontrada.']);
+        exit;
+    }
+    header('Content-Type: ' . (mime_content_type($capa) ?: 'image/jpeg'));
+    header('Cache-Control: public, max-age=86400');
+    header('Content-Length: ' . filesize($capa));
+    readfile($capa);
+    exit;
+}
+
 if ($method === 'GET' && $route === '/admin/usuarios-demo') {
     if (!ADMIN_DEMO_ATIVO) {
         echo json_encode(['usuarios_para_teste' => []]);
@@ -954,6 +987,113 @@ if (str_starts_with($route, '/admin/') || str_starts_with($route, '/rh/')) {
         exit;
     }
 
+    // Indicadores do painel narrativo de acompanhamento (todos os módulos por colaborador)
+    if ($method === 'GET' && $route === '/rh/indicadores') {
+        exigirPermissao($permissoesLogado, 'rh_acompanhamento', 'visualizar');
+        echo json_encode(['sucesso' => true] + $rhController->indicadores($_GET['ano'] ?? date('Y')), JSON_UNESCAPED_UNICODE);
+        exit;
+    }
+
+    // Academia Vila Boa: trilhas (quem gerencia os cadernos também gerencia as trilhas)
+    if ($method === 'GET' && $route === '/rh/academia') {
+        exigirPermissao($permissoesLogado, 'rh_cadernos', 'visualizar');
+        echo json_encode(['sucesso' => true, 'trilhas' => $academiaController->listarParaRh()], JSON_UNESCAPED_UNICODE);
+        exit;
+    }
+
+    if ($method === 'POST' && $route === '/rh/academia') {
+        exigirPermissao($permissoesLogado, 'rh_cadernos', empty($body['id']) ? 'publicar' : 'editar');
+        $resp = $academiaController->salvar($body);
+        if (!empty($resp['erro'])) {
+            http_response_code($resp['status'] ?? 400);
+            $resp = ['erro' => $resp['erro']];
+        } else {
+            registrarAuditoriaLgpd('RH_TRILHA_SALVA', $usuarioAdmin['email'], ['id' => $resp['trilha']['id']]);
+        }
+        echo json_encode($resp, JSON_UNESCAPED_UNICODE);
+        exit;
+    }
+
+    if ($method === 'POST' && $route === '/rh/academia/capa') {
+        exigirPermissao($permissoesLogado, 'rh_cadernos', 'editar');
+        $idTrilha = (string)($_POST['id'] ?? '');
+        $resp = $academiaController->salvarCapa($idTrilha, $_FILES['capa'] ?? []);
+        if (!empty($resp['erro'])) {
+            http_response_code($resp['status'] ?? 400);
+        } else {
+            registrarAuditoriaLgpd('RH_TRILHA_CAPA', $usuarioAdmin['email'], ['id' => $idTrilha]);
+        }
+        echo json_encode($resp, JSON_UNESCAPED_UNICODE);
+        exit;
+    }
+
+    if ($method === 'POST' && $route === '/rh/academia/capa/remover') {
+        exigirPermissao($permissoesLogado, 'rh_cadernos', 'editar');
+        $academiaController->removerCapa((string)($body['id'] ?? ''));
+        echo json_encode(['sucesso' => true]);
+        exit;
+    }
+
+    if ($method === 'POST' && $route === '/rh/academia/remover') {
+        exigirPermissao($permissoesLogado, 'rh_cadernos', 'remover');
+        $resp = $academiaController->remover((string)($body['id'] ?? ''));
+        if (!empty($resp['erro'])) {
+            http_response_code($resp['status'] ?? 400);
+            $resp = ['erro' => $resp['erro']];
+        } else {
+            registrarAuditoriaLgpd('RH_TRILHA_REMOVIDA', $usuarioAdmin['email'], ['id' => (string)($body['id'] ?? '')]);
+        }
+        echo json_encode($resp, JSON_UNESCAPED_UNICODE);
+        exit;
+    }
+
+    // Comunicados (mural de avisos): quem gerencia os cadernos também publica os comunicados
+    if ($method === 'GET' && $route === '/rh/comunicados') {
+        exigirPermissao($permissoesLogado, 'rh_cadernos', 'visualizar');
+        echo json_encode(['sucesso' => true, 'comunicados' => $comunicadosController->listarParaRh(), 'categorias' => ComunicadosController::CATEGORIAS], JSON_UNESCAPED_UNICODE);
+        exit;
+    }
+
+    if ($method === 'POST' && $route === '/rh/comunicados') {
+        exigirPermissao($permissoesLogado, 'rh_cadernos', empty($body['id']) ? 'publicar' : 'editar');
+        $resp = $comunicadosController->salvar($body, $usuarioAdmin['email']);
+        if (!empty($resp['erro'])) {
+            http_response_code($resp['status'] ?? 400);
+            $resp = ['erro' => $resp['erro']];
+        } else {
+            registrarAuditoriaLgpd('RH_COMUNICADO_SALVO', $usuarioAdmin['email'], ['id' => $resp['comunicado']['id']]);
+        }
+        echo json_encode($resp, JSON_UNESCAPED_UNICODE);
+        exit;
+    }
+
+    if ($method === 'POST' && $route === '/rh/comunicados/acao') {
+        $acaoCom = (string)($body['acao'] ?? '');
+        exigirPermissao($permissoesLogado, 'rh_cadernos', $acaoCom === 'duplicar' ? 'publicar' : 'editar');
+        $resp = $comunicadosController->acao((string)($body['id'] ?? ''), $acaoCom, $usuarioAdmin['email']);
+        if (!empty($resp['erro'])) {
+            http_response_code($resp['status'] ?? 400);
+            $resp = ['erro' => $resp['erro']];
+        } else {
+            registrarAuditoriaLgpd('RH_COMUNICADO_' . strtoupper($acaoCom), $usuarioAdmin['email'], ['id' => (string)($body['id'] ?? '')]);
+        }
+        echo json_encode($resp, JSON_UNESCAPED_UNICODE);
+        exit;
+    }
+
+    if ($method === 'POST' && $route === '/rh/comunicados/remover') {
+        exigirPermissao($permissoesLogado, 'rh_cadernos', 'remover');
+        $resp = $comunicadosController->remover((string)($body['id'] ?? ''));
+        if (!empty($resp['erro'])) {
+            http_response_code($resp['status'] ?? 400);
+            $resp = ['erro' => $resp['erro']];
+        } else {
+            registrarAuditoriaLgpd('RH_COMUNICADO_REMOVIDO', $usuarioAdmin['email'], ['id' => (string)($body['id'] ?? '')]);
+        }
+        echo json_encode($resp, JSON_UNESCAPED_UNICODE);
+        exit;
+    }
+
     if ($method === 'POST' && $route === '/rh/cadernos') {
         exigirPermissao($permissoesLogado, 'rh_cadernos', 'publicar');
         $resp = $cadernosController->salvarUpload($_FILES['arquivo'] ?? []);
@@ -1001,6 +1141,11 @@ if (str_starts_with($route, '/admin/') || str_starts_with($route, '/rh/')) {
     }
 
     // Empresas do grupo: o RH que edita cadernos também gerencia as empresas
+    if ($method === 'GET' && $route === '/rh/empresas') {
+        exigirPermissao($permissoesLogado, 'rh_cadernos', 'visualizar');
+        echo json_encode(['sucesso' => true, 'empresas' => EmpresaService::listarDetalhado()], JSON_UNESCAPED_UNICODE);
+        exit;
+    }
     $rotasEmpresas = [
         '/rh/empresas' => fn() => EmpresaService::adicionar((string)($body['nome'] ?? '')),
         '/rh/empresas/renomear' => fn() => EmpresaService::renomear((string)($body['nome'] ?? ''), (string)($body['novo_nome'] ?? '')),
@@ -1420,6 +1565,36 @@ if ($method === 'GET' && $route === '/chamados') {
 if ($method === 'POST' && $route === '/chamados') {
     $resp = $chamadosController->abrirChamado($colaboradorLogado['id'], $colaboradorLogado['matricula'], $body);
     echo json_encode($resp, JSON_UNESCAPED_UNICODE);
+    exit;
+}
+
+// 16.10. Academia Vila Boa (trilhas com cadernos e vídeos, certificado ao concluir)
+if ($method === 'GET' && $route === '/academia') {
+    echo json_encode(['sucesso' => true, 'trilhas' => $academiaController->listarParaColaborador($colaboradorLogado)], JSON_UNESCAPED_UNICODE);
+    exit;
+}
+
+if ($method === 'GET' && $route === '/academia/certificados') {
+    echo json_encode(['sucesso' => true, 'certificados' => $academiaController->certificadosDoColaborador($colaboradorLogado['matricula'])], JSON_UNESCAPED_UNICODE);
+    exit;
+}
+
+if ($method === 'POST' && ($route === '/academia/video-concluido' || $route === '/academia/certificado')) {
+    $ip = $_SERVER['HTTP_X_FORWARDED_FOR'] ?? $_SERVER['REMOTE_ADDR'] ?? '127.0.0.1';
+    $resp = $route === '/academia/certificado'
+        ? $academiaController->emitirCertificado($colaboradorLogado, (string)($body['trilha'] ?? ''), $ip, $_SERVER['HTTP_USER_AGENT'] ?? 'Desconhecido')
+        : $academiaController->concluirVideo($colaboradorLogado, (string)($body['trilha'] ?? ''), (string)($body['item'] ?? ''), $ip);
+    if (!empty($resp['erro'])) {
+        http_response_code($resp['status'] ?? 400);
+        $resp = ['erro' => $resp['erro']];
+    }
+    echo json_encode($resp, JSON_UNESCAPED_UNICODE);
+    exit;
+}
+
+// 16.9. Comunicados (mural de avisos) do colaborador
+if ($method === 'GET' && $route === '/comunicados') {
+    echo json_encode(['sucesso' => true, 'comunicados' => $comunicadosController->listarParaColaborador($colaboradorLogado)], JSON_UNESCAPED_UNICODE);
     exit;
 }
 

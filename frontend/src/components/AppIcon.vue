@@ -11,8 +11,22 @@
     stroke-linejoin="round"
     class="inline-block shrink-0"
   >
+    <!-- Comunicados / Megafone -->
+    <g v-if="name === 'megaphone'">
+      <path d="M3 11v2a1 1 0 0 0 1 1h3l9 5V5L7 10H4a1 1 0 0 0-1 1z" />
+      <path d="M19 9a4 4 0 0 1 0 6" />
+      <path d="M7 14l1.5 6h2.5l-1.5-5.5" />
+    </g>
+
+    <!-- Treinamentos / Capelo -->
+    <g v-else-if="name === 'graduation-cap'">
+      <path d="M22 9 12 4 2 9l10 5 10-5z" />
+      <path d="M6 11.5V16c0 1.5 2.7 3 6 3s6-1.5 6-3v-4.5" />
+      <line x1="22" y1="9" x2="22" y2="15" />
+    </g>
+
     <!-- Documento / Holerite -->
-    <g v-if="name === 'document'">
+    <g v-else-if="name === 'document'">
       <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
       <polyline points="14 2 14 8 20 8" />
       <line x1="16" y1="13" x2="8" y2="13" />
