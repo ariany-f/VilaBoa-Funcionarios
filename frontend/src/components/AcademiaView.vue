@@ -2,7 +2,7 @@
   <div class="space-y-6 animate-slide-up">
     <div class="sm:bg-white sm:rounded-2xl sm:border border-slate-200 sm:p-6 space-y-4">
       <div class="space-y-0.5">
-        <h2 class="text-lg font-semibold text-slate-900 tracking-tight">Academia Vila Boa</h2>
+        <h2 class="text-lg font-semibold text-slate-900 tracking-tight">Treinamentos</h2>
         <p class="text-xs text-slate-500">Aprenda no seu ritmo: trilhas obrigatórias, trilhas da sua função, cadernos e vídeos. Ao concluir uma trilha, você emite o certificado.</p>
       </div>
 

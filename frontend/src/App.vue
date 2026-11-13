@@ -2449,8 +2449,8 @@ const resultadosBusca = computed(() => {
     { titulo: 'Espelho de Ponto', aba: 'ponto', icone: 'calendar', chaves: 'ponto espelho marcacao jornada banco de horas assinatura' },
     { titulo: 'Comunicados', aba: 'comunicados', icone: 'megaphone', chaves: 'comunicados avisos mural campanha prazo' },
     { titulo: 'Ficha de EPI', aba: 'epis', icone: 'hard-hat', chaves: 'epi equipamento protecao seguranca ficha' },
-    { titulo: 'Diretrizes Vila Boa', aba: 'cadernos', icone: 'landmark', chaves: 'cadernos manual programa politica pdf' },
-    { titulo: 'Academia Vila Boa', aba: 'academia', icone: 'graduation-cap', chaves: 'academia trilha treinamento curso video certificado integracao capacitacao' }
+    { titulo: 'Políticas Internas', aba: 'cadernos', icone: 'landmark', chaves: 'cadernos manual programa politica pdf' },
+    { titulo: 'Treinamentos', aba: 'academia', icone: 'graduation-cap', chaves: 'academia trilha treinamento curso video certificado integracao capacitacao' }
   ]
     .filter(m => bate(m.titulo, m.chaves))
     .map(m => ({ ...m, categoria: 'Página do portal', tipo: 'aba' }));

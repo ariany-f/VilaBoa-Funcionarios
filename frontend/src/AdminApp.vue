@@ -324,7 +324,7 @@ const urlPortal = window.location.pathname.replace(/admin\/?$/, '');
 const secoes = computed(() => [
   { id: 'acompanhamento', rotulo: 'Acompanhamento', rotuloCurto: 'Início', icone: 'shield-check', tela: 'rh_acompanhamento' },
   { id: 'comunicados', rotulo: 'Comunicados', icone: 'megaphone', tela: 'rh_cadernos' },
-  { id: 'academia', rotulo: 'Academia Vila Boa', rotuloCurto: 'Academia', icone: 'graduation-cap', tela: 'rh_cadernos' },
+  { id: 'academia', rotulo: 'Treinamentos', rotuloCurto: 'Treinamentos', icone: 'graduation-cap', tela: 'rh_cadernos' },
   { id: 'cadernos', rotulo: 'Diretrizes e treinamentos', rotuloCurto: 'Diretrizes', icone: 'landmark', tela: 'rh_cadernos' },
   { id: 'empresas', rotulo: 'Empresas', icone: 'hard-hat', tela: 'rh_cadernos' },
   { id: 'ponto', rotulo: 'Espelho de ponto', rotuloCurto: 'Ponto', icone: 'calendar', tela: 'rh_ponto' },

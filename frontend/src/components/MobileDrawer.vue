@@ -196,8 +196,8 @@ const todosModulos = [
   { id: 'holerites', rotulo: 'Holerites', descricao: 'Demonstrativos de pagamento', icone: 'document' },
   { id: 'ponto', rotulo: 'Espelho de Ponto', descricao: 'Marcações e assinatura do mês', icone: 'calendar' },
   { id: 'epis', rotulo: 'Ficha de EPI', descricao: 'Entregas e assinatura de EPIs', icone: 'hard-hat' },
-  { id: 'cadernos', rotulo: 'Diretrizes Vila Boa', descricao: 'Regras, direitos, deveres e benefícios', icone: 'landmark' },
-  { id: 'academia', rotulo: 'Academia Vila Boa', descricao: 'Trilhas, vídeos e certificados', icone: 'graduation-cap' }
+  { id: 'cadernos', rotulo: 'Políticas Internas', descricao: 'Regras, direitos, deveres e benefícios', icone: 'landmark' },
+  { id: 'academia', rotulo: 'Treinamentos', descricao: 'Trilhas, vídeos e certificados', icone: 'graduation-cap' }
 ];
 
 // O Painel do RH agora fica separado, em /admin

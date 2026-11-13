@@ -174,8 +174,8 @@ const todosModulos = [
   { id: 'holerites', rotulo: 'Holerites', icone: 'document' },
   { id: 'ponto', rotulo: 'Espelho de Ponto', icone: 'calendar' },
   { id: 'epis', rotulo: 'Ficha de EPI', icone: 'hard-hat' },
-  { id: 'cadernos', rotulo: 'Diretrizes Vila Boa', icone: 'landmark' },
-  { id: 'academia', rotulo: 'Academia Vila Boa', icone: 'graduation-cap' }
+  { id: 'cadernos', rotulo: 'Políticas Internas', icone: 'landmark' },
+  { id: 'academia', rotulo: 'Treinamentos', icone: 'graduation-cap' }
 ];
 
 // O Painel do RH agora fica separado, em /admin

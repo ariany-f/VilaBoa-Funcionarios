@@ -179,7 +179,7 @@
 
         <!-- 5. Academia -->
         <article id="cap-academia" class="cap" aria-labelledby="t-academia">
-          <p class="cap-num">Capítulo 5 · Academia Vila Boa</p>
+          <p class="cap-num">Capítulo 5 · Treinamentos</p>
           <h3 id="t-academia" class="cap-titulo">Como andam as trilhas e quem já se certificou?</h3>
           <p class="cap-insight"><AppIcon name="info" size="15" class="shrink-0 mt-0.5" /> <span>{{ insightAcademia }}</span></p>
           <div v-if="barrasTrilhas.length" class="grid grid-cols-1 lg:grid-cols-2 gap-8">

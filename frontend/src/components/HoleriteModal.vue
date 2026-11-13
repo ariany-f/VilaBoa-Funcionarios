@@ -307,15 +307,6 @@
               <li>O Departamento Pessoal permanece à disposição para esclarecimentos.</li>
             </ul>
           </div>
-
-          <div>
-            <p class="font-bold uppercase text-[10px] mb-1">Ciência do funcionário</p>
-            <p class="leading-relaxed">Declaro estar ciente das informações acima.</p>
-            <div class="grid grid-cols-2 gap-6 pt-5 text-[10px] text-amber-900">
-              <div class="border-t border-amber-700 pt-0.5">Assinatura do funcionário</div>
-              <div class="border-t border-amber-700 pt-0.5">Data</div>
-            </div>
-          </div>
         </div>
 
         <!-- Bloco Institucional de Validação por QR Code (Autenticidade para Bancos / Terceiros) -->

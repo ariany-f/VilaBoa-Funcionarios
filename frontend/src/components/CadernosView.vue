@@ -5,7 +5,7 @@
       <!-- Diretrizes: título, slogan e pesquisa (por título, categoria e tags) -->
       <div v-if="!ehTreinamento && !carregando && !erro" class="space-y-2.5">
         <div class="space-y-0.5">
-          <h2 class="text-lg font-semibold text-slate-900 tracking-tight">Diretrizes Vila Boa</h2>
+          <h2 class="text-lg font-semibold text-slate-900 tracking-tight">Políticas Internas</h2>
           <p class="text-xs text-slate-500">Conhecer as regras, direitos, deveres e benefícios.</p>
         </div>
         <div class="relative">

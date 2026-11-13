@@ -4,7 +4,7 @@
     <div class="bg-white rounded-2xl border border-slate-200 p-5 sm:p-6 space-y-4">
       <div class="flex flex-wrap items-start justify-between gap-3">
         <div class="min-w-0">
-          <h3 class="text-sm font-semibold uppercase tracking-wider text-slate-800">Trilhas da Academia Vila Boa</h3>
+          <h3 class="text-sm font-semibold uppercase tracking-wider text-slate-800">Trilhas de Treinamentos</h3>
           <p class="text-xs text-slate-500 mt-0.5">Monte trilhas de aprendizagem com vídeos e cadernos. Ao concluir, o colaborador emite o certificado.</p>
         </div>
         <button v-if="pode(colaborador, 'rh_cadernos', 'publicar')" type="button" @click="abrirWizard(null)" class="h-10 px-5 rounded-full bg-[#9c2337] hover:bg-[#831b2d] text-white text-sm font-semibold cursor-pointer shrink-0">+ Nova trilha</button>
