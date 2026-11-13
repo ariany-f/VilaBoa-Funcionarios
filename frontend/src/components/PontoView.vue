@@ -157,7 +157,7 @@
             </div>
 
             <!-- Resumo do mês -->
-            <div class="grid grid-cols-2 lg:grid-cols-4 gap-3">
+            <div class="grid grid-cols-2 lg:grid-cols-5 gap-3">
               <div v-for="r in resumo" :key="r.rotulo" class="bg-white rounded-2xl border border-slate-200 p-4">
                 <span class="block text-xs text-slate-500">{{ r.rotulo }}</span>
                 <span class="block text-xl font-semibold mt-1 tabular-nums" :class="r.cor">{{ r.valor }}</span>
@@ -487,9 +487,15 @@ function resumoDe(e) {
   const mes = e?.banco_horas?.horas_mes_atual || '';
   const banco = e?.banco_horas?.saldo_total || '';
   const cor = (v) => (v.startsWith('-') ? 'text-rose-700' : 'text-emerald-700');
+  const comFalta = dias.filter((d) => d.falta);
+  const faltaMin = comFalta.reduce((t, d) => t + (/^[+-]?\d+:\d+$/.test(String(d.falta)) ? Math.abs(paraMinutos(String(d.falta))) : 0), 0);
+  const faltas = comFalta.length
+    ? `${comFalta.length} dia${comFalta.length > 1 ? 's' : ''}${faltaMin ? ' · ' + Math.floor(faltaMin / 60) + 'h' + String(faltaMin % 60).padStart(2, '0') : ''}`
+    : 'Nenhuma';
   return [
     { rotulo: 'Dias trabalhados', valor: trabalhados.length, cor: 'text-slate-900' },
     { rotulo: 'Horas no mês', valor: horas, cor: 'text-slate-900' },
+    { rotulo: 'Faltas', valor: faltas, cor: comFalta.length ? 'text-rose-700' : 'text-slate-900' },
     { rotulo: 'Saldo do mês', valor: mes.replace(' ', '') || '-', cor: cor(mes) },
     { rotulo: 'Banco de horas', valor: banco.replace(' ', '') || '-', cor: cor(banco) }
   ];
