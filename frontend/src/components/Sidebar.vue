@@ -7,7 +7,8 @@
     <div class="h-16 px-4 flex items-center justify-between border-b border-slate-200 shrink-0 bg-white">
       <!-- Brand Expandida -->
       <div v-if="!recolhida" class="flex items-center overflow-hidden min-w-0">
-        <img :src="logoEmpresa" alt="Logo da empresa" class="h-8 w-auto max-w-[170px] object-contain" />
+        <!-- Mesmo logo do topo do painel RH (Vila Boa), para qualquer empresa -->
+        <img :src="LOGO_PADRAO" alt="Vila Boa Construções e Serviços" class="h-8 w-auto max-w-[170px] object-contain" />
       </div>
 
       <!-- Brand Recolhida -->
@@ -133,7 +134,7 @@
 
 <script setup>
 import { computed } from 'vue';
-import { logoEmpresa } from '../utils/logoEmpresa.js';
+import { LOGO_PADRAO } from '../utils/logoEmpresa.js';
 import AppIcon from './AppIcon.vue';
 import { temMenu } from '../utils/permissoes.js';
 
