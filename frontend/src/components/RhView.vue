@@ -25,6 +25,7 @@
 
     <!-- Usuários: não depende do resumo do RH (perfil pode ter só esta tela) -->
     <UsuariosRh v-else-if="aba === 'usuarios'" :colaborador="colaborador" />
+    <ColaboradoresRh v-else-if="aba === 'colaboradores'" :colaborador="colaborador" />
 
     <div v-else-if="carregando" class="py-16 text-center text-sm text-slate-400">Carregando painel...</div>
     <div v-else-if="erro" class="py-16 text-center text-sm text-rose-700">{{ erro }}</div>
@@ -326,6 +327,7 @@ import HomologacaoRh from './HomologacaoRh.vue';
 import DesligamentosRh from './DesligamentosRh.vue';
 import AcademiaRh from './AcademiaRh.vue';
 import EpisRh from './EpisRh.vue';
+import ColaboradoresRh from './ColaboradoresRh.vue';
 import AcompanhamentoRh from './AcompanhamentoRh.vue';
 import CadernoWizardRh from './CadernoWizardRh.vue';
 import EmpresasRh from './EmpresasRh.vue';
@@ -353,6 +355,7 @@ const props = defineProps({
 // Cada aba aparece só para perfis com a permissão de visualizar a tela correspondente
 const abas = computed(() => [
   { id: 'acompanhamento', rotulo: 'Acompanhamento', tela: 'rh_acompanhamento' },
+  { id: 'colaboradores', rotulo: 'Colaboradores', tela: 'rh_colaboradores' },
   { id: 'comunicados', rotulo: 'Comunicados', tela: 'rh_cadernos' },
   { id: 'homologacao', rotulo: 'Desligamentos', tela: 'rh_cadernos' },
   { id: 'epi', rotulo: 'Fichas de EPI', tela: 'rh_cadernos' },

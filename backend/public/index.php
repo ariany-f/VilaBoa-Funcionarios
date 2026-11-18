@@ -557,6 +557,14 @@ if ($method === 'POST' && $route === '/login') {
         exit;
     }
 
+    // Colaborador inativado pelo RH não entra no portal
+    if (!ColaboradorService::ativo($colaborador)) {
+        registrarAuditoriaLgpd('LOGIN_COLABORADOR_INATIVO', $colaborador['matricula'] ?? null);
+        http_response_code(403);
+        echo json_encode(['sucesso' => false, 'erro' => 'Seu acesso ao portal está desativado. Procure o RH.'], JSON_UNESCAPED_UNICODE);
+        exit;
+    }
+
     // Login com sucesso: limpa contador de erros da primeira etapa
     if (isset($tentativas[$chaveLogin])) {
         unset($tentativas[$chaveLogin]);
@@ -1205,6 +1213,30 @@ if (str_starts_with($route, '/admin/') || str_starts_with($route, '/rh/')) {
         exit;
     }
 
+    // Colaboradores: cadastro pelo RH (só das empresas que o usuário acessa)
+    if ($method === 'GET' && $route === '/rh/colaboradores') {
+        exigirPermissao($permissoesLogado, 'rh_colaboradores', 'visualizar');
+        $empresasParaEscolher = $empresasLogado ?? EmpresaService::listar();
+        echo json_encode(['sucesso' => true, 'colaboradores' => $colaboradorService->listarRh(), 'empresas' => array_values($empresasParaEscolher)], JSON_UNESCAPED_UNICODE);
+        exit;
+    }
+    if ($method === 'POST' && ($route === '/rh/colaboradores' || $route === '/rh/colaboradores/status')) {
+        $novoColab = $route === '/rh/colaboradores' && !empty($body['novo']);
+        exigirPermissao($permissoesLogado, 'rh_colaboradores', $route === '/rh/colaboradores/status' ? 'inativar' : ($novoColab ? 'cadastrar' : 'editar'));
+        $resp = $route === '/rh/colaboradores'
+            ? $colaboradorService->salvarRh($body, $novoColab, $usuarioAdmin['email'], $empresasLogado)
+            : $colaboradorService->definirAtivoRh((string)($body['matricula'] ?? ''), !empty($body['ativo']), $usuarioAdmin['email']);
+        if (!empty($resp['erro'])) {
+            http_response_code($resp['status'] ?? 400);
+            $resp = ['erro' => $resp['erro']];
+        } else {
+            $acaoAud = $route === '/rh/colaboradores' ? ($novoColab ? 'RH_COLABORADOR_CADASTRADO' : 'RH_COLABORADOR_ALTERADO') : (!empty($body['ativo']) ? 'RH_COLABORADOR_REATIVADO' : 'RH_COLABORADOR_INATIVADO');
+            registrarAuditoriaLgpd($acaoAud, (string)($body['matricula'] ?? ''), ['por' => $usuarioAdmin['email']]);
+        }
+        echo json_encode($resp, JSON_UNESCAPED_UNICODE);
+        exit;
+    }
+
     // Fichas de EPI: cadastro pelo RH (o colaborador assina no portal)
     if ($method === 'GET' && $route === '/rh/epis') {
         exigirPermissao($permissoesLogado, 'rh_cadernos', 'visualizar');
@@ -1642,6 +1674,12 @@ if (!$userSession || ($userSession['etapa'] ?? '') !== 'autenticado') {
 }
 
 $colaboradorLogado = $colaboradorService->findById((int)$userSession['colaborador_id']);
+// Inativado pelo RH durante a sessão: encerra o acesso
+if (!$colaboradorLogado || !ColaboradorService::ativo($colaboradorLogado)) {
+    http_response_code(401);
+    echo json_encode(['erro' => 'Seu acesso ao portal está desativado. Procure o RH.'], JSON_UNESCAPED_UNICODE);
+    exit;
+}
 $permissoesLogado = $permissaoService->matrizDoColaborador($colaboradorLogado);
 
 
