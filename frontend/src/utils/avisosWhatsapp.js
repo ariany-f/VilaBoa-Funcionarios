@@ -36,6 +36,13 @@ export function avisoHolerite(pessoa, holerite) {
   return montarLink(pessoa.telefone, texto);
 }
 
+export function avisoEscala(pessoa, escala) {
+  const periodo = `${escala.periodo_inicio.split('-').reverse().join('/')} a ${escala.periodo_fim.split('-').reverse().join('/')}`;
+  const texto = `Olá, ${primeiroNome(pessoa.nome)}! Sua escala de folgas de *${periodo}* está no Portal do Colaborador. Confira os dias e dê ciência.\n\n` +
+    `Acesse pelo link abaixo e entre com seu CPF:\n${linkPortal('escala:' + escala.id)}`;
+  return montarLink(pessoa.telefone, texto);
+}
+
 /** Lê ?abrir=tipo:valor da URL (link enviado pelo RH). */
 export function lerDestinoDaUrl() {
   try {

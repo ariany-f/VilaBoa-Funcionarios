@@ -285,7 +285,7 @@ const senha = ref('');
 const erro = ref('');
 const entrando = ref(false);
 // Cada seção do painel tem sua rota: /admin#/acompanhamento, #/cadernos, #/ponto, #/holerites
-const SECOES_VALIDAS = ['acompanhamento', 'comunicados', 'homologacao', 'academia', 'cadernos', 'empresas', 'ponto', 'holerites'];
+const SECOES_VALIDAS = ['acompanhamento', 'comunicados', 'homologacao', 'academia', 'cadernos', 'empresas', 'ponto', 'escalas', 'holerites'];
 const secaoDaUrl = () => {
   const h = window.location.hash.replace(/^#\/?/, '').split('?')[0];
   return SECOES_VALIDAS.includes(h) ? h : '';
@@ -329,6 +329,7 @@ const secoes = computed(() => [
   { id: 'cadernos', rotulo: 'Diretrizes e treinamentos', rotuloCurto: 'Diretrizes', icone: 'landmark', tela: 'rh_cadernos' },
   { id: 'empresas', rotulo: 'Empresas', icone: 'hard-hat', tela: 'rh_cadernos' },
   { id: 'ponto', rotulo: 'Espelho de ponto', rotuloCurto: 'Ponto', icone: 'calendar', tela: 'rh_ponto' },
+  { id: 'escalas', rotulo: 'Escala de folgas', rotuloCurto: 'Folgas', icone: 'calendar-check', tela: 'rh_ponto' },
   { id: 'holerites', rotulo: 'Holerites', icone: 'document', tela: 'rh_holerites' }
 ].filter((s) => pode(usuario.value, s.tela, 'visualizar')));
 

@@ -52,6 +52,7 @@ require_once __DIR__ . '/../services/WhatsAppNotificationService.php';
 require_once __DIR__ . '/../services/EmpresaService.php';
 require_once __DIR__ . '/../services/HomologacaoService.php';
 require_once __DIR__ . '/../services/DesligamentoService.php';
+require_once __DIR__ . '/../services/EscalaFolgaService.php';
 require_once __DIR__ . '/../controllers/FeriasController.php';
 require_once __DIR__ . '/../controllers/ChamadosController.php';
 require_once __DIR__ . '/../controllers/CadernosController.php';
@@ -69,6 +70,7 @@ use App\Services\WhatsAppNotificationService;
 use App\Services\EmpresaService;
 use App\Services\HomologacaoService;
 use App\Services\DesligamentoService;
+use App\Services\EscalaFolgaService;
 use App\Controllers\FeriasController;
 use App\Controllers\ChamadosController;
 use App\Controllers\CadernosController;
@@ -84,6 +86,7 @@ $epiService = new EpiService();
 $whatsAppService = new WhatsAppNotificationService();
 $homologacaoService = new HomologacaoService($colaboradorService);
 $desligamentoService = new DesligamentoService($colaboradorService);
+$escalaFolgaService = new EscalaFolgaService();
 $feriasController = new FeriasController();
 $chamadosController = new ChamadosController();
 $cadernosController = new CadernosController();
@@ -1316,6 +1319,46 @@ if (str_starts_with($route, '/admin/') || str_starts_with($route, '/rh/')) {
         exit;
     }
 
+    // Escala de folgas (PRC-153): o RH publica a escala de cada letra e indica os colaboradores
+    if ($method === 'GET' && $route === '/rh/escalas-folga') {
+        exigirPermissao($permissoesLogado, 'rh_ponto', 'visualizar');
+        $colabs = $colaboradorService->getAll();
+        echo json_encode([
+            'sucesso' => true,
+            'escalas' => $escalaFolgaService->listarParaRh($colabs),
+            'colaboradores' => array_map(fn($c) => [
+                'matricula' => $c['matricula'],
+                'nome' => $c['nome'],
+                'cargo' => $c['cargo'] ?? '',
+                'departamento' => $c['departamento'] ?? '',
+                'empresa' => EmpresaService::doColaborador($c),
+            ], $colabs)
+        ], JSON_UNESCAPED_UNICODE);
+        exit;
+    }
+
+    $rotasEscalas = [
+        '/rh/escalas-folga' => fn() => $escalaFolgaService->publicar($body, $usuarioAdmin['email']),
+        '/rh/escalas-folga/colaboradores' => fn() => $escalaFolgaService->alterarColaboradores((string)($body['id'] ?? ''), (array)($body['matriculas'] ?? [])),
+        '/rh/escalas-folga/remover' => fn() => $escalaFolgaService->remover((string)($body['id'] ?? '')),
+    ];
+    if ($method === 'POST' && isset($rotasEscalas[$route])) {
+        exigirPermissao($permissoesLogado, 'rh_ponto', 'importar');
+        try {
+            $resp = $rotasEscalas[$route]();
+        } catch (\RuntimeException $e) {
+            error_log('[escalas] ' . $e->getMessage() . ' Verifique a permissão de escrita em backend/data.');
+            $resp = ['erro' => $e->getMessage()];
+        }
+        if (!empty($resp['erro'])) {
+            http_response_code(400);
+        } else {
+            registrarAuditoriaLgpd('RH_ESCALA_FOLGA', $usuarioAdmin['email'], ['rota' => $route, 'id' => $resp['escala']['id'] ?? ($body['id'] ?? '')]);
+        }
+        echo json_encode($resp, JSON_UNESCAPED_UNICODE);
+        exit;
+    }
+
     if ($method === 'POST' && $route === '/rh/ponto') {
         exigirPermissao($permissoesLogado, 'rh_ponto', 'importar');
         $csv = isset($_FILES['arquivo']['tmp_name']) && is_uploaded_file($_FILES['arquivo']['tmp_name'])
@@ -1770,6 +1813,36 @@ if ($method === 'POST' && $route === '/ponto/assinar') {
     }
 
     echo json_encode(['sucesso' => true, 'espelho' => $espelho], JSON_UNESCAPED_UNICODE);
+    exit;
+}
+
+// 18.1. Escala de folgas com ciência digital (PRC-153)
+if ($method === 'GET' && $route === '/escalas-folga') {
+    echo json_encode(['sucesso' => true, 'escalas' => $escalaFolgaService->doColaborador($colaboradorLogado['matricula'])], JSON_UNESCAPED_UNICODE);
+    exit;
+}
+
+if ($method === 'POST' && $route === '/escalas-folga/ciencia') {
+    try {
+        $escala = $escalaFolgaService->registrarCiencia(
+            $colaboradorLogado,
+            (string)($body['escala_id'] ?? ''),
+            $_SERVER['HTTP_X_FORWARDED_FOR'] ?? $_SERVER['REMOTE_ADDR'] ?? '127.0.0.1',
+            $_SERVER['HTTP_USER_AGENT'] ?? 'Desconhecido'
+        );
+    } catch (\RuntimeException $e) {
+        error_log('[escalas] ' . $e->getMessage() . ' Verifique a permissão de escrita em backend/data.');
+        http_response_code(500);
+        echo json_encode(['erro' => $e->getMessage() . ' Avise o RH.'], JSON_UNESCAPED_UNICODE);
+        exit;
+    }
+    if (!$escala) {
+        http_response_code(404);
+        echo json_encode(['erro' => 'Escala não encontrada.'], JSON_UNESCAPED_UNICODE);
+        exit;
+    }
+    registrarAuditoriaLgpd('ESCALA_FOLGA_CIENCIA', $colaboradorLogado['matricula'], ['escala' => $escala['id']]);
+    echo json_encode(['sucesso' => true, 'escala' => $escala], JSON_UNESCAPED_UNICODE);
     exit;
 }
 

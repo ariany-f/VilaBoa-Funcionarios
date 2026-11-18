@@ -112,6 +112,9 @@
     <!-- ===================== EMPRESAS ===================== -->
     <EmpresasRh v-else-if="aba === 'empresas'" :colaborador="colaborador" />
 
+    <!-- ===================== ESCALA DE FOLGAS ===================== -->
+    <EscalasFolgaRh v-else-if="aba === 'escalas'" :colaborador="colaborador" />
+
     <!-- ===================== HOLERITES ===================== -->
     <template v-else-if="aba === 'holerites'">
       <div class="bg-white rounded-2xl border border-slate-200 overflow-hidden">
@@ -321,6 +324,7 @@ import AcademiaRh from './AcademiaRh.vue';
 import AcompanhamentoRh from './AcompanhamentoRh.vue';
 import CadernoWizardRh from './CadernoWizardRh.vue';
 import EmpresasRh from './EmpresasRh.vue';
+import EscalasFolgaRh from './EscalasFolgaRh.vue';
 import { ref, computed, watch, onMounted, nextTick } from 'vue';
 import AppIcon from './AppIcon.vue';
 import { pode } from '../utils/permissoes.js';
@@ -349,6 +353,7 @@ const abas = computed(() => [
   { id: 'cadernos', rotulo: 'Diretrizes e treinamentos', tela: 'rh_cadernos' },
   { id: 'empresas', rotulo: 'Empresas', tela: 'rh_cadernos' },
   { id: 'ponto', rotulo: 'Espelho de ponto', tela: 'rh_ponto' },
+  { id: 'escalas', rotulo: 'Escala de folgas', tela: 'rh_ponto' },
   { id: 'holerites', rotulo: 'Holerites', tela: 'rh_holerites' }
 ].filter((a) => pode(props.colaborador, a.tela, 'visualizar')));
 const aba = ref(props.abaExterna || abas.value[0]?.id || 'acompanhamento');
