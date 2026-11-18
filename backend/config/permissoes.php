@@ -55,6 +55,18 @@ return [
         ],
     ],
     [
+        'slug' => 'rh_colaboradores',
+        'name' => 'RH — Colaboradores',
+        'description' => 'Cadastro dos colaboradores que acessam o portal: dados pessoais, empresa, contato e acesso.',
+        'menu_url' => '/rh',
+        'actions' => [
+            ['slug' => 'visualizar', 'name' => 'Ver colaboradores', 'group' => 'Tela'],
+            ['slug' => 'cadastrar', 'name' => 'Cadastrar colaborador', 'group' => 'Tela', 'route' => 'POST /rh/colaboradores', 'enforce' => true],
+            ['slug' => 'editar', 'name' => 'Editar dados do colaborador', 'group' => 'Linha', 'route' => 'POST /rh/colaboradores', 'enforce' => true],
+            ['slug' => 'inativar', 'name' => 'Inativar e reativar o acesso ao portal', 'group' => 'Linha', 'route' => 'POST /rh/colaboradores/status', 'enforce' => true],
+        ],
+    ],
+    [
         'slug' => 'rh_usuarios',
         'name' => 'RH — Usuários',
         'description' => 'Usuários do painel do RH: cadastro, senha, perfis de permissão e empresas que cada um acessa.',

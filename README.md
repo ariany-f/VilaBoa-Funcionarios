@@ -80,6 +80,10 @@ O acesso por empresa vale também na API: quem acessa só algumas empresas receb
 
 As empresas de cada usuário ficam na tabela `users_empresas` (sem linhas = todas) e a situação em `users.is_active`. Em banco SQL, rode `php backend/scripts/instalar_banco.php` no deploy para criar a tabela e a coluna. O arquivo antigo `backend/data/rh_usuarios_empresas.json` continua valendo para quem ainda não foi salvo na tela de usuários.
 
+## 👷 Colaboradores no Painel do RH
+
+Em **Painel do RH > Colaboradores** o RH cadastra, edita, inativa e reativa os colaboradores (`backend/data/colaboradores.json`). CPF, data de nascimento, data de admissão e os 3 primeiros dígitos do RG são obrigatórios porque o login e a pergunta de segurança usam esses dados. A matrícula não muda depois de criada. Inativar bloqueia o login e encerra a sessão aberta, sem apagar holerites, fichas ou histórico. Tela de permissão `rh_colaboradores` (visualizar, cadastrar, editar, inativar), liberada automaticamente para o perfil Administrador; para outros perfis, libere em **Usuários > Perfis e permissões**.
+
 ## 🚪 Aviso de Desligamento: links e guia por empresa
 
 Em **Painel do RH > Desligamentos**, o bloco "Links e guia" vale para a empresa escolhida no painel: os links do Bookings (homologação com o DP e retirada de documentos) e o PDF do Guia de Desligamento. Link em branco usa o padrão (`VB_LINK_HOMOLOGACAO` / `VB_LINK_DOCUMENTOS` ou o que está em `DesligamentoService`). Os links ficam em `backend/data/desligamento_config.json` e os guias enviados em `backend/data/guias_desligamento/`; sem guia enviado, vale o de `backend/guias`. O PHP precisa aceitar o tamanho do PDF (`upload_max_filesize` e `post_max_size`; os `.bat` já sobem o servidor local com 20 MB).

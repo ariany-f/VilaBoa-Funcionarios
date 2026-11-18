@@ -319,7 +319,7 @@ const senha = ref('');
 const erro = ref('');
 const entrando = ref(false);
 // Cada seção do painel tem sua rota: /admin#/acompanhamento, #/cadernos, #/ponto, #/holerites
-const SECOES_VALIDAS = ['acompanhamento', 'comunicados', 'homologacao', 'epi', 'academia', 'cadernos', 'empresas', 'ponto', 'escalas', 'holerites', 'usuarios'];
+const SECOES_VALIDAS = ['acompanhamento', 'colaboradores', 'comunicados', 'homologacao', 'epi', 'academia', 'cadernos', 'empresas', 'ponto', 'escalas', 'holerites', 'usuarios'];
 const secaoDaUrl = () => {
   const h = window.location.hash.replace(/^#\/?/, '').split('?')[0];
   return SECOES_VALIDAS.includes(h) ? h : '';
@@ -357,6 +357,7 @@ const urlPortal = window.location.pathname.replace(/admin\/?$/, '');
 
 const secoes = computed(() => [
   { id: 'acompanhamento', rotulo: 'Acompanhamento', rotuloCurto: 'Início', icone: 'shield-check', tela: 'rh_acompanhamento' },
+  { id: 'colaboradores', rotulo: 'Colaboradores', icone: 'user', tela: 'rh_colaboradores' },
   { id: 'comunicados', rotulo: 'Comunicados', icone: 'megaphone', tela: 'rh_cadernos' },
   { id: 'homologacao', rotulo: 'Desligamentos', rotuloCurto: 'Desligamentos', icone: 'calendar', tela: 'rh_cadernos' },
   { id: 'epi', rotulo: 'Fichas de EPI', rotuloCurto: 'EPI', icone: 'hard-hat', tela: 'rh_cadernos' },

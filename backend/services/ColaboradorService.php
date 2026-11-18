@@ -61,6 +61,172 @@ class ColaboradorService
         ) !== false;
     }
 
+    // ================================================================ Cadastro pelo RH
+
+    public static function ativo(array $c): bool
+    {
+        return ($c['ativo'] ?? true) !== false;
+    }
+
+    /** Colaboradores para a tela do RH (respeita o filtro de empresas do usuário). */
+    public function listarRh(): array
+    {
+        $lista = array_map(fn($c) => [
+            'id' => (int)($c['id'] ?? 0),
+            'matricula' => $c['matricula'] ?? '',
+            'nome' => $c['nome'] ?? '',
+            'cpf' => $c['cpf_formatado'] ?? self::formatarCpf((string)($c['cpf'] ?? '')),
+            'data_nascimento' => $c['data_nascimento'] ?? '',
+            'cargo' => $c['cargo'] ?? '',
+            'departamento' => $c['departamento'] ?? '',
+            'empresa' => EmpresaService::doColaborador($c),
+            'data_admissao' => $c['data_admissao'] ?? '',
+            'data_demissao' => $c['data_demissao'] ?? '',
+            'rg_primeiros_3_digitos' => (string)($c['rg_primeiros_3_digitos'] ?? ''),
+            'nome_mae' => $c['nome_mae'] ?? '',
+            'telefone_atual' => $c['telefone_atual'] ?? '',
+            'telefone_confirmado_em' => $c['telefone_confirmado_em'] ?? null,
+            'email' => $c['email'] ?? '',
+            'ativo' => self::ativo($c),
+            'alterado_por' => $c['alterado_por'] ?? null,
+            'alterado_em' => $c['alterado_em'] ?? null,
+        ], $this->getAll());
+        usort($lista, fn($a, $b) => strcmp($a['nome'], $b['nome']));
+        return $lista;
+    }
+
+    /**
+     * Cria (sem matrícula existente) ou altera um colaborador. A matrícula não muda depois
+     * de criada: holerites, EPIs, ponto e desligamentos são ligados a ela.
+     * $empresasPermitidas: empresas que o usuário do RH pode usar (null = todas).
+     */
+    public function salvarRh(array $d, bool $novo, string $autor, ?array $empresasPermitidas): array
+    {
+        $texto = fn($v, $max = 120) => mb_substr(trim(preg_replace('/\s+/', ' ', (string)$v)), 0, $max);
+        $matricula = mb_strtoupper($texto($d['matricula'] ?? '', 20));
+        $nome = $texto($d['nome'] ?? '');
+        $cpf = preg_replace('/\D/', '', (string)($d['cpf'] ?? ''));
+        $nascimento = (string)($d['data_nascimento'] ?? '');
+        $admissao = (string)($d['data_admissao'] ?? '');
+        $demissao = trim((string)($d['data_demissao'] ?? ''));
+        $empresa = EmpresaService::normalizar((string)($d['empresa'] ?? ''));
+        $rg = preg_replace('/\D/', '', (string)($d['rg_primeiros_3_digitos'] ?? ''));
+        $telefone = preg_replace('/\D/', '', (string)($d['telefone_atual'] ?? ''));
+        $email = mb_strtolower(trim((string)($d['email'] ?? '')));
+
+        if ($matricula === '' || !preg_match('/^[A-Z0-9][A-Z0-9.\-\/]*$/', $matricula)) return ['erro' => 'Informe a matrícula (letras, números, ponto ou hífen).', 'status' => 422];
+        if (mb_strlen($nome) < 3) return ['erro' => 'Informe o nome completo.', 'status' => 422];
+        if (strlen($cpf) !== 11) return ['erro' => 'Informe o CPF com 11 dígitos.', 'status' => 422];
+        if (!self::dataValida($nascimento)) return ['erro' => 'Informe a data de nascimento.', 'status' => 422];
+        if (!$empresa) return ['erro' => 'Escolha a empresa.', 'status' => 422];
+        if ($empresasPermitidas !== null && !in_array($empresa, $empresasPermitidas, true)) return ['erro' => 'Você não tem acesso a esta empresa.', 'status' => 403];
+        if (!self::dataValida($admissao)) return ['erro' => 'Informe a data de admissão (usada na pergunta de segurança do login).', 'status' => 422];
+        if ($demissao !== '' && !self::dataValida($demissao)) return ['erro' => 'Data de demissão inválida.', 'status' => 422];
+        if (strlen($rg) < 3) return ['erro' => 'Informe os 3 primeiros dígitos do RG (usados na pergunta de segurança do login).', 'status' => 422];
+        if ($telefone !== '' && !preg_match('/^\d{10,11}$/', $telefone)) return ['erro' => 'Telefone inválido: use DDD + número.', 'status' => 422];
+        if ($email !== '' && !filter_var($email, FILTER_VALIDATE_EMAIL)) return ['erro' => 'E-mail inválido.', 'status' => 422];
+
+        $resposta = null;
+        $this->transacao(function (array &$todos) use (&$resposta, $novo, $matricula, $nome, $cpf, $nascimento, $admissao, $demissao, $empresa, $rg, $telefone, $email, $d, $texto, $autor, $empresasPermitidas) {
+            $indice = null;
+            foreach ($todos as $i => $c) {
+                $mesmaMatricula = strcasecmp((string)($c['matricula'] ?? ''), $matricula) === 0;
+                if ($mesmaMatricula) $indice = $i;
+                if (!$mesmaMatricula && preg_replace('/\D/', '', (string)($c['cpf'] ?? '')) === $cpf) {
+                    $resposta = ['erro' => 'Este CPF já está cadastrado para ' . ($c['nome'] ?? '') . ' (' . ($c['matricula'] ?? '') . ').', 'status' => 409];
+                    return;
+                }
+            }
+            if ($novo && $indice !== null) { $resposta = ['erro' => 'Já existe um colaborador com esta matrícula.', 'status' => 409]; return; }
+            if (!$novo && $indice === null) { $resposta = ['erro' => 'Colaborador não encontrado.', 'status' => 404]; return; }
+            if (!$novo && $empresasPermitidas !== null && !in_array(EmpresaService::doColaborador($todos[$indice]), $empresasPermitidas, true)) {
+                $resposta = ['erro' => 'Você não tem acesso a este colaborador.', 'status' => 403];
+                return;
+            }
+
+            $atual = $novo ? ['id' => max(array_merge([0], array_map(fn($c) => (int)($c['id'] ?? 0), $todos))) + 1, 'matricula' => $matricula, 'ativo' => true, 'telefone_confirmado_em' => null] : $todos[$indice];
+            $telefoneFormatado = $telefone === '' ? '' : self::formatarTelefone($telefone);
+            // Telefone trocado pelo RH volta a pedir a confirmação do colaborador no próximo acesso
+            if (($atual['telefone_atual'] ?? '') !== $telefoneFormatado) $atual['telefone_confirmado_em'] = null;
+            $atual = array_merge($atual, [
+                'cpf' => $cpf,
+                'cpf_formatado' => self::formatarCpf($cpf),
+                'data_nascimento' => $nascimento,
+                'data_nascimento_br' => implode('/', array_reverse(explode('-', $nascimento))),
+                'nome' => $nome,
+                'cargo' => $texto($d['cargo'] ?? ''),
+                'departamento' => $texto($d['departamento'] ?? ''),
+                'empresa' => $empresa,
+                'data_admissao' => $admissao,
+                'ano_admissao' => substr($admissao, 0, 4),
+                'rg_primeiros_3_digitos' => substr($rg, 0, 3),
+                'nome_mae' => $texto($d['nome_mae'] ?? ''),
+                'telefone_atual' => $telefoneFormatado,
+                'email' => $email,
+                'alterado_por' => $autor,
+                'alterado_em' => date('Y-m-d H:i:s'),
+            ]);
+            if ($demissao !== '') $atual['data_demissao'] = $demissao; else unset($atual['data_demissao']);
+            if ($novo) $todos[] = $atual; else $todos[$indice] = $atual;
+            $resposta = ['sucesso' => true, 'matricula' => $matricula];
+        });
+        return $resposta;
+    }
+
+    /** Inativa (bloqueia o acesso ao portal) ou reativa. Os dados e históricos continuam. */
+    public function definirAtivoRh(string $matricula, bool $ativo, string $autor): array
+    {
+        if (!$this->visivel($matricula)) return ['erro' => 'Colaborador não encontrado.', 'status' => 404];
+        $resposta = ['erro' => 'Colaborador não encontrado.', 'status' => 404];
+        $this->transacao(function (array &$todos) use ($matricula, $ativo, $autor, &$resposta) {
+            foreach ($todos as $i => $c) {
+                if (($c['matricula'] ?? '') !== $matricula) continue;
+                $todos[$i]['ativo'] = $ativo;
+                $todos[$i]['alterado_por'] = $autor;
+                $todos[$i]['alterado_em'] = date('Y-m-d H:i:s');
+                $resposta = ['sucesso' => true];
+                return;
+            }
+        });
+        return $resposta;
+    }
+
+    private static function dataValida(string $iso): bool
+    {
+        return (bool)preg_match('/^(\d{4})-(\d{2})-(\d{2})$/', $iso, $m) && checkdate((int)$m[2], (int)$m[3], (int)$m[1]) && $m[1] >= 1900;
+    }
+
+    private static function formatarCpf(string $cpf): string
+    {
+        $cpf = preg_replace('/\D/', '', $cpf);
+        return strlen($cpf) === 11 ? substr($cpf, 0, 3) . '.' . substr($cpf, 3, 3) . '.' . substr($cpf, 6, 3) . '-' . substr($cpf, 9) : $cpf;
+    }
+
+    private static function formatarTelefone(string $tel): string
+    {
+        return strlen($tel) === 11
+            ? '(' . substr($tel, 0, 2) . ') ' . substr($tel, 2, 5) . '-' . substr($tel, 7)
+            : '(' . substr($tel, 0, 2) . ') ' . substr($tel, 2, 4) . '-' . substr($tel, 6);
+    }
+
+    /** Lê, altera e grava o colaboradores.json inteiro (sem filtro de empresa) com trava. */
+    private function transacao(callable $fn): void
+    {
+        $lock = fopen($this->dataFile . '.lock', 'c');
+        flock($lock, LOCK_EX);
+        try {
+            $todos = $this->lerTodos();
+            $antes = $todos;
+            $fn($todos);
+            if ($todos !== $antes) {
+                file_put_contents($this->dataFile, json_encode(array_values($todos), JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE), LOCK_EX);
+            }
+        } finally {
+            flock($lock, LOCK_UN);
+            fclose($lock);
+        }
+    }
+
     public function autenticar(string $cpf, string $dataNascimento): ?array
     {
         $cpfLimpo = preg_replace('/\D/', '', $cpf);
