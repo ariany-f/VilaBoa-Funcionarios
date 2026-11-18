@@ -71,11 +71,11 @@
           </button>
           <button
             type="button"
-            @click="abrirDetalhe(atual.competencia)"
+            @click="baixarEspelho(atual)"
             class="h-14 sm:h-12 rounded-2xl sm:rounded-full bg-white/10 hover:bg-white/20 border border-white/20 text-white active:scale-[0.98] font-semibold text-base sm:text-sm flex items-center justify-center gap-2 transition cursor-pointer"
           >
-            <AppIcon name="eye" size="18" />
-            <span>Ver espelho</span>
+            <AppIcon name="download" size="18" />
+            <span>Imprimir / salvar PDF</span>
           </button>
         </div>
         <p v-if="!atual.assinatura && !somenteLeitura && !atual.link_assinatura" class="relative z-10 text-xs text-white/60">
@@ -83,195 +83,195 @@
         </p>
       </div>
 
-    </template>
-
-    <!-- Detalhe do mês: espelho completo, com todos os dados do relatório de ponto -->
-    <Teleport to="body">
-      <div v-if="detalheAberto" class="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 bg-slate-900/60 backdrop-blur-sm" @click.self="detalheAberto = false">
-        <div class="w-full max-w-6xl bg-white rounded-t-2xl sm:rounded-2xl shadow-2xl flex flex-col max-h-[94vh] sm:max-h-[92vh] overflow-hidden">
-          <div class="px-5 pt-3 pb-3 border-b border-slate-100 flex items-center justify-between bg-slate-50 shrink-0">
-            <div class="flex items-center space-x-3 min-w-0">
-              <img :src="logoEmpresa" alt="Logo da empresa" class="h-7 w-auto object-contain" />
-              <div class="border-l border-slate-200 pl-3 min-w-0">
-                <h3 class="text-xs font-bold text-slate-800">Espelho de Ponto</h3>
-                <p class="text-[10px] text-slate-500 truncate">{{ espelho?.mes_nome }} · {{ espelho?.assinatura ? 'Assinado em ' + espelho.assinatura.data_hora : 'Falta assinar' }}</p>
-              </div>
-            </div>
-            <div class="flex items-center gap-2 shrink-0">
-              <button v-if="espelho" type="button" @click="baixarEspelho(espelho)" class="h-9 px-3 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold inline-flex items-center gap-1.5 cursor-pointer border border-slate-200">
-                <AppIcon name="printer" size="14" />
-                <span class="hidden sm:inline">Imprimir / PDF</span>
-              </button>
-              <button type="button" @click="detalheAberto = false" class="w-9 h-9 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-500 flex items-center justify-center cursor-pointer border border-slate-200" aria-label="Fechar">
-                <AppIcon name="x" size="14" />
-              </button>
-            </div>
-          </div>
-
-          <div v-if="carregandoDetalhe || !espelho" class="py-16 text-center text-sm text-slate-400">Carregando...</div>
-          <div v-else class="p-4 sm:p-5 overflow-y-auto space-y-4">
-            <!-- Identificação (cabeçalho do relatório) -->
-            <div class="rounded-2xl border border-slate-200 p-4 grid grid-cols-2 lg:grid-cols-5 gap-x-4 gap-y-3 text-sm">
-              <div class="col-span-2 lg:col-span-2"><span class="block text-xs text-slate-500">Colaborador</span><strong class="text-slate-900">{{ nomeColab || '-' }}</strong></div>
-              <div><span class="block text-xs text-slate-500">Matrícula</span><strong class="text-slate-900">{{ matriculaColab || '-' }}</strong></div>
-              <div><span class="block text-xs text-slate-500">Função</span><strong class="text-slate-900">{{ espelho.funcao || colaborador?.cargo || '-' }}</strong></div>
-              <div><span class="block text-xs text-slate-500">Admissão</span><strong class="text-slate-900">{{ espelho.admissao || '-' }}</strong></div>
-            </div>
-
-            <!-- Resumo do mês -->
-            <div class="grid grid-cols-2 lg:grid-cols-5 gap-3">
-              <div v-for="r in resumo" :key="r.rotulo" class="bg-white rounded-2xl border border-slate-200 p-4">
-                <span class="block text-xs text-slate-500">{{ r.rotulo }}</span>
-                <span class="block text-xl font-semibold mt-1 tabular-nums" :class="r.cor">{{ r.valor }}</span>
-              </div>
-            </div>
-
-            <!-- Como ler (explicação didática) -->
-            <details class="rounded-2xl border border-sky-100 bg-sky-50/60 p-4 text-xs text-slate-600">
-              <summary class="cursor-pointer font-semibold text-sky-800 text-sm select-none">Como ler este espelho</summary>
-              <ul class="mt-3 grid sm:grid-cols-2 gap-x-6 gap-y-1.5 list-disc pl-4">
-                <li v-for="l in legenda" :key="l[0]"><strong class="text-slate-800">{{ l[0] }}:</strong> {{ l[1] }}</li>
-              </ul>
-              <p class="mt-3">Encontrou algo diferente do que você trabalhou? Confira cada dia abaixo e fale com o RH <strong>antes de assinar</strong> para contestar.</p>
-            </details>
-
-            <!-- Banco de horas -->
-            <div v-if="banco.atual" class="bg-white rounded-2xl border border-slate-200 p-4 sm:p-6 space-y-3">
-              <h3 class="text-sm font-semibold uppercase tracking-wider text-slate-800 pb-3 border-b border-slate-100">Banco de horas</h3>
-              <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                <div class="rounded-xl bg-slate-50 p-3">
-                  <span class="block text-xs text-slate-500">Saldo anterior</span>
-                  <span class="block text-lg font-semibold tabular-nums mt-0.5" :class="corValor(banco.anterior)">{{ banco.anterior }}</span>
-                  <span class="block text-[11px] text-slate-400 mt-0.5">O que você tinha ao começar o período</span>
-                </div>
-                <div class="rounded-xl bg-slate-50 p-3">
-                  <span class="block text-xs text-slate-500">Saldo do período <span v-if="banco.periodo?.inicio">({{ dataBR(banco.periodo.inicio) }} a {{ dataBR(banco.periodo.fim) }})</span></span>
-                  <span class="flex items-center gap-2 flex-wrap mt-0.5">
-                    <span class="text-lg font-semibold tabular-nums" :class="corValor(banco.periodo?.valor)">{{ banco.periodo?.valor }}</span>
-                    <span v-if="banco.periodo?.situacao" class="text-[10px] font-bold px-2 py-0.5 rounded-full" :class="banco.periodo.situacao === 'A PAGAR' ? 'bg-emerald-100 text-emerald-700' : 'bg-rose-100 text-rose-700'">{{ banco.periodo.situacao }}</span>
-                  </span>
-                  <span class="block text-[11px] text-slate-400 mt-0.5">A pagar: a empresa te deve estas horas · A compensar: horas a repor</span>
-                </div>
-                <div class="rounded-xl bg-slate-900 text-white p-3">
-                  <span class="block text-xs text-white/60">Saldo atual</span>
-                  <span class="block text-lg font-semibold tabular-nums mt-0.5">{{ banco.atual }}</span>
-                  <span class="block text-[11px] text-white/50 mt-0.5">Saldo anterior + saldo do período</span>
+      <!-- Prévia do espelho (como na Ficha de EPI). Vira modal quando aberto pelo RH -->
+      <Teleport to="body" :disabled="!detalheAberto">
+        <div v-if="detalheAberto || espelho" :class="detalheAberto ? 'fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 bg-slate-900/60 backdrop-blur-sm' : 'transition-opacity' + (trocandoMes ? ' opacity-60' : '')" @click.self="detalheAberto = false">
+          <div class="w-full bg-white flex flex-col overflow-hidden" :class="detalheAberto ? 'max-w-6xl rounded-t-2xl sm:rounded-2xl shadow-2xl max-h-[94vh] sm:max-h-[92vh]' : 'rounded-2xl border border-slate-200'">
+            <div class="px-5 pt-3 pb-3 border-b border-slate-100 flex items-center justify-between bg-slate-50 shrink-0">
+              <div class="flex items-center space-x-3 min-w-0">
+                <img :src="logoEmpresa" alt="Logo da empresa" class="h-7 w-auto object-contain" />
+                <div class="border-l border-slate-200 pl-3 min-w-0">
+                  <h3 class="text-xs font-bold text-slate-800">Espelho de Ponto</h3>
+                  <p class="text-[10px] text-slate-500 truncate">{{ espelho?.mes_nome }} · {{ espelho?.assinatura ? 'Assinado em ' + espelho.assinatura.data_hora : 'Falta assinar' }}</p>
                 </div>
               </div>
+              <div class="flex items-center gap-2 shrink-0">
+                <button v-if="espelho" type="button" @click="baixarEspelho(espelho)" class="h-9 px-3 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold inline-flex items-center gap-1.5 cursor-pointer border border-slate-200">
+                  <AppIcon name="printer" size="14" />
+                  <span class="hidden sm:inline">Imprimir / PDF</span>
+                </button>
+                <button v-if="detalheAberto" type="button" @click="detalheAberto = false" class="w-9 h-9 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-500 flex items-center justify-center cursor-pointer border border-slate-200" aria-label="Fechar">
+                  <AppIcon name="x" size="14" />
+                </button>
+              </div>
             </div>
 
-            <!-- Dias do mês -->
-            <div class="bg-white rounded-2xl border border-slate-200 p-4 sm:p-6">
-              <div class="flex items-center justify-between gap-3 pb-3 border-b border-slate-100">
-                <h3 class="text-sm font-semibold uppercase tracking-wider text-slate-800">Dias do mês</h3>
-                <label class="flex items-center gap-2 text-xs text-slate-600 cursor-pointer select-none">
-                  <input type="checkbox" v-model="somenteTrabalhados" class="w-4 h-4 accent-[#9c2337]" />
-                  Só dias trabalhados
-                </label>
-              </div>
-              <div class="flex flex-wrap gap-x-4 gap-y-1 pt-3 text-[11px] text-slate-500">
-                <span class="inline-flex items-center gap-1.5"><i class="w-3 h-3 rounded bg-amber-100 border border-amber-300"></i>Feriado</span>
-                <span class="inline-flex items-center gap-1.5"><i class="w-3 h-3 rounded bg-sky-100 border border-sky-300"></i>Abono / compensação</span>
-                <span class="inline-flex items-center gap-1.5"><i class="w-3 h-3 rounded bg-rose-100 border border-rose-300"></i>Falta</span>
-                <span class="inline-flex items-center gap-1.5"><i class="w-3 h-3 rounded bg-slate-100 border border-slate-300"></i>Folga / descanso</span>
+            <div v-if="carregandoDetalhe || !espelho" class="py-16 text-center text-sm text-slate-400">Carregando...</div>
+            <div v-else class="p-4 sm:p-5 space-y-4" :class="detalheAberto ? 'overflow-y-auto' : ''">
+              <!-- Identificação (cabeçalho do relatório) -->
+              <div class="rounded-2xl border border-slate-200 p-4 grid grid-cols-2 lg:grid-cols-5 gap-x-4 gap-y-3 text-sm">
+                <div class="col-span-2 lg:col-span-2"><span class="block text-xs text-slate-500">Colaborador</span><strong class="text-slate-900">{{ nomeColab || '-' }}</strong></div>
+                <div><span class="block text-xs text-slate-500">Matrícula</span><strong class="text-slate-900">{{ matriculaColab || '-' }}</strong></div>
+                <div><span class="block text-xs text-slate-500">Função</span><strong class="text-slate-900">{{ espelho.funcao || colaborador?.cargo || '-' }}</strong></div>
+                <div><span class="block text-xs text-slate-500">Admissão</span><strong class="text-slate-900">{{ espelho.admissao || '-' }}</strong></div>
               </div>
 
-              <!-- Celular: um cartão por dia, com todos os campos -->
-              <ul class="md:hidden space-y-2 mt-3">
-                <li v-for="d in diasVisiveis" :key="d.data" class="rounded-xl border p-3" :class="[classeDia(d), ehHoje(d) ? 'ring-2 ring-amber-300' : '']">
-                  <div class="flex items-center justify-between gap-2">
-                    <span class="text-sm font-semibold text-slate-900">{{ dataBR(d.data) }} <span class="text-xs font-medium text-slate-500">{{ d.dia_semana }}</span></span>
-                    <span v-if="obsDia(d)" class="text-[11px] font-semibold text-slate-600 text-right">{{ obsDia(d) }}</span>
+              <!-- Resumo do mês -->
+              <div class="grid grid-cols-2 lg:grid-cols-5 gap-3">
+                <div v-for="r in resumo" :key="r.rotulo" class="bg-white rounded-2xl border border-slate-200 p-4">
+                  <span class="block text-xs text-slate-500">{{ r.rotulo }}</span>
+                  <span class="block text-xl font-semibold mt-1 tabular-nums" :class="r.cor">{{ r.valor }}</span>
+                </div>
+              </div>
+
+              <!-- Como ler (explicação didática) -->
+              <details class="rounded-2xl border border-sky-100 bg-sky-50/60 p-4 text-xs text-slate-600">
+                <summary class="cursor-pointer font-semibold text-sky-800 text-sm select-none">Como ler este espelho</summary>
+                <ul class="mt-3 grid sm:grid-cols-2 gap-x-6 gap-y-1.5 list-disc pl-4">
+                  <li v-for="l in legenda" :key="l[0]"><strong class="text-slate-800">{{ l[0] }}:</strong> {{ l[1] }}</li>
+                </ul>
+                <p class="mt-3">Encontrou algo diferente do que você trabalhou? Confira cada dia abaixo e fale com o RH <strong>antes de assinar</strong> para contestar.</p>
+              </details>
+
+              <!-- Banco de horas -->
+              <div v-if="banco.atual" class="bg-white rounded-2xl border border-slate-200 p-4 sm:p-6 space-y-3">
+                <h3 class="text-sm font-semibold uppercase tracking-wider text-slate-800 pb-3 border-b border-slate-100">Banco de horas</h3>
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                  <div class="rounded-xl bg-slate-50 p-3">
+                    <span class="block text-xs text-slate-500">Saldo anterior</span>
+                    <span class="block text-lg font-semibold tabular-nums mt-0.5" :class="corValor(banco.anterior)">{{ banco.anterior }}</span>
+                    <span class="block text-[11px] text-slate-400 mt-0.5">O que você tinha ao começar o período</span>
                   </div>
-                  <template v-if="temDados(d)">
-                    <div class="grid grid-cols-3 gap-x-2 gap-y-1.5 mt-2">
-                      <div v-for="m in marcas(d)" :key="m[0]"><span class="block text-[10px] uppercase text-slate-400">{{ m[0] }}</span><span class="block text-sm tabular-nums" :class="m[1] === '--:--' ? 'text-slate-300' : 'text-slate-800'">{{ m[1] }}</span></div>
-                    </div>
-                    <div class="grid grid-cols-3 gap-x-2 gap-y-1.5 mt-2 pt-2 border-t border-slate-200/70">
-                      <div v-for="c in totaisDia(d)" :key="c[0]"><span class="block text-[10px] uppercase text-slate-400">{{ c[0] }}</span><span class="block text-sm tabular-nums" :class="c[2] || (c[1] ? 'text-slate-800' : 'text-slate-300')">{{ c[1] || '–' }}</span></div>
-                    </div>
-                  </template>
-                </li>
-              </ul>
-
-              <!-- Computador: tabela completa, igual ao relatório -->
-              <div class="hidden md:block overflow-x-auto mt-2">
-                <table class="w-full text-sm">
-                  <thead>
-                    <tr class="text-[10px] font-semibold uppercase tracking-wider text-slate-400 text-left">
-                      <th class="py-3 px-2">Data</th>
-                      <th class="py-3 px-1.5">Ent1</th><th class="py-3 px-1.5">Sai1</th><th class="py-3 px-1.5">Ent2</th><th class="py-3 px-1.5">Sai2</th><th class="py-3 px-1.5">Ent3</th><th class="py-3 px-1.5">Sai3</th>
-                      <th class="py-3 px-1.5">Exec</th><th class="py-3 px-1.5">Ad.Not</th><th class="py-3 px-1.5">Atraso</th><th class="py-3 px-1.5">Falta</th><th class="py-3 px-1.5">Abono</th><th class="py-3 px-1.5">Saldo do dia</th>
-                      <th class="py-3 px-2">Observação</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    <tr v-for="d in diasVisiveis" :key="d.data" class="border-t border-slate-100" :class="[classeDia(d), ehHoje(d) ? 'outline outline-2 outline-amber-300' : '']">
-                      <td class="py-2 px-2 whitespace-nowrap"><span class="font-semibold text-slate-900">{{ dataBR(d.data) }}</span> <span class="text-xs text-slate-500">{{ d.dia_semana }}</span></td>
-                      <td v-for="m in marcas(d)" :key="m[0]" class="py-2 px-1.5 tabular-nums" :class="m[1] === '--:--' ? 'text-slate-300' : 'text-slate-800'">{{ m[1] }}</td>
-                      <td v-for="c in totaisDia(d).slice(0, 5)" :key="c[0]" class="py-2 px-1.5 tabular-nums" :class="c[2] || 'text-slate-800'">{{ c[1] }}</td>
-                      <td class="py-2 px-1.5"><span v-if="trabalhado(d) && d.saldo !== '00:00'" class="text-xs font-semibold px-2 py-0.5 rounded-md tabular-nums" :class="corSaldo(d)">{{ d.saldo }}</span></td>
-                      <td class="py-2 px-2 text-xs font-medium text-slate-600">{{ obsDia(d) }}</td>
-                    </tr>
-                  </tbody>
-                </table>
+                  <div class="rounded-xl bg-slate-50 p-3">
+                    <span class="block text-xs text-slate-500">Saldo do período <span v-if="banco.periodo?.inicio">({{ dataBR(banco.periodo.inicio) }} a {{ dataBR(banco.periodo.fim) }})</span></span>
+                    <span class="flex items-center gap-2 flex-wrap mt-0.5">
+                      <span class="text-lg font-semibold tabular-nums" :class="corValor(banco.periodo?.valor)">{{ banco.periodo?.valor }}</span>
+                      <span v-if="banco.periodo?.situacao" class="text-[10px] font-bold px-2 py-0.5 rounded-full" :class="banco.periodo.situacao === 'A PAGAR' ? 'bg-emerald-100 text-emerald-700' : 'bg-rose-100 text-rose-700'">{{ banco.periodo.situacao }}</span>
+                    </span>
+                    <span class="block text-[11px] text-slate-400 mt-0.5">A pagar: a empresa te deve estas horas · A compensar: horas a repor</span>
+                  </div>
+                  <div class="rounded-xl bg-slate-900 text-white p-3">
+                    <span class="block text-xs text-white/60">Saldo atual</span>
+                    <span class="block text-lg font-semibold tabular-nums mt-0.5">{{ banco.atual }}</span>
+                    <span class="block text-[11px] text-white/50 mt-0.5">Saldo anterior + saldo do período</span>
+                  </div>
+                </div>
               </div>
-            </div>
 
-            <!-- Eventos do movimento -->
-            <div class="bg-white rounded-2xl border border-slate-200 p-4 sm:p-6">
-              <h3 class="text-sm font-semibold uppercase tracking-wider text-slate-800 pb-3 border-b border-slate-100">Eventos do movimento no período</h3>
-              <p v-if="!(espelho.eventos || []).length" class="text-xs text-slate-400 pt-3">Nenhum evento no período.</p>
-              <table v-else class="w-full text-sm mt-1">
-                <thead><tr class="text-[10px] font-semibold uppercase tracking-wider text-slate-400 text-left"><th class="py-3 px-2">Código</th><th class="py-3 px-2">Descrição</th><th class="py-3 px-2 text-right">Horas</th></tr></thead>
-                <tbody class="divide-y divide-slate-100">
-                  <tr v-for="ev in espelho.eventos" :key="ev.codigo"><td class="py-2 px-2 tabular-nums">{{ ev.codigo }}</td><td class="py-2 px-2">{{ ev.descricao }}</td><td class="py-2 px-2 text-right tabular-nums font-semibold">{{ ev.horas }}</td></tr>
-                </tbody>
-              </table>
-            </div>
+              <!-- Dias do mês -->
+              <div class="bg-white rounded-2xl border border-slate-200 p-4 sm:p-6">
+                <div class="flex items-center justify-between gap-3 pb-3 border-b border-slate-100">
+                  <h3 class="text-sm font-semibold uppercase tracking-wider text-slate-800">Dias do mês</h3>
+                  <label class="flex items-center gap-2 text-xs text-slate-600 cursor-pointer select-none">
+                    <input type="checkbox" v-model="somenteTrabalhados" class="w-4 h-4 accent-[#9c2337]" />
+                    Só dias trabalhados
+                  </label>
+                </div>
+                <div class="flex flex-wrap gap-x-4 gap-y-1 pt-3 text-[11px] text-slate-500">
+                  <span class="inline-flex items-center gap-1.5"><i class="w-3 h-3 rounded bg-amber-100 border border-amber-300"></i>Feriado</span>
+                  <span class="inline-flex items-center gap-1.5"><i class="w-3 h-3 rounded bg-sky-100 border border-sky-300"></i>Abono / compensação</span>
+                  <span class="inline-flex items-center gap-1.5"><i class="w-3 h-3 rounded bg-rose-100 border border-rose-300"></i>Falta</span>
+                  <span class="inline-flex items-center gap-1.5"><i class="w-3 h-3 rounded bg-slate-100 border border-slate-300"></i>Folga / descanso</span>
+                </div>
 
-            <!-- Dias ponte -->
-            <div class="bg-white rounded-2xl border border-slate-200 p-4 sm:p-6">
-              <h3 class="text-sm font-semibold uppercase tracking-wider text-slate-800 pb-3 border-b border-slate-100">Dias ponte</h3>
-              <p class="text-[11px] text-slate-400 pt-2">Dia emendado em feriado ou folga: as horas do período são incrementadas (+) ou decrementadas (−) do seu banco.</p>
-              <p v-if="!(espelho.pontes || []).length" class="text-xs text-slate-400 pt-2">Nenhum dia ponte no período.</p>
-              <div v-else class="overflow-x-auto">
-                <table class="w-full text-sm mt-1">
-                  <thead><tr class="text-[10px] font-semibold uppercase tracking-wider text-slate-400 text-left"><th class="py-3 px-2">Data do dia ponte</th><th class="py-3 px-2">Início</th><th class="py-3 px-2">Fim</th><th class="py-3 px-2 text-right">Horas a incrementar/decrementar</th></tr></thead>
+                <!-- Celular: um cartão por dia, com todos os campos -->
+                <ul class="md:hidden space-y-2 mt-3">
+                  <li v-for="d in diasVisiveis" :key="d.data" class="rounded-xl border p-3" :class="[classeDia(d), ehHoje(d) ? 'ring-2 ring-amber-300' : '']">
+                    <div class="flex items-center justify-between gap-2">
+                      <span class="text-sm font-semibold text-slate-900">{{ dataBR(d.data) }} <span class="text-xs font-medium text-slate-500">{{ d.dia_semana }}</span></span>
+                      <span v-if="obsDia(d)" class="text-[11px] font-semibold text-slate-600 text-right">{{ obsDia(d) }}</span>
+                    </div>
+                    <template v-if="temDados(d)">
+                      <div class="grid grid-cols-3 gap-x-2 gap-y-1.5 mt-2">
+                        <div v-for="m in marcas(d)" :key="m[0]"><span class="block text-[10px] uppercase text-slate-400">{{ m[0] }}</span><span class="block text-sm tabular-nums" :class="m[1] === '--:--' ? 'text-slate-300' : 'text-slate-800'">{{ m[1] }}</span></div>
+                      </div>
+                      <div class="grid grid-cols-3 gap-x-2 gap-y-1.5 mt-2 pt-2 border-t border-slate-200/70">
+                        <div v-for="c in totaisDia(d)" :key="c[0]"><span class="block text-[10px] uppercase text-slate-400">{{ c[0] }}</span><span class="block text-sm tabular-nums" :class="c[2] || (c[1] ? 'text-slate-800' : 'text-slate-300')">{{ c[1] || '–' }}</span></div>
+                      </div>
+                    </template>
+                  </li>
+                </ul>
+
+                <!-- Computador: tabela completa, igual ao relatório -->
+                <div class="hidden md:block overflow-x-auto mt-2">
+                  <table class="w-full text-sm">
+                    <thead>
+                      <tr class="text-[10px] font-semibold uppercase tracking-wider text-slate-400 text-left">
+                        <th class="py-3 px-2">Data</th>
+                        <th class="py-3 px-1.5">Ent1</th><th class="py-3 px-1.5">Sai1</th><th class="py-3 px-1.5">Ent2</th><th class="py-3 px-1.5">Sai2</th><th class="py-3 px-1.5">Ent3</th><th class="py-3 px-1.5">Sai3</th>
+                        <th class="py-3 px-1.5">Exec</th><th class="py-3 px-1.5">Ad.Not</th><th class="py-3 px-1.5">Atraso</th><th class="py-3 px-1.5">Falta</th><th class="py-3 px-1.5">Abono</th><th class="py-3 px-1.5">Saldo do dia</th>
+                        <th class="py-3 px-2">Observação</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr v-for="d in diasVisiveis" :key="d.data" class="border-t border-slate-100" :class="[classeDia(d), ehHoje(d) ? 'outline outline-2 outline-amber-300' : '']">
+                        <td class="py-2 px-2 whitespace-nowrap"><span class="font-semibold text-slate-900">{{ dataBR(d.data) }}</span> <span class="text-xs text-slate-500">{{ d.dia_semana }}</span></td>
+                        <td v-for="m in marcas(d)" :key="m[0]" class="py-2 px-1.5 tabular-nums" :class="m[1] === '--:--' ? 'text-slate-300' : 'text-slate-800'">{{ m[1] }}</td>
+                        <td v-for="c in totaisDia(d).slice(0, 5)" :key="c[0]" class="py-2 px-1.5 tabular-nums" :class="c[2] || 'text-slate-800'">{{ c[1] }}</td>
+                        <td class="py-2 px-1.5"><span v-if="trabalhado(d) && d.saldo !== '00:00'" class="text-xs font-semibold px-2 py-0.5 rounded-md tabular-nums" :class="corSaldo(d)">{{ d.saldo }}</span></td>
+                        <td class="py-2 px-2 text-xs font-medium text-slate-600">{{ obsDia(d) }}</td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+
+              <!-- Eventos do movimento -->
+              <div class="bg-white rounded-2xl border border-slate-200 p-4 sm:p-6">
+                <h3 class="text-sm font-semibold uppercase tracking-wider text-slate-800 pb-3 border-b border-slate-100">Eventos do movimento no período</h3>
+                <p v-if="!(espelho.eventos || []).length" class="text-xs text-slate-400 pt-3">Nenhum evento no período.</p>
+                <table v-else class="w-full text-sm mt-1">
+                  <thead><tr class="text-[10px] font-semibold uppercase tracking-wider text-slate-400 text-left"><th class="py-3 px-2">Código</th><th class="py-3 px-2">Descrição</th><th class="py-3 px-2 text-right">Horas</th></tr></thead>
                   <tbody class="divide-y divide-slate-100">
-                    <tr v-for="p in espelho.pontes" :key="p.data"><td class="py-2 px-2 tabular-nums">{{ dataBR(p.data) }}</td><td class="py-2 px-2 tabular-nums">{{ dataBR(p.inicio) }}</td><td class="py-2 px-2 tabular-nums">{{ dataBR(p.fim) }}</td><td class="py-2 px-2 text-right tabular-nums font-semibold" :class="corValor(p.horas)">{{ p.horas }}</td></tr>
+                    <tr v-for="ev in espelho.eventos" :key="ev.codigo"><td class="py-2 px-2 tabular-nums">{{ ev.codigo }}</td><td class="py-2 px-2">{{ ev.descricao }}</td><td class="py-2 px-2 text-right tabular-nums font-semibold">{{ ev.horas }}</td></tr>
                   </tbody>
                 </table>
               </div>
+
+              <!-- Dias ponte -->
+              <div class="bg-white rounded-2xl border border-slate-200 p-4 sm:p-6">
+                <h3 class="text-sm font-semibold uppercase tracking-wider text-slate-800 pb-3 border-b border-slate-100">Dias ponte</h3>
+                <p class="text-[11px] text-slate-400 pt-2">Dia emendado em feriado ou folga: as horas do período são incrementadas (+) ou decrementadas (−) do seu banco.</p>
+                <p v-if="!(espelho.pontes || []).length" class="text-xs text-slate-400 pt-2">Nenhum dia ponte no período.</p>
+                <div v-else class="overflow-x-auto">
+                  <table class="w-full text-sm mt-1">
+                    <thead><tr class="text-[10px] font-semibold uppercase tracking-wider text-slate-400 text-left"><th class="py-3 px-2">Data do dia ponte</th><th class="py-3 px-2">Início</th><th class="py-3 px-2">Fim</th><th class="py-3 px-2 text-right">Horas a incrementar/decrementar</th></tr></thead>
+                    <tbody class="divide-y divide-slate-100">
+                      <tr v-for="p in espelho.pontes" :key="p.data"><td class="py-2 px-2 tabular-nums">{{ dataBR(p.data) }}</td><td class="py-2 px-2 tabular-nums">{{ dataBR(p.inicio) }}</td><td class="py-2 px-2 tabular-nums">{{ dataBR(p.fim) }}</td><td class="py-2 px-2 text-right tabular-nums font-semibold" :class="corValor(p.horas)">{{ p.horas }}</td></tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+
+              <!-- Horário no período -->
+              <div class="bg-white rounded-2xl border border-slate-200 p-4 sm:p-6">
+                <h3 class="text-sm font-semibold uppercase tracking-wider text-slate-800 pb-3 border-b border-slate-100">Horário no período</h3>
+                <p v-if="!(espelho.horario || []).length" class="text-xs text-slate-400 pt-3">Horário não informado.</p>
+                <ul v-else class="pt-3 space-y-1 text-sm text-slate-700">
+                  <li v-for="h in espelho.horario" :key="h.codigo" class="tabular-nums"><strong>{{ h.codigo }}</strong> {{ h.descricao }}</li>
+                </ul>
+              </div>
+
+              <!-- Assinatura eletrônica -->
+              <p v-if="espelho.assinatura" class="text-[11px] text-slate-500 break-all">Assinado eletronicamente em {{ espelho.assinatura.data_hora }} · Código de autenticidade {{ espelho.assinatura.hash_autenticidade }}</p>
             </div>
 
-            <!-- Horário no período -->
-            <div class="bg-white rounded-2xl border border-slate-200 p-4 sm:p-6">
-              <h3 class="text-sm font-semibold uppercase tracking-wider text-slate-800 pb-3 border-b border-slate-100">Horário no período</h3>
-              <p v-if="!(espelho.horario || []).length" class="text-xs text-slate-400 pt-3">Horário não informado.</p>
-              <ul v-else class="pt-3 space-y-1 text-sm text-slate-700">
-                <li v-for="h in espelho.horario" :key="h.codigo" class="tabular-nums"><strong>{{ h.codigo }}</strong> {{ h.descricao }}</li>
-              </ul>
+            <!-- Ações, como no rodapé do demonstrativo -->
+            <div v-if="detalheAberto && espelho && podeAssinar(espelho)" class="p-3.5 pb-[calc(0.875rem+env(safe-area-inset-bottom,0px))] bg-slate-50 border-t border-slate-200 shrink-0">
+              <button
+                type="button"
+                @click="assinarNoAutentique(espelho)"
+                class="w-full h-12 rounded-xl bg-[#9c2337] hover:bg-[#831b2d] text-white font-semibold text-sm flex items-center justify-center gap-2 cursor-pointer"
+              >
+                <AppIcon name="pen-tool" size="16" />
+                Conferi e quero assinar
+              </button>
             </div>
-
-            <!-- Assinatura eletrônica -->
-            <p v-if="espelho.assinatura" class="text-[11px] text-slate-500 break-all">Assinado eletronicamente em {{ espelho.assinatura.data_hora }} · Código de autenticidade {{ espelho.assinatura.hash_autenticidade }}</p>
-          </div>
-
-          <!-- Ações, como no rodapé do demonstrativo -->
-          <div v-if="espelho && podeAssinar(espelho)" class="p-3.5 pb-[calc(0.875rem+env(safe-area-inset-bottom,0px))] bg-slate-50 border-t border-slate-200 shrink-0">
-            <button
-              type="button"
-              @click="assinarNoAutentique(espelho)"
-              class="w-full h-12 rounded-xl bg-[#9c2337] hover:bg-[#831b2d] text-white font-semibold text-sm flex items-center justify-center gap-2 cursor-pointer"
-            >
-              <AppIcon name="pen-tool" size="16" />
-              Conferi e quero assinar
-            </button>
           </div>
         </div>
-      </div>
-    </Teleport>
+      </Teleport>
+    </template>
+
 
   </div>
 </template>
@@ -293,7 +293,7 @@ const props = defineProps({
   somenteLeitura: { type: Boolean, default: false }
 });
 
-const espelho = ref(null);       // mês aberto no detalhe
+const espelho = ref(null);       // mês mostrado na prévia / no modal
 const ultimo = ref(null);        // mês mais recente
 const selecionado = ref(null);   // mês escolhido no seletor (destaque do topo)
 const trocandoMes = ref(false);
@@ -514,6 +514,7 @@ async function carregar() {
     const data = await buscar();
     competencias.value = data.competencias || [];
     ultimo.value = data.espelho;
+    espelho.value = data.espelho;
     selecionado.value = null;
   } catch (e) {
     ultimo.value = null;
@@ -566,10 +567,10 @@ watch(() => props.matricula, () => { espelho.value = null; carregar(); });
 
 onMounted(async () => {
   await carregar();
-  if (props.competenciaInicial) {
-    await abrirDetalhe(props.competenciaInicial);
-    if (espelho.value) selecionado.value = espelho.value;
-  }
+  if (!props.competenciaInicial) return;
+  // RH abre direto o modal; no portal, o link do aviso só seleciona o mês na prévia
+  if (props.matricula) await abrirDetalhe(props.competenciaInicial);
+  else await selecionarMes(props.competenciaInicial);
 });
 
 </script>

@@ -1,12 +1,13 @@
 <template>
-  <Teleport to="body">
-  <div v-if="holerite" class="holerite-print-root fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 bg-slate-900/60 backdrop-blur-sm transition-all duration-300">
+  <Teleport to="body" :disabled="inline">
+  <div v-if="holerite" :class="inline ? '' : 'holerite-print-root fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 bg-slate-900/60 backdrop-blur-sm transition-all duration-300'">
     <div 
-      class="holerite-print-card bg-white w-full max-w-xl md:max-w-2xl lg:max-w-3xl max-h-[94vh] sm:max-h-[90vh] rounded-t-3xl sm:rounded-2xl shadow-2xl flex flex-col overflow-hidden animate-slide-up border border-slate-200"
+      class="bg-white w-full flex flex-col overflow-hidden border border-slate-200"
+      :class="inline ? 'rounded-2xl' : 'holerite-print-card max-w-xl md:max-w-2xl lg:max-w-3xl max-h-[94vh] sm:max-h-[90vh] rounded-t-3xl sm:rounded-2xl shadow-2xl animate-slide-up'"
       @click.stop
     >
       <!-- Drag Handle para Mobile (Estilo Bottom Sheet Nativo) -->
-      <div class="sm:hidden pt-2.5 pb-1 flex justify-center bg-slate-50 cursor-grab shrink-0">
+      <div v-if="!inline" class="sm:hidden pt-2.5 pb-1 flex justify-center bg-slate-50 cursor-grab shrink-0">
         <div class="w-10 h-1 bg-slate-300 rounded-full"></div>
       </div>
 
@@ -31,6 +32,7 @@
           <AppIcon :name="valoresOcultos ? 'eye' : 'eye-off'" size="14" />
         </button>
         <button 
+          v-if="!inline"
           @click="$emit('close')" 
           class="w-10 h-10 sm:w-9 sm:h-9 shrink-0 rounded-full bg-slate-100 hover:bg-slate-200 active:bg-slate-300 text-slate-500 hover:text-slate-800 flex items-center justify-center transition-all cursor-pointer active:scale-90 border border-slate-200 shadow-2xs"
           aria-label="Fechar"
@@ -41,7 +43,7 @@
       </div>
 
       <!-- Corpo com rolagem do Holerite (Área imprimível) -->
-      <div class="p-4 sm:p-5 overflow-y-auto space-y-4 text-xs sm:text-sm printable-area">
+      <div class="p-4 sm:p-5 space-y-4 text-xs sm:text-sm" :class="inline ? '' : 'overflow-y-auto printable-area'">
                 <!-- GRADE DE 2 COLUNAS NO TOPO: VALOR LÍQUIDO + CONFIRMAÇÃO DE CIÊNCIA CLT -->
         <div class="grid grid-cols-1 md:grid-cols-2 gap-3.5 items-stretch no-print">
           
@@ -71,13 +73,18 @@
           <!-- CASO PENDENTE: recebimento sendo registrado automaticamente ao abrir -->
           <div 
             v-if="!holerite.aceite?.confirmado" 
-            id="secao-ciencia"
+            :id="inline ? undefined : 'secao-ciencia'"
             class="bg-slate-50 border border-slate-200 rounded-2xl p-4 flex items-center gap-2.5 text-slate-700 text-xs font-medium"
           >
             <!-- Consulta do RH não registra recebimento: só informa que ainda não foi recebido -->
             <template v-if="consultaRh">
               <AppIcon name="info" size="15" class="text-slate-500 shrink-0" />
               <span>Holerite ainda não recebido pelo colaborador.</span>
+            </template>
+            <!-- Prévia na tela: o recebimento só é registrado ao abrir o holerite -->
+            <template v-else-if="inline">
+              <AppIcon name="info" size="15" class="text-amber-500 shrink-0" />
+              <span>Ainda não recebido. Toque em <strong>Ver holerite</strong> para confirmar o recebimento.</span>
             </template>
             <template v-else>
               <span class="w-3.5 h-3.5 border-2 border-slate-400 border-t-transparent rounded-full animate-spin shrink-0"></span>
@@ -330,7 +337,7 @@
       </div>
 
       <!-- Barra de Ações Fixa Inferior com Safe Area Padding -->
-      <div class="p-3.5 pb-[calc(0.875rem+env(safe-area-inset-bottom,0px))] bg-slate-50 border-t border-slate-200 flex flex-wrap sm:flex-nowrap gap-2.5 shrink-0 no-print">
+      <div v-if="!inline" class="p-3.5 pb-[calc(0.875rem+env(safe-area-inset-bottom,0px))] bg-slate-50 border-t border-slate-200 flex flex-wrap sm:flex-nowrap gap-2.5 shrink-0 no-print">
         <button 
           @click="imprimir" 
           class="flex-1 h-12 px-5 bg-[#9c2337] hover:bg-[#831b2d] active:scale-[0.98] text-white font-bold rounded-xl text-xs sm:text-sm flex items-center justify-center gap-2 shadow-sm transition cursor-pointer"
@@ -453,11 +460,16 @@ const props = defineProps({
   consultaRh: {
     type: Boolean,
     default: false
+  },
+  // Prévia dentro da página (como a Ficha de EPI): sem modal, sem rodapé de ações
+  inline: {
+    type: Boolean,
+    default: false
   }
 });
 
 const emit = defineEmits(['close', 'ciencia-confirmada', 'update:ocultarValores']);
-usarFecharComEsc(() => emit('close'));
+usarFecharComEsc(() => emit('close'), () => !props.inline);
 
 // QR Code Oficial de Validação para Bancos e Terceiros
 const qrCodeDataUrl = ref('');

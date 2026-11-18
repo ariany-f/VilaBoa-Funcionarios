@@ -830,7 +830,15 @@
                 </div>
               </div>
 
-            
+              <!-- Prévia do demonstrativo selecionado (como na Ficha de EPI) -->
+              <HoleriteModal
+                v-if="holeriteDestaque"
+                :key="'previa-' + holeriteDestaque.id"
+                inline
+                :holerite="holeriteDestaque"
+                :colaborador="usuarioLogado"
+                v-model:ocultarValores="ocultarValores"
+              />
             </div>
 
             <!-- PAINEL LATERAL (estilo NewRocket): ciência do ano, atalhos e documentos recentes -->
