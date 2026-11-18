@@ -226,9 +226,11 @@ const versaoProgresso = ref(0); // força reler o progresso ao fechar o leitor
 // Cadernos do colaborador num único grid (filtrável por categoria); os opcionais ficam numa seção à parte no fim
 const CATEGORIAS_FIXAS = ehTreinamento ? ['Todos'] : ['Manuais', 'Políticas', 'Programas'];
 const categoriaAtiva = ref(CATEGORIAS_FIXAS[0]);
-// Abas fixas (Manuais | Políticas | Programas); outras categorias só aparecem se tiverem cadernos
+// Abas fixas (Manuais | Políticas | Programas); outras categorias só aparecem se tiverem cadernos.
+// "Treinamentos" nunca vira aba nas Políticas Internas: os treinamentos têm item próprio no menu.
+const CATEGORIAS_OCULTAS = ehTreinamento ? [] : ['Treinamentos'];
 const categorias = computed(() => {
-  const extras = [...new Set(cadernos.value.filter((c) => c.obrigatorio).map((c) => c.categoria || 'Outros'))].filter((c) => !CATEGORIAS_FIXAS.includes(c)).sort();
+  const extras = [...new Set(cadernos.value.filter((c) => c.obrigatorio).map((c) => c.categoria || 'Outros'))].filter((c) => !CATEGORIAS_FIXAS.includes(c) && !CATEGORIAS_OCULTAS.includes(c)).sort();
   return [...CATEGORIAS_FIXAS, ...extras];
 });
 const tituloSemEmpresa = (t) => t.replace(/\s*Vila Boa/gi, '').replace(/\s+/g, ' ').trim();
