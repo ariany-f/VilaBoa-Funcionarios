@@ -59,13 +59,45 @@ class WhatsAppNotificationService
     }
 
     /**
+     * Registra uma mensagem avulsa (ex.: homologação sindical) na mesma fila/log dos avisos de holerite.
+     * GANCHO DE ENVIO REAL: enquanto não há credenciais da WhatsApp Business API, a mensagem fica
+     * com status ENFILEIRADO e o link_whatsapp permite o envio manual. Quando a API existir, basta
+     * disparar aqui e trocar o status para ENTREGUE/FALHOU.
+     */
+    public function registrarMensagem(int $colaboradorId, string $colaboradorNome, string $telefone, string $texto, string $tipo, array $extra = []): array
+    {
+        $telefoneLimpo = preg_replace('/\D/', '', $telefone);
+        $telefoneCompleto = (strlen($telefoneLimpo) === 10 || strlen($telefoneLimpo) === 11) ? '55' . $telefoneLimpo : $telefoneLimpo;
+
+        $notificacao = [
+            'id' => 'WPP-' . date('YmdHis') . '-' . substr(md5(uniqid('', true)), 0, 6),
+            'tipo' => $tipo,
+            'colaborador_id' => $colaboradorId,
+            'colaborador_nome' => $colaboradorNome,
+            'telefone' => $telefone,
+            'telefone_e164' => $telefoneCompleto ? '+' . $telefoneCompleto : '',
+            'mensagem' => $texto,
+            'link_whatsapp' => $telefoneCompleto ? 'https://api.whatsapp.com/send?phone=' . $telefoneCompleto . '&text=' . rawurlencode($texto) : '',
+            'status' => $telefoneCompleto ? 'ENFILEIRADO' : 'SEM_DESTINO',
+            'canal' => 'WhatsApp Business API (Vila Boa RH)',
+            'data_envio' => date('d/m/Y \à\s H:i:s'),
+            'timestamp' => date('c'),
+        ] + $extra;
+
+        $historico = $this->carregarHistorico();
+        array_unshift($historico, $notificacao);
+        $this->salvarHistorico($historico);
+        return $notificacao;
+    }
+
+    /**
      * Retorna o histórico de notificações de holerites recebidas pelo colaborador.
      * Caso ainda não haja registros no JSON, gera os avisos automáticos das competências do ano.
      */
     public function getNotificacoesPorColaborador(int $colaboradorId, string $colaboradorNome, string $telefone): array
     {
         $historico = $this->carregarHistorico();
-        $filtradas = array_values(array_filter($historico, fn($n) => (int)($n['colaborador_id'] ?? 0) === $colaboradorId));
+        $filtradas = array_values(array_filter($historico, fn($n) => (int)($n['colaborador_id'] ?? 0) === $colaboradorId && !isset($n['tipo'])));
 
         if (!empty($filtradas)) {
             return $filtradas;

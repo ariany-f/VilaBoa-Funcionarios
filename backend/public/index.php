@@ -50,6 +50,7 @@ require_once __DIR__ . '/../services/HoleriteService.php';
 require_once __DIR__ . '/../services/EpiService.php';
 require_once __DIR__ . '/../services/WhatsAppNotificationService.php';
 require_once __DIR__ . '/../services/EmpresaService.php';
+require_once __DIR__ . '/../services/HomologacaoService.php';
 require_once __DIR__ . '/../controllers/FeriasController.php';
 require_once __DIR__ . '/../controllers/ChamadosController.php';
 require_once __DIR__ . '/../controllers/CadernosController.php';
@@ -65,6 +66,7 @@ use App\Services\HoleriteService;
 use App\Services\EpiService;
 use App\Services\WhatsAppNotificationService;
 use App\Services\EmpresaService;
+use App\Services\HomologacaoService;
 use App\Controllers\FeriasController;
 use App\Controllers\ChamadosController;
 use App\Controllers\CadernosController;
@@ -78,6 +80,7 @@ $permissaoService = new PermissaoService(Banco::conexao());
 $holeriteService = new HoleriteService();
 $epiService = new EpiService();
 $whatsAppService = new WhatsAppNotificationService();
+$homologacaoService = new HomologacaoService($colaboradorService);
 $feriasController = new FeriasController();
 $chamadosController = new ChamadosController();
 $cadernosController = new CadernosController();
@@ -1042,6 +1045,60 @@ if (str_starts_with($route, '/admin/') || str_starts_with($route, '/rh/')) {
             $resp = ['erro' => $resp['erro']];
         } else {
             registrarAuditoriaLgpd('RH_TRILHA_REMOVIDA', $usuarioAdmin['email'], ['id' => (string)($body['id'] ?? '')]);
+        }
+        echo json_encode($resp, JSON_UNESCAPED_UNICODE);
+        exit;
+    }
+
+    // Homologação sindical: agendador com aviso por WhatsApp e e-mail (usa as permissões de rh_cadernos)
+    if ($method === 'GET' && $route === '/rh/homologacoes') {
+        exigirPermissao($permissoesLogado, 'rh_cadernos', 'visualizar');
+        echo json_encode([
+            'sucesso' => true,
+            'homologacoes' => $homologacaoService->listar(),
+            'colaboradores' => $homologacaoService->colaboradoresParaSeletor(),
+            'sindicatos' => $homologacaoService->sindicatosUsados(),
+            'documentos_padrao' => HomologacaoService::DOCUMENTOS_PADRAO,
+            'lembrete_dias' => HomologacaoService::LEMBRETE_DIAS,
+        ], JSON_UNESCAPED_UNICODE);
+        exit;
+    }
+
+    if ($method === 'POST' && $route === '/rh/homologacoes') {
+        exigirPermissao($permissoesLogado, 'rh_cadernos', 'publicar');
+        $resp = $homologacaoService->criar($body, $usuarioAdmin['email']);
+        if (!empty($resp['erro'])) {
+            http_response_code($resp['status'] ?? 400);
+            $resp = ['erro' => $resp['erro']];
+        } else {
+            registrarAuditoriaLgpd('RH_HOMOLOGACAO_AGENDADA', $usuarioAdmin['email'], ['id' => $resp['homologacao']['id']]);
+        }
+        echo json_encode($resp, JSON_UNESCAPED_UNICODE);
+        exit;
+    }
+
+    if ($method === 'POST' && $route === '/rh/homologacoes/acao') {
+        exigirPermissao($permissoesLogado, 'rh_cadernos', 'editar');
+        $acaoHom = (string)($body['acao'] ?? '');
+        $resp = $homologacaoService->acao((string)($body['id'] ?? ''), $acaoHom, $body, $usuarioAdmin['email']);
+        if (!empty($resp['erro'])) {
+            http_response_code($resp['status'] ?? 400);
+            $resp = ['erro' => $resp['erro']];
+        } else {
+            registrarAuditoriaLgpd('RH_HOMOLOGACAO_' . strtoupper($acaoHom), $usuarioAdmin['email'], ['id' => (string)($body['id'] ?? '')]);
+        }
+        echo json_encode($resp, JSON_UNESCAPED_UNICODE);
+        exit;
+    }
+
+    if ($method === 'POST' && $route === '/rh/homologacoes/remover') {
+        exigirPermissao($permissoesLogado, 'rh_cadernos', 'remover');
+        $resp = $homologacaoService->remover((string)($body['id'] ?? ''));
+        if (!empty($resp['erro'])) {
+            http_response_code($resp['status'] ?? 400);
+            $resp = ['erro' => $resp['erro']];
+        } else {
+            registrarAuditoriaLgpd('RH_HOMOLOGACAO_REMOVIDA', $usuarioAdmin['email'], ['id' => (string)($body['id'] ?? '')]);
         }
         echo json_encode($resp, JSON_UNESCAPED_UNICODE);
         exit;
