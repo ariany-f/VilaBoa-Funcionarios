@@ -30,7 +30,10 @@
     <!-- ===================== CADERNOS ===================== -->
     <ComunicadosRh v-else-if="aba === 'comunicados'" :colaborador="colaborador" />
 
-    <HomologacaoRh v-else-if="aba === 'homologacao'" :colaborador="colaborador" />
+    <div v-else-if="aba === 'homologacao'" class="space-y-5">
+      <DesligamentosRh :colaborador="colaborador" />
+      <HomologacaoRh :colaborador="colaborador" />
+    </div>
 
     <AcademiaRh v-else-if="aba === 'academia'" :colaborador="colaborador" />
 
@@ -313,6 +316,7 @@
 <script setup>
 import ComunicadosRh from './ComunicadosRh.vue';
 import HomologacaoRh from './HomologacaoRh.vue';
+import DesligamentosRh from './DesligamentosRh.vue';
 import AcademiaRh from './AcademiaRh.vue';
 import AcompanhamentoRh from './AcompanhamentoRh.vue';
 import CadernoWizardRh from './CadernoWizardRh.vue';
@@ -340,7 +344,7 @@ const props = defineProps({
 const abas = computed(() => [
   { id: 'acompanhamento', rotulo: 'Acompanhamento', tela: 'rh_acompanhamento' },
   { id: 'comunicados', rotulo: 'Comunicados', tela: 'rh_cadernos' },
-  { id: 'homologacao', rotulo: 'Homologação', tela: 'rh_cadernos' },
+  { id: 'homologacao', rotulo: 'Desligamentos', tela: 'rh_cadernos' },
   { id: 'academia', rotulo: 'Academia', tela: 'rh_cadernos' },
   { id: 'cadernos', rotulo: 'Diretrizes e treinamentos', tela: 'rh_cadernos' },
   { id: 'empresas', rotulo: 'Empresas', tela: 'rh_cadernos' },

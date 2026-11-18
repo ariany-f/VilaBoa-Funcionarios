@@ -1285,6 +1285,7 @@
       </div>
     </div>
 
+    <DesligamentoModal :aberto="desligamentoModalAberto" :dados="desligamento" @atualizado="desligamentoAtualizado" @fechar="desligamentoModalAberto = false" />
     <PendenciasModal :aberto="pendenciasModalAberto" :itens="notificacoes" @abrir="abrirPendencia" @fechar="pendenciasModalAberto = false" />
 
     <!-- Modal de Detalhes do Holerite -->
@@ -1387,6 +1388,7 @@ import ComunicadosView from './components/ComunicadosView.vue';
 import AcademiaView from './components/AcademiaView.vue';
 import NotificacoesBotao from './components/NotificacoesBotao.vue';
 import PendenciasModal from './components/PendenciasModal.vue';
+import DesligamentoModal from './components/DesligamentoModal.vue';
 import { temMenu, pode } from './utils/permissoes.js';
 import { lerDestinoDaUrl } from './utils/avisosWhatsapp.js';
 import { resumirProgresso } from './utils/progressoCadernos.js';
@@ -2076,8 +2078,26 @@ async function carregarTodosModulos(token) {
     carregarChamados(token),
     carregarProgressoCadernos(token),
     carregarTrilhasPendentes(token),
-    carregarPontosPendentes(token)
+    carregarPontosPendentes(token),
+    carregarDesligamento(token)
   ]);
+}
+
+// Aviso de desligamento: na data de demissão, links para agendar homologação e retirada de documentos
+const desligamento = ref(null);
+const desligamentoModalAberto = ref(false);
+async function carregarDesligamento(token) {
+  try {
+    const res = await fetch('/api/desligamento', { headers: { Authorization: `Bearer ${token}` } });
+    const data = await res.json();
+    if (!res.ok) return;
+    desligamento.value = data.desligamento;
+    if (data.desligamento?.mostrar) desligamentoModalAberto.value = true;
+  } catch (e) { /* sem aviso */ }
+}
+function desligamentoAtualizado(d) {
+  desligamento.value = d;
+  if (!d.mostrar) desligamentoModalAberto.value = false;
 }
 
 // Progresso de leitura dos cadernos exibido no menu lateral
@@ -2137,6 +2157,16 @@ function carregarPendencias() {
 // Notificações do cabeçalho: holerites não lidos, espelhos para assinar e cadernos para ler
 const notificacoes = computed(() => {
   const lista = [];
+  if (desligamento.value?.mostrar) {
+    lista.push({
+      titulo: 'Agende sua homologação',
+      descricao: 'Homologação com o DP e retirada da documentação',
+      icone: 'calendar',
+      cor: 'bg-rose-50 text-[#9c2337]',
+      obrigatorio: false,
+      acao: () => { desligamentoModalAberto.value = true; }
+    });
+  }
   const holeritesNovos = holerites.value.filter((h) => !h.aceite?.confirmado);
   if (holeritesNovos.length) {
     lista.push({
@@ -2189,11 +2219,11 @@ const pendenciasModalAberto = ref(false);
 let pendenciasJaExibidas = false;
 let temporizadorPendencias = null;
 watch(() => notificacoes.value.length, (qtd) => {
-  if (pendenciasJaExibidas || qtd === 0 || etapaAtual.value !== 'dashboard') return;
+  if (pendenciasJaExibidas || qtd === 0 || etapaAtual.value !== 'dashboard' || desligamentoModalAberto.value) return;
   // Espera as consultas (holerites, ponto, cadernos, EPIs) terminarem para listar tudo de uma vez
   clearTimeout(temporizadorPendencias);
   temporizadorPendencias = setTimeout(() => {
-    if (!pendenciasJaExibidas && notificacoes.value.length && etapaAtual.value === 'dashboard') {
+    if (!pendenciasJaExibidas && notificacoes.value.length && etapaAtual.value === 'dashboard' && !desligamentoModalAberto.value) {
       pendenciasJaExibidas = true;
       pendenciasModalAberto.value = true;
     }
