@@ -161,6 +161,7 @@
 </template>
 
 <script setup>
+import { imprimirHtml } from '../utils/imprimir.js';
 import { ref, computed } from 'vue';
 import AppIcon from './AppIcon.vue';
 import EpiSignatureModal from './EpiSignatureModal.vue';
@@ -228,15 +229,13 @@ function aoAssinar(entrega) {
 
 const esc = (v) => String(v ?? '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 
-// Abre a ficha formatada em janela própria para imprimir ou salvar em PDF (mesmo leiaute do papel)
+// Imprime / salva em PDF a ficha formatada, sem abrir aba nova (mesmo leiaute do papel)
 function imprimir(f) {
-  const janela = window.open('', '_blank');
-  if (!janela) return;
   const linhas = f.itens.map((it) => `<tr><td>${esc(dataCurta(it.data))}</td><td class="c">${esc(it.quantidade)}</td><td>${esc(it.unidade)}</td><td>${esc(it.codigo)}</td><td class="u">${esc(it.descricao)}</td><td>${esc(it.ca)}</td><td class="r">${esc(valorPapel(it.valor))}</td><td>${esc(it.situacao)}</td></tr>`).join('');
   const sig = f.assinatura?.imagem_base64 ? `<img src="${esc(f.assinatura.imagem_base64)}" style="max-height:60px">` : '';
   const aut = assinada(f) ? `<p class="aut">Assinado eletronicamente em ${esc(f.assinatura.data_hora)} · Código de autenticidade ${esc(f.assinatura.hash_autenticidade)}</p>` : '';
   const decl = DECLARACAO.map((p) => `<p class="decl">${esc(p)}</p>`).join('');
-  janela.document.write(`<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><title>Ficha de EPI ${esc(f.competencia)}</title>
+  imprimirHtml(`<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><title>Ficha de EPI ${esc(f.competencia)}</title>
 <style>
   @page{size:A4;margin:12mm}
   body{font-family:"Courier New",Courier,monospace;color:#000;font-size:11px;margin:0}
@@ -263,7 +262,6 @@ function imprimir(f) {
 ${decl}
 <table><thead><tr><th>Data</th><th>Quant</th><th>Unid</th><th>Código</th><th>Descrição do equipamento de proteção individual</th><th>C.A.</th><th>R$ Valor</th><th>Situação</th></tr></thead><tbody>${linhas}</tbody></table>
 <div class="rod"><p class="loc">${esc(localData(f))}</p><div class="assin">${sig}<div class="l">${esc(f.nome_colaborador)}</div>${aut}</div></div>
-<script>window.onload=()=>{window.print();}<\/script></body></html>`);
-  janela.document.close();
+</body></html>`);
 }
 </script>
