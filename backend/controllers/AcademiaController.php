@@ -96,12 +96,12 @@ class AcademiaController
     public function concluirVideo(array $colaborador, string $trilhaId, string $itemId, string $ip): array
     {
         $trilha = $this->trilhaVisivel($colaborador, $trilhaId);
-        if (!$trilha) return ['erro' => 'Trilha não encontrada.', 'status' => 404];
+        if (!$trilha) return ['erro' => 'Treinamento não encontrado.', 'status' => 404];
         $video = null;
         foreach ($trilha['itens'] as $i) {
             if ($i['id'] === $itemId && $i['tipo'] === 'video') $video = $i;
         }
-        if (!$video) return ['erro' => 'Vídeo não encontrado nesta trilha.', 'status' => 404];
+        if (!$video) return ['erro' => 'Vídeo não encontrado neste treinamento.', 'status' => 404];
 
         $chave = $this->chaveItem($colaborador['matricula'], $trilhaId, $itemId);
         $ok = $this->atualizar($this->progressoFile, function (array $p) use ($chave, $colaborador, $trilhaId, $itemId, $ip) {
@@ -123,8 +123,8 @@ class AcademiaController
         foreach ($this->listarParaColaborador($colaborador) as $t) {
             if ($t['id'] === $trilhaId) $trilha = $t;
         }
-        if (!$trilha) return ['erro' => 'Trilha não encontrada.', 'status' => 404];
-        if (!$trilha['completa']) return ['erro' => 'Conclua todas as etapas da trilha para emitir o certificado.', 'status' => 422];
+        if (!$trilha) return ['erro' => 'Treinamento não encontrado.', 'status' => 404];
+        if (!$trilha['completa']) return ['erro' => 'Conclua todas as etapas do treinamento para emitir o certificado.', 'status' => 422];
         if ($trilha['certificado']) return ['sucesso' => true, 'certificado' => $trilha['certificado']];
 
         $chave = $this->chaveCertificado($colaborador['matricula'], $trilhaId);

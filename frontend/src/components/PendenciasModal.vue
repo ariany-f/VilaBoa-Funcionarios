@@ -19,7 +19,7 @@
               <div>
                 <h4 class="text-sm font-bold text-[#9c2337]">Conclusão obrigatória</h4>
                 <p class="text-xs text-slate-700 leading-relaxed">
-                  {{ obrigatorios.length === 1 ? 'Este treinamento' : 'Estes treinamentos' }} fazem parte da trilha obrigatória e precisam ser concluídos.
+                  {{ obrigatorios.length === 1 ? 'Este treinamento é obrigatório e precisa ser concluído.' : 'Estes treinamentos são obrigatórios e precisam ser concluídos.' }}
                 </p>
               </div>
             </div>

@@ -3,7 +3,7 @@
     <div class="sm:bg-white sm:rounded-2xl sm:border border-slate-200 sm:p-6 space-y-4">
       <div class="space-y-0.5">
         <h2 class="text-lg font-semibold text-slate-900 tracking-tight">Treinamentos</h2>
-        <p class="text-xs text-slate-500">Aprenda no seu ritmo: trilhas obrigatórias, trilhas da sua função, cadernos e vídeos. Ao concluir uma trilha, você emite o certificado.</p>
+        <p class="text-xs text-slate-500">Acesse os treinamentos disponíveis, consulte os materiais de aprendizagem e acompanhe seus certificados.</p>
       </div>
 
       <!-- CONQUISTAS: visão geral da Academia (só o progresso pessoal, sem comparação entre colaboradores) -->
@@ -38,7 +38,7 @@
               </span>
             </li>
           </ul>
-          <p class="text-[11px] text-slate-400">Cada etapa concluída vale 10 pontos e cada trilha, 50, a menos que o RH defina outro valor. É só o seu progresso: não há comparação com outros colaboradores.</p>
+          <p class="text-[11px] text-slate-400">Cada etapa concluída vale 10 pontos e cada treinamento concluído, 50, a menos que o RH defina outro valor. É só o seu progresso: não há comparação com outros colaboradores.</p>
         </div>
       </div>
 
@@ -55,11 +55,11 @@
 
       <!-- TRILHAS -->
       <template v-if="aba === 'trilhas'">
-        <div v-if="carregando" class="py-12 text-center text-sm text-slate-400">Carregando trilhas...</div>
+        <div v-if="carregando" class="py-12 text-center text-sm text-slate-400">Carregando treinamentos...</div>
         <div v-else-if="erro" class="py-4 text-center text-sm text-rose-700">{{ erro }}</div>
         <div v-else-if="!trilhas.length" class="py-12 text-center space-y-1">
           <AppIcon name="graduation-cap" size="28" class="mx-auto text-slate-300" />
-          <p class="text-sm text-slate-500">Nenhuma trilha disponível para você no momento.</p>
+          <p class="text-sm text-slate-500">Você não possui treinamentos disponíveis no momento.</p>
         </div>
 
         <template v-else>
@@ -77,8 +77,8 @@
                 </span>
               </div>
               <div class="flex-1 min-w-0 space-y-1 text-center sm:text-left">
-                <p class="text-base font-semibold leading-snug">{{ progresso.percentual === 100 ? 'Parabéns! Você concluiu todas as suas trilhas.' : 'Continue sua jornada de aprendizado na Vila Boa.' }}</p>
-                <p class="text-xs text-white/60">{{ progresso.completas }} de {{ trilhas.length }} {{ trilhas.length === 1 ? 'trilha concluída' : 'trilhas concluídas' }} · {{ progresso.certificados }} {{ progresso.certificados === 1 ? 'certificado emitido' : 'certificados emitidos' }}<template v-if="progresso.obrigatoriasPendentes"> · <strong class="text-white">{{ progresso.obrigatoriasPendentes }} {{ progresso.obrigatoriasPendentes === 1 ? 'obrigatória pendente' : 'obrigatórias pendentes' }}</strong></template></p>
+                <p class="text-base font-semibold leading-snug">{{ progresso.percentual === 100 ? 'Parabéns! Você concluiu todos os seus treinamentos.' : 'Continue sua jornada de aprendizado na Vila Boa.' }}</p>
+                <p class="text-xs text-white/60">{{ progresso.completas }} de {{ trilhas.length }} {{ trilhas.length === 1 ? 'treinamento concluído' : 'treinamentos concluídos' }} · {{ progresso.certificados }} {{ progresso.certificados === 1 ? 'certificado emitido' : 'certificados emitidos' }}<template v-if="progresso.obrigatoriasPendentes"> · <strong class="text-white">{{ progresso.obrigatoriasPendentes }} {{ progresso.obrigatoriasPendentes === 1 ? 'obrigatório pendente' : 'obrigatórios pendentes' }}</strong></template></p>
               </div>
               <button v-if="progresso.proxima" type="button" @click="irParaTrilha(progresso.proxima)" class="h-10 px-5 rounded-full bg-[#9c2337] hover:bg-[#831b2d] text-white text-sm font-semibold shrink-0 cursor-pointer">
                 Continuar: {{ progresso.proxima.titulo.length > 26 ? progresso.proxima.titulo.slice(0, 26) + '…' : progresso.proxima.titulo }}
@@ -89,9 +89,9 @@
           <div class="flex flex-wrap items-center gap-2">
             <button v-for="f in filtrosStatus" :key="f.id" type="button" @click="filtroStatus = f.id" class="h-8 px-3.5 rounded-full border text-xs font-semibold transition cursor-pointer"
               :class="filtroStatus === f.id ? 'bg-[#9c2337] border-[#9c2337] text-white' : 'bg-white border-slate-200 text-slate-600 hover:border-slate-300'">{{ f.rotulo }} <span class="opacity-60">{{ contaStatus(f.id) }}</span></button>
-            <input v-model="busca" type="search" placeholder="Buscar trilha…" class="ml-auto w-full sm:w-56 h-8 px-3 rounded-full border border-slate-200 bg-slate-50 text-xs outline-none focus:bg-white focus:border-slate-400" />
+            <input v-model="busca" type="search" placeholder="Buscar treinamento…" class="ml-auto w-full sm:w-56 h-8 px-3 rounded-full border border-slate-200 bg-slate-50 text-xs outline-none focus:bg-white focus:border-slate-400" />
           </div>
-          <p v-if="!grupos.length" class="py-8 text-center text-sm text-slate-400">Nenhuma trilha encontrada com esse filtro.</p>
+          <p v-if="!grupos.length" class="py-8 text-center text-sm text-slate-400">Nenhum treinamento encontrado com esse filtro.</p>
 
           <section v-for="grupo in grupos" :key="grupo.titulo" class="space-y-3">
             <div>
@@ -112,9 +112,9 @@
                 <div class="space-y-1.5">
                   <div class="flex flex-wrap items-center gap-2">
                     <span v-if="t.obrigatoria" class="text-[11px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full" :class="t.completa ? 'bg-emerald-50 text-emerald-800 border border-emerald-200' : 'bg-[#fdf2f4] text-[#9c2337] border border-rose-200'">
-                      {{ t.completa ? 'Obrigatória · concluída' : 'Obrigatória' }}
+                      {{ t.completa ? 'Obrigatório · concluído' : 'Obrigatório' }}
                     </span>
-                    <span v-else-if="t.completa" class="text-[11px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full bg-emerald-50 text-emerald-800 border border-emerald-200">Concluída</span>
+                    <span v-else-if="t.completa" class="text-[11px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full bg-emerald-50 text-emerald-800 border border-emerald-200">Concluído</span>
                     <span class="text-[11px] font-semibold px-2.5 py-1 rounded-full" :class="{ 'bg-slate-100 text-slate-600': statusDe(t) === 'nova', 'bg-amber-50 text-amber-800 border border-amber-200': statusDe(t) === 'andamento', 'bg-emerald-50 text-emerald-800 border border-emerald-200': statusDe(t) === 'concluida' }">{{ rotuloStatus[statusDe(t)] }}</span>
                     <span v-if="t.carga_horaria" class="text-[11px] text-slate-400">{{ t.carga_horaria }}</span>
                     <span v-if="prazoInfo(t)" class="text-[11px] font-semibold px-2.5 py-1 rounded-full border" :class="prazoInfo(t).classe">{{ prazoInfo(t).texto }}</span>
@@ -182,7 +182,7 @@
         <div v-else-if="!certificados.length" class="py-12 text-center space-y-1">
           <AppIcon name="shield-check" size="28" class="mx-auto text-slate-300" />
           <p class="text-sm text-slate-500">Você ainda não tem certificados.</p>
-          <p class="text-xs text-slate-400">Conclua uma trilha ou um caderno da Academia para emitir o seu.</p>
+          <p class="text-xs text-slate-400">Conclua um treinamento ou um material de apoio para emitir o seu.</p>
         </div>
         <div v-else class="space-y-3">
           <p class="text-xs text-slate-500">{{ certificados.length }} {{ certificados.length === 1 ? 'certificado' : 'certificados' }} · abra para imprimir ou salvar em PDF.</p>
@@ -192,7 +192,7 @@
               <span class="min-w-0 flex-1">
                 <span class="block text-sm font-semibold text-slate-900 truncate" :title="c.titulo">{{ c.titulo }}</span>
                 <span class="flex items-center gap-1.5 text-[11px] text-slate-400">
-                  <span class="font-bold uppercase tracking-wider" :class="c.tipo === 'Trilha' ? 'text-[#9c2337]' : 'text-slate-600'">{{ c.tipo }}</span>
+                  <span class="font-bold uppercase tracking-wider" :class="c.tipo === 'Treinamento' ? 'text-[#9c2337]' : 'text-slate-600'">{{ c.tipo }}</span>
                   · {{ c.data.slice(0, 10) }}
                   <AppIcon name="shield-check" size="12" class="text-emerald-600" title="Assinado digitalmente" />
                 </span>
@@ -221,7 +221,7 @@
             </button>
           </div>
           <div class="bg-black aspect-video">
-            <iframe v-if="video.embed" :src="video.embed" class="w-full h-full" allow="autoplay; encrypted-media; picture-in-picture; fullscreen" allowfullscreen title="Vídeo da trilha"></iframe>
+            <iframe v-if="video.embed" :src="video.embed" class="w-full h-full" allow="autoplay; encrypted-media; picture-in-picture; fullscreen" allowfullscreen title="Vídeo do treinamento"></iframe>
             <video v-else :src="video.item.url" class="w-full h-full" controls autoplay playsinline @ended="concluirVideo()"></video>
           </div>
           <div class="px-5 py-4 flex items-center justify-between gap-3">
@@ -258,7 +258,7 @@ const PdfReader = defineAsyncComponent(() => import('./PdfReader.vue'));
 const emit = defineEmits(['atualizou']);
 const props = defineProps({ colaborador: { type: Object, default: null } });
 
-const abas = [{ id: 'trilhas', rotulo: 'Trilhas' }, { id: 'avulsos', rotulo: 'Cadernos e treinamentos' }, { id: 'certificados', rotulo: 'Meus certificados' }];
+const abas = [{ id: 'trilhas', rotulo: 'Meus treinamentos' }, { id: 'avulsos', rotulo: 'Materiais de apoio' }, { id: 'certificados', rotulo: 'Meus certificados' }];
 const aba = ref('trilhas');
 const trilhas = ref([]);
 const carregando = ref(true);
@@ -270,10 +270,10 @@ const leitor = ref(null);
 
 // Status de cada trilha, busca e filtros (estilo LMS)
 const statusDe = (t) => (t.completa ? 'concluida' : t.concluidos > 0 ? 'andamento' : 'nova');
-const rotuloStatus = { nova: 'Não iniciada', andamento: 'Em andamento', concluida: 'Concluída' };
+const rotuloStatus = { nova: 'Não iniciado', andamento: 'Em andamento', concluida: 'Concluído' };
 const filtroStatus = ref('todas');
 const busca = ref('');
-const filtrosStatus = [{ id: 'todas', rotulo: 'Todas' }, { id: 'andamento', rotulo: 'Em andamento' }, { id: 'nova', rotulo: 'Não iniciadas' }, { id: 'concluida', rotulo: 'Concluídas' }];
+const filtrosStatus = [{ id: 'todas', rotulo: 'Todos' }, { id: 'andamento', rotulo: 'Em andamento' }, { id: 'nova', rotulo: 'Não iniciados' }, { id: 'concluida', rotulo: 'Concluídos' }];
 const contaStatus = (id) => trilhas.value.filter((t) => id === 'todas' || statusDe(t) === id).length;
 const trilhasVisiveis = computed(() => {
   const q = busca.value.trim().toLowerCase();
@@ -297,8 +297,8 @@ function minutosRestantes(t) {
 }
 
 const grupos = computed(() => [
-  { titulo: 'Trilhas obrigatórias', descricao: 'Valem para todos os colaboradores e precisam ser concluídas.', itens: trilhasVisiveis.value.filter((t) => t.obrigatoria) },
-  { titulo: 'Trilhas da sua função', descricao: 'Selecionadas para o seu cargo.', itens: trilhasVisiveis.value.filter((t) => !t.obrigatoria) }
+  { titulo: 'Treinamentos obrigatórios', descricao: 'Valem para todos os colaboradores e precisam ser concluídos.', itens: trilhasVisiveis.value.filter((t) => t.obrigatoria) },
+  { titulo: 'Treinamentos da sua função', descricao: 'Selecionadas para o seu cargo.', itens: trilhasVisiveis.value.filter((t) => !t.obrigatoria) }
 ].filter((g) => g.itens.length));
 
 const auth = () => ({ Authorization: `Bearer ${localStorage.getItem('vb_auth_token') || ''}` });
@@ -312,7 +312,7 @@ async function carregar() {
     trilhas.value = data.trilhas || [];
     erro.value = '';
   } catch (e) {
-    erro.value = 'Não foi possível carregar as trilhas.';
+    erro.value = 'Não foi possível carregar os treinamentos.';
   } finally {
     carregando.value = false;
     emit('atualizou');
@@ -411,13 +411,13 @@ const conquistas = computed(() => {
   const obrig = trilhas.value.filter((t) => t.obrigatoria);
   const defs = [
     { id: 'primeiro', titulo: 'Primeiro passo', descricao: 'Conclua a sua primeira etapa.', icone: 'check', meta: 1, atual: etapasFeitasPor() },
-    { id: 'trilha1', titulo: 'Trilha concluída', descricao: 'Conclua uma trilha inteira.', icone: 'graduation-cap', meta: 1, atual: completas.length },
+    { id: 'trilha1', titulo: 'Treinamento concluído', descricao: 'Conclua um treinamento inteiro.', icone: 'graduation-cap', meta: 1, atual: completas.length },
     { id: 'certificado', titulo: 'Certificado na mão', descricao: 'Emita o seu primeiro certificado.', icone: 'shield-check', meta: 1, atual: trilhas.value.filter((t) => t.certificado).length },
-    { id: 'emdia', titulo: 'Em dia com a empresa', descricao: 'Conclua todas as trilhas obrigatórias.', icone: 'hard-hat', meta: Math.max(obrig.length, 1), atual: obrig.filter((t) => t.completa).length },
+    { id: 'emdia', titulo: 'Em dia com a empresa', descricao: 'Conclua todos os treinamentos obrigatórios.', icone: 'hard-hat', meta: Math.max(obrig.length, 1), atual: obrig.filter((t) => t.completa).length },
     { id: 'espectador', titulo: 'Maratona de vídeos', descricao: 'Assista a 5 vídeos.', icone: 'eye', meta: 5, atual: etapasFeitasPor('video') },
     { id: 'leitor', titulo: 'Leitor dedicado', descricao: 'Leia 5 cadernos.', icone: 'document', meta: 5, atual: etapasFeitasPor('caderno') },
     { id: 'etapas', titulo: 'Em ritmo', descricao: 'Conclua 15 etapas.', icone: 'calendar', meta: 15, atual: etapasFeitasPor() },
-    { id: 'trilhas3', titulo: 'Colecionador', descricao: 'Conclua 3 trilhas.', icone: 'pen-tool', meta: 3, atual: completas.length }
+    { id: 'trilhas3', titulo: 'Colecionador', descricao: 'Conclua 3 treinamentos.', icone: 'pen-tool', meta: 3, atual: completas.length }
   ];
   return defs.map((c) => ({ ...c, ganha: c.atual >= c.meta && !(c.id === 'emdia' && !obrig.length) }));
 });
@@ -460,9 +460,9 @@ async function carregarCertificados() {
     const trilhasCert = rt.ok ? (await rt.json()).certificados || [] : [];
     const cadernos = rc.ok ? (await rc.json()).cadernos || [] : [];
     const lista = [
-      ...trilhasCert.map((c) => ({ chave: 't' + c.codigo, tipo: 'Trilha', titulo: c.trilha, data: c.emitido_em, codigo: c.codigo, abrir: () => imprimirCertificado(c) })),
+      ...trilhasCert.map((c) => ({ chave: 't' + c.codigo, tipo: 'Treinamento', titulo: c.trilha, data: c.emitido_em, codigo: c.codigo, abrir: () => imprimirCertificado(c) })),
       ...cadernos.filter((c) => c.tipo === 'treinamento' && c.leitura).map((c) => ({
-        chave: 'c' + c.arquivo, tipo: 'Caderno', titulo: c.titulo, data: c.leitura.data_hora, codigo: (c.leitura.comprovante || '').slice(0, 20),
+        chave: 'c' + c.arquivo, tipo: 'Material de apoio', titulo: c.titulo, data: c.leitura.data_hora, codigo: (c.leitura.comprovante || '').slice(0, 20),
         abrir: () => { certModal.value = { html: htmlCertificadoCaderno(c, props.colaborador, logoEmpresa.value), nome: c.titulo, validacao: '' }; }
       }))
     ];
