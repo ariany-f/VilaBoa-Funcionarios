@@ -34,7 +34,12 @@ class EpiService
         $e['competencia'] = $e['competencia'] ?? '';
         $e['chapa'] = $e['chapa'] ?? preg_replace('/\D/', '', (string)($e['matricula'] ?? ''));
         $e['equipe'] = $e['equipe'] ?? '';
-        $e['empresa'] = $e['empresa'] ?? 'Vila Boa Construcoes e Servicos Limitada';
+        // Razão social como na ficha em papel (fichas antigas foram gravadas com "Limitada")
+        $empresa = $e['empresa'] ?? '';
+        if ($empresa === '' || strcasecmp($empresa, 'Vila Boa Construcoes e Servicos Limitada') === 0) {
+            $empresa = 'VILA BOA CONSTRUCOES E SERVICOS LTDA.';
+        }
+        $e['empresa'] = $empresa;
         $e['cnpj'] = $e['cnpj'] ?? '02.785.261/0001-90';
         $e['local_data'] = $e['local_data'] ?? '';
         foreach (($e['itens'] ?? []) as $i => $it) {
@@ -44,7 +49,9 @@ class EpiService
             $it['codigo'] = $it['codigo'] ?? '';
             $it['ca'] = $it['ca'] ?? '';
             $it['valor'] = $it['valor'] ?? '';
-            $it['situacao'] = $it['situacao'] ?? 'Primeira Entrega';
+            // A ficha só tem duas situações: Primeira Entrega ou Troca (reposição conta como troca)
+            $situacao = trim((string)($it['situacao'] ?? ''));
+            $it['situacao'] = ($situacao === '' || stripos($situacao, 'primeira') === 0) ? 'Primeira Entrega' : 'Troca';
             $e['itens'][$i] = $it;
         }
         return $e;
