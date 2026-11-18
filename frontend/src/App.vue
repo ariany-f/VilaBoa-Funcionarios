@@ -18,9 +18,8 @@
     <div v-else-if="etapaAtual === 'login'" class="flex-1 flex items-stretch sm:items-center justify-center sm:p-6 lg:p-8 bg-white sm:bg-transparent">
       <div class="w-full sm:max-w-xl lg:max-w-5xl xl:max-w-6xl bg-white sm:rounded-2xl lg:rounded-3xl sm:shadow-2xl overflow-hidden flex flex-col lg:flex-row sm:border border-slate-200">
         
-        <!-- Lado Esquerdo Institucional (Desktop / Tablet) - Sólido Corporativo Sem Gradiente -->
-        <div class="lg:w-1/2 min-h-[240px] bg-[#141414] bg-cover bg-center text-white p-6 pt-[calc(1.5rem+env(safe-area-inset-top,0px))] sm:p-8 lg:p-12 flex flex-col justify-between relative overflow-hidden border-b lg:border-b-0 lg:border-r border-slate-800" :style="{ backgroundImage: `url(${imagemLoginColaborador})` }">
-          <div class="absolute inset-0 bg-gradient-to-b from-[#141414]/85 via-[#141414]/60 to-[#141414]/85" aria-hidden="true"></div>
+        <!-- Lado Esquerdo Institucional: foto clara sem sombra e sem logo (login comum às duas empresas), texto escuro como no login do RH -->
+        <div class="lg:w-1/2 min-h-[240px] bg-[#f1efee] bg-cover bg-center text-slate-900 p-6 pt-[calc(1.5rem+env(safe-area-inset-top,0px))] sm:p-8 lg:p-12 flex flex-col justify-between relative overflow-hidden border-b lg:border-b-0 lg:border-r border-slate-200" :style="{ backgroundImage: `url(${imagemLoginColaborador})` }">
           <div class="relative z-10 space-y-6">
 
             <div class="space-y-3 pt-2">
@@ -31,7 +30,7 @@
 
           </div>
 
-          <div class="relative z-10 pt-6 text-[11px] text-slate-400 font-medium">
+          <div class="relative z-10 pt-6 text-[11px] text-slate-500 font-medium">
             Segurança Criptografada • Protegido pela LGPD
           </div>
         </div>
