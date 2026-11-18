@@ -119,6 +119,7 @@ class PermissaoService
      */
     public function garantirTelasNovas(): void
     {
+        $this->herdarPermissoesIniciais();
         $noBanco = array_column($this->banco->buscar('permission_screens'), 'slug');
         $novas = array_values(array_diff(array_column(require dirname(__DIR__) . '/config/permissoes.php', 'slug'), $noBanco));
         if (!$novas) {
@@ -134,6 +135,41 @@ class PermissaoService
                 }
             }
         }
+    }
+
+    /**
+     * Tela nova com 'herdar_de' em config/permissoes.php: na primeira vez, cada perfil que já tem a ação
+     * de origem ganha a ação nova (ex.: quem publica cadernos passa a cadastrar colaboradores).
+     * Roda uma vez por tela (data/permissoes_herdadas.json); depois disso vale o que for ajustado
+     * em Usuários > Perfis e permissões.
+     */
+    private function herdarPermissoesIniciais(): void
+    {
+        $telas = array_filter(require dirname(__DIR__) . '/config/permissoes.php', fn($t) => !empty($t['herdar_de']));
+        if (!$telas) return;
+        $arquivo = dirname(__DIR__) . '/data/permissoes_herdadas.json';
+        $feitas = is_file($arquivo) ? (json_decode((string)file_get_contents($arquivo), true) ?: []) : [];
+        $pendentes = array_filter($telas, fn($t) => !in_array($t['slug'], $feitas, true));
+        if (!$pendentes) return;
+        if (!$this->banco->primeiro('permission_screens', ['slug' => array_values(array_column($pendentes, 'slug'))[0]])) {
+            $this->sincronizar();
+        }
+        foreach ($pendentes as $tela) {
+            $origem = $this->banco->primeiro('permission_screens', ['slug' => $tela['herdar_de']['tela']]);
+            $destino = $this->banco->primeiro('permission_screens', ['slug' => $tela['slug']]);
+            if (!$origem || !$destino) continue;
+            foreach ($tela['herdar_de']['acoes'] as $acaoNova => $acaoOrigem) {
+                $de = $this->banco->primeiro('permission_actions', ['screen_id' => (int)$origem['id'], 'slug' => $acaoOrigem]);
+                $para = $this->banco->primeiro('permission_actions', ['screen_id' => (int)$destino['id'], 'slug' => $acaoNova]);
+                if (!$de || !$para) continue;
+                foreach ($this->banco->buscar('roles_permission_actions', ['permission_action_id' => (int)$de['id']]) as $rpa) {
+                    $chave = ['role_id' => (int)$rpa['role_id'], 'permission_action_id' => (int)$para['id']];
+                    if (!$this->banco->primeiro('roles_permission_actions', $chave)) $this->banco->inserir('roles_permission_actions', $chave);
+                }
+            }
+            $feitas[] = $tela['slug'];
+        }
+        @file_put_contents($arquivo, json_encode(array_values(array_unique($feitas)), JSON_PRETTY_PRINT), LOCK_EX);
     }
 
     public static function pode(array $matriz, string $tela, string $acao): bool

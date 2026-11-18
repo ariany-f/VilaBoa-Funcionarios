@@ -82,7 +82,7 @@ As empresas de cada usuário ficam na tabela `users_empresas` (sem linhas = toda
 
 ## 👷 Colaboradores no Painel do RH
 
-Em **Painel do RH > Colaboradores** o RH cadastra, edita, inativa e reativa os colaboradores (`backend/data/colaboradores.json`). CPF, data de nascimento, data de admissão e os 3 primeiros dígitos do RG são obrigatórios porque o login e a pergunta de segurança usam esses dados. A matrícula não muda depois de criada. Inativar bloqueia o login e encerra a sessão aberta, sem apagar holerites, fichas ou histórico. Tela de permissão `rh_colaboradores` (visualizar, cadastrar, editar, inativar), liberada automaticamente para o perfil Administrador; para outros perfis, libere em **Usuários > Perfis e permissões**.
+Em **Painel do RH > Colaboradores** o RH cadastra, edita, inativa e reativa os colaboradores (`backend/data/colaboradores.json`). CPF, data de nascimento, data de admissão e os 3 primeiros dígitos do RG são obrigatórios porque o login e a pergunta de segurança usam esses dados. A matrícula não muda depois de criada. Inativar bloqueia o login e encerra a sessão aberta, sem apagar holerites, fichas ou histórico. Tela de permissão `rh_colaboradores` (visualizar, cadastrar, editar, inativar), liberada automaticamente para o Administrador. Na primeira vez, cada perfil também recebe as ações conforme o que já pode em Cadernos (ver = ver, publicar = cadastrar, editar = editar, remover = inativar); depois disso vale o que for ajustado em **Usuários > Perfis e permissões**.
 
 ## 🚪 Aviso de Desligamento: links e guia por empresa
 
