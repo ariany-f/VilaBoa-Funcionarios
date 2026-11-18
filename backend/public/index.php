@@ -1157,9 +1157,87 @@ if (str_starts_with($route, '/admin/') || str_starts_with($route, '/rh/')) {
     }
 
     // Desligamentos: data de demissão que dispara o aviso no portal do colaborador (links do Bookings + guia)
+    // Links e guia só das empresas que o usuário acessa
+    $configsDoUsuario = fn() => $empresasLogado === null
+        ? DesligamentoService::configuracaoPorEmpresa()
+        : array_intersect_key(DesligamentoService::configuracaoPorEmpresa(), array_flip($empresasLogado));
     if ($method === 'GET' && $route === '/rh/desligamentos') {
         exigirPermissao($permissoesLogado, 'rh_cadernos', 'visualizar');
-        echo json_encode(['sucesso' => true, 'desligamentos' => $desligamentoService->listar(), 'colaboradores' => $homologacaoService->colaboradoresParaSeletor(), 'links' => DesligamentoService::links()], JSON_UNESCAPED_UNICODE);
+        echo json_encode(['sucesso' => true, 'desligamentos' => $desligamentoService->listar(), 'colaboradores' => $homologacaoService->colaboradoresParaSeletor(), 'configuracoes' => $configsDoUsuario(), 'limite_guia' => DesligamentoService::limiteUpload()], JSON_UNESCAPED_UNICODE);
+        exit;
+    }
+
+    // Links do Bookings e Guia de Desligamento de cada empresa
+    if ($method === 'GET' && $route === '/rh/desligamentos/guia') {
+        exigirPermissao($permissoesLogado, 'rh_cadernos', 'visualizar');
+        $empresa = EmpresaService::normalizar((string)($_GET['empresa'] ?? ''));
+        if ($empresa) $exigirEmpresa($podeGravarEmpresa($empresa));
+        $guia = $empresa ? DesligamentoService::caminhoDoGuiaDaEmpresa($empresa) : null;
+        if (!$guia) {
+            http_response_code(404);
+            echo json_encode(['erro' => 'Guia não encontrado.'], JSON_UNESCAPED_UNICODE);
+            exit;
+        }
+        header('Content-Type: application/pdf');
+        header('Content-Length: ' . filesize($guia));
+        header('Content-Disposition: inline; filename="Guia de Desligamento - ' . $empresa . '.pdf"');
+        readfile($guia);
+        exit;
+    }
+    $rotasConfigDesligamento = [
+        '/rh/desligamentos/links' => fn() => DesligamentoService::salvarLinks((string)($body['empresa'] ?? ''), (string)($body['homologacao'] ?? ''), (string)($body['documentos'] ?? '')),
+        '/rh/desligamentos/guia' => fn() => DesligamentoService::salvarGuia((string)($_POST['empresa'] ?? ''), $_FILES['guia'] ?? []),
+        '/rh/desligamentos/guia/remover' => fn() => DesligamentoService::removerGuia((string)($body['empresa'] ?? '')),
+    ];
+    if ($method === 'POST' && isset($rotasConfigDesligamento[$route])) {
+        exigirPermissao($permissoesLogado, 'rh_cadernos', 'editar');
+        $exigirEmpresa($podeGravarEmpresa((string)($body['empresa'] ?? $_POST['empresa'] ?? '')));
+        $resp = $rotasConfigDesligamento[$route]();
+        if (!empty($resp['erro'])) {
+            http_response_code($resp['status'] ?? 400);
+            $resp = ['erro' => $resp['erro']];
+        } else {
+            $empresaAud = (string)($body['empresa'] ?? $_POST['empresa'] ?? '');
+            registrarAuditoriaLgpd('RH_DESLIGAMENTO_CONFIG', $usuarioAdmin['email'], ['rota' => $route, 'empresa' => $empresaAud]);
+            $resp['configuracoes'] = $configsDoUsuario();
+        }
+        echo json_encode($resp, JSON_UNESCAPED_UNICODE);
+        exit;
+    }
+
+    // Fichas de EPI: cadastro pelo RH (o colaborador assina no portal)
+    if ($method === 'GET' && $route === '/rh/epis') {
+        exigirPermissao($permissoesLogado, 'rh_cadernos', 'visualizar');
+        // Só as fichas dos colaboradores que o usuário acessa (empresa_grupo vazio = colaborador fora do alcance)
+        $fichasEpi = $epiService->listarRh($colaboradorService->getAll());
+        if ($empresasLogado !== null) $fichasEpi = array_values(array_filter($fichasEpi, fn($f) => $f['empresa_grupo'] !== ''));
+        echo json_encode(['sucesso' => true, 'fichas' => $fichasEpi, 'colaboradores' => $homologacaoService->colaboradoresParaSeletor()], JSON_UNESCAPED_UNICODE);
+        exit;
+    }
+    $rotasEpi = [
+        '/rh/epis' => ['editar', fn() => $epiService->salvarRh($body, $colaboradorService->getAll(), $usuarioAdmin['email'])],
+        '/rh/epis/importar' => ['publicar', fn() => $epiService->importarRh((array)($body['fichas'] ?? []), $colaboradorService->getAll(), $usuarioAdmin['email'])],
+        '/rh/epis/remover' => ['remover', fn() => $epiService->removerRh((string)($body['id'] ?? ''))],
+    ];
+    if ($method === 'POST' && isset($rotasEpi[$route])) {
+        [$acaoEpi, $executar] = $rotasEpi[$route];
+        // Ficha nova pede "publicar"; alterar uma existente pede "editar"
+        if ($route === '/rh/epis' && empty($body['id'])) $acaoEpi = 'publicar';
+        exigirPermissao($permissoesLogado, 'rh_cadernos', $acaoEpi);
+        // Alterar ou remover: a ficha existente precisa ser de um colaborador que o usuário acessa
+        if (!empty($body['id']) && $route !== '/rh/epis/importar') {
+            $fichaAtual = $epiService->findById((string)$body['id']);
+            if ($fichaAtual) $exigirColaborador((string)($fichaAtual['matricula'] ?? ''));
+        }
+        $resp = $executar();
+        if (!empty($resp['erro'])) {
+            http_response_code($resp['status'] ?? 400);
+            $resp = ['erro' => $resp['erro']];
+        } else {
+            $nomeAcao = ['/rh/epis' => 'SALVAR', '/rh/epis/importar' => 'IMPORTAR', '/rh/epis/remover' => 'REMOVER'][$route];
+            registrarAuditoriaLgpd('RH_EPI_' . $nomeAcao, $usuarioAdmin['email'], ['id' => (string)($resp['id'] ?? $body['id'] ?? ''), 'matricula' => (string)($body['matricula'] ?? '')]);
+        }
+        echo json_encode($resp, JSON_UNESCAPED_UNICODE);
         exit;
     }
 
@@ -1366,8 +1444,18 @@ if (str_starts_with($route, '/admin/') || str_starts_with($route, '/rh/')) {
     }
     $rotasEmpresas = [
         '/rh/empresas' => fn() => EmpresaService::adicionar((string)($body['nome'] ?? '')),
-        '/rh/empresas/renomear' => fn() => EmpresaService::renomear((string)($body['nome'] ?? ''), (string)($body['novo_nome'] ?? '')),
-        '/rh/empresas/remover' => fn() => EmpresaService::remover((string)($body['nome'] ?? '')),
+        '/rh/empresas/renomear' => function () use ($body) {
+            $atual = EmpresaService::normalizar((string)($body['nome'] ?? ''));
+            $resp = EmpresaService::renomear((string)($body['nome'] ?? ''), (string)($body['novo_nome'] ?? ''));
+            if (!empty($resp['sucesso']) && $atual) DesligamentoService::aoRenomearEmpresa($atual, trim(preg_replace('/\s+/', ' ', (string)$body['novo_nome'])));
+            return $resp;
+        },
+        '/rh/empresas/remover' => function () use ($body) {
+            $atual = EmpresaService::normalizar((string)($body['nome'] ?? ''));
+            $resp = EmpresaService::remover((string)($body['nome'] ?? ''));
+            if (!empty($resp['sucesso']) && $atual) DesligamentoService::aoRemoverEmpresa($atual);
+            return $resp;
+        },
         '/rh/empresas/logo' => fn() => EmpresaService::salvarLogo((string)($_POST['nome'] ?? ''), $_FILES['logo'] ?? []),
         '/rh/empresas/logo/remover' => function () use ($body) {
             EmpresaService::removerLogo((string)($body['nome'] ?? ''));
@@ -1910,7 +1998,7 @@ if ($method === 'GET' && $route === '/desligamento/guia') {
     }
     header('Content-Type: application/pdf');
     header('Content-Length: ' . filesize($guia));
-    header('Content-Disposition: inline; filename="' . basename($guia) . '"');
+    header('Content-Disposition: inline; filename="Guia de Desligamento - ' . EmpresaService::doColaborador($colaboradorLogado) . '.pdf"');
     readfile($guia);
     exit;
 }
