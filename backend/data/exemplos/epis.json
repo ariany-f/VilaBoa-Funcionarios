@@ -98,7 +98,7 @@
         "competencia": "10/2026",
         "chapa": "01040",
         "equipe": "45",
-        "empresa": "Vila Boa Construcoes e Servicos Limitada",
+        "empresa": "VILA BOA CONSTRUCOES E SERVICOS LTDA.",
         "cnpj": "02.785.261/0001-90",
         "local_data": "São Bernardo do Campo, 20 de outubro de 2026"
     },
@@ -157,7 +157,7 @@
         "competencia": "04/2026",
         "chapa": "01040",
         "equipe": "45",
-        "empresa": "Vila Boa Construcoes e Servicos Limitada",
+        "empresa": "VILA BOA CONSTRUCOES E SERVICOS LTDA.",
         "cnpj": "02.785.261/0001-90",
         "local_data": "São Bernardo do Campo, 12 de abril de 2026"
     },
@@ -210,7 +210,7 @@
         "competencia": "10/2026",
         "chapa": "03042",
         "equipe": "12",
-        "empresa": "Vila Boa Construcoes e Servicos Limitada",
+        "empresa": "VILA BOA CONSTRUCOES E SERVICOS LTDA.",
         "cnpj": "02.785.261/0001-90",
         "local_data": "São Bernardo do Campo, 18 de outubro de 2026"
     },
@@ -226,7 +226,7 @@
         "termo_responsabilidade": "Declaro para os devidos fins que recebi da VILA BOA CONSTRUCOES E SERVICOS LIMITADA os Equipamentos de Proteção Individual (EPIs) acima relacionados, novos e em perfeito estado de funcionamento e conservação. Comprometo-me a usá-los obrigatoriamente durante o desempenho de minhas atividades no canteiro de obras, responsabilizando-me pela sua guarda e conservação, e a comunicar imediatamente ao setor de Segurança do Trabalho qualquer alteração que os torne impróprios para uso, nos termos da NR-06 (Portaria MTP nº 672/2021) e CLT.",
         "chapa": "01040",
         "equipe": "45",
-        "empresa": "Vila Boa Construcoes e Servicos Limitada",
+        "empresa": "VILA BOA CONSTRUCOES E SERVICOS LTDA.",
         "cnpj": "02.785.261/0001-90",
         "id": "EPI-2024-012",
         "data_entrega": "2024-12-20",
@@ -386,7 +386,7 @@
         "competencia": "11/2026",
         "chapa": "02085",
         "equipe": "07",
-        "empresa": "Vila Boa Construcoes e Servicos Limitada",
+        "empresa": "VILA BOA CONSTRUCOES E SERVICOS LTDA.",
         "cnpj": "02.785.261/0001-90",
         "local_data": "São Bernardo do Campo, 3 de novembro de 2026"
     },
@@ -453,7 +453,7 @@
         "competencia": "10/2026",
         "chapa": "02085",
         "equipe": "07",
-        "empresa": "Vila Boa Construcoes e Servicos Limitada",
+        "empresa": "VILA BOA CONSTRUCOES E SERVICOS LTDA.",
         "cnpj": "02.785.261/0001-90",
         "local_data": "São Bernardo do Campo, 14 de outubro de 2026"
     },
@@ -484,7 +484,7 @@
                 "data": "05/11/2026",
                 "codigo": "EPI0071",
                 "valor": "19,90",
-                "situacao": "Reposição"
+                "situacao": "Troca"
             },
             {
                 "item": 2,
@@ -498,7 +498,7 @@
                 "data": "05/11/2026",
                 "codigo": "EPI0041",
                 "valor": "23,40",
-                "situacao": "Reposição"
+                "situacao": "Troca"
             },
             {
                 "item": 3,
@@ -512,7 +512,7 @@
                 "data": "05/11/2026",
                 "codigo": "EPI0063",
                 "valor": "6,90",
-                "situacao": "Reposição"
+                "situacao": "Troca"
             },
             {
                 "item": 4,
@@ -526,7 +526,7 @@
                 "data": "05/11/2026",
                 "codigo": "EPI0030",
                 "valor": "4,80",
-                "situacao": "Reposição"
+                "situacao": "Troca"
             }
         ],
         "termo_responsabilidade": "Declaro para os devidos fins que recebi da VILA BOA CONSTRUCOES E SERVICOS LIMITADA os Equipamentos de Proteção Individual (EPIs) acima relacionados, novos e em perfeito estado de funcionamento e conservação. Comprometo-me a usá-los obrigatoriamente durante o desempenho de minhas atividades no canteiro de obras, responsabilizando-me pela sua guarda e conservação, e a comunicar imediatamente ao setor de Segurança do Trabalho qualquer alteração que os torne impróprios para uso, nos termos da NR-06 (Portaria MTP nº 672/2021) e CLT.",
@@ -534,7 +534,7 @@
         "competencia": "11/2026",
         "chapa": "01040",
         "equipe": "45",
-        "empresa": "Vila Boa Construcoes e Servicos Limitada",
+        "empresa": "VILA BOA CONSTRUCOES E SERVICOS LTDA.",
         "cnpj": "02.785.261/0001-90",
         "local_data": "São Bernardo do Campo, 5 de novembro de 2026"
     },
@@ -615,7 +615,7 @@
         "competencia": "11/2026",
         "chapa": "03042",
         "equipe": "12",
-        "empresa": "Vila Boa Construcoes e Servicos Limitada",
+        "empresa": "VILA BOA CONSTRUCOES E SERVICOS LTDA.",
         "cnpj": "02.785.261/0001-90",
         "local_data": "São Bernardo do Campo, 6 de novembro de 2026"
     }
