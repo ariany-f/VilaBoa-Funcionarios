@@ -2191,7 +2191,7 @@ const notificacoes = computed(() => {
     acao: () => navegarParaAba('epis')
   });
   trilhasPendentes.value.forEach((t) => lista.push({
-    titulo: 'Conclua a trilha obrigatória',
+    titulo: 'Conclua o treinamento obrigatório',
     descricao: `${t.titulo} · ${t.concluidos} de ${t.total} etapas`,
     icone: 'graduation-cap',
     cor: 'bg-slate-100 text-slate-700',
