@@ -281,6 +281,7 @@ import { ref, computed, watch, onMounted } from 'vue';
 import { usarFecharComEsc } from '../utils/fecharComEsc.js';
 import { logoEmpresa } from '../utils/logoEmpresa.js';
 import AppIcon from './AppIcon.vue';
+import { imprimirHtml } from '../utils/imprimir.js';
 import { apiFetch } from '../utils/api.js';
 import { tokenAdmin } from '../utils/sessaoAdmin.js';
 
@@ -375,8 +376,8 @@ const banco = computed(() => {
   return { anterior: b.saldo_anterior || '', periodo: b.saldo_periodo || null, atual: b.saldo_atual || b.saldo_total || '' };
 });
 
-// Abre o espelho completo formatado para imprimir ou salvar em PDF
-function baixarEspelho(e, janelaAberta = null) {
+// Imprime / salva em PDF o espelho completo, sem abrir aba nova
+function baixarEspelho(e) {
   const esc = (v) => String(v ?? '').replace(/[&<>]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[c]));
   const nome = nomeColab.value;
   const matricula = matriculaColab.value;
@@ -423,11 +424,8 @@ function baixarEspelho(e, janelaAberta = null) {
 <div class="bloco"><h2>Dias ponte</h2><table><thead><tr><th>Data do dia ponte</th><th>Início</th><th>Fim</th><th class="r">Horas a incrementar/decrementar</th></tr></thead><tbody>${pontes}</tbody></table></div>
 <div class="bloco"><h2>Horário no período</h2>${horario}</div>
 <p class="ass">${assinatura}</p>
-<script>window.onload=()=>{window.print();}<\/script></body></html>`;
-  const janela = janelaAberta || window.open('', '_blank');
-  if (!janela) return;
-  janela.document.write(html);
-  janela.document.close();
+</body></html>`;
+  imprimirHtml(html);
 }
 
 const trabalhado = (d) => d.tipo.startsWith('Trabalhado');
@@ -553,14 +551,6 @@ async function abrirDetalhe(competencia) {
   } finally {
     carregandoDetalhe.value = false;
   }
-}
-
-// Baixar/WhatsApp direto do histórico: abre a janela já no clique (o navegador bloqueia depois)
-async function acaoNoPeriodo(competencia, acao) {
-  const janela = window.open('', '_blank');
-  const e = await carregarMes(competencia);
-  if (acao === 'baixar') baixarEspelho(e, janela);
-  else enviarWhatsapp(e, janela);
 }
 
 watch(() => props.matricula, () => { espelho.value = null; carregar(); });

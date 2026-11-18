@@ -813,11 +813,11 @@
                 <div class="relative z-10 grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <button
                     type="button"
-                    @click="abrirHolerite(holeriteDestaque, !holeriteDestaque.aceite?.confirmado)"
+                    @click="baixarHoleriteDestaque"
                     class="h-14 sm:h-12 rounded-2xl sm:rounded-full bg-[#9c2337] hover:bg-[#831b2d] text-white active:scale-[0.98] font-semibold text-base sm:text-sm flex items-center justify-center gap-2 transition cursor-pointer"
                   >
-                    <AppIcon name="eye" size="18" />
-                    <span>Ver holerite</span>
+                    <AppIcon name="download" size="18" />
+                    <span>Salvar / baixar PDF</span>
                   </button>
                   <button
                     type="button"
@@ -833,6 +833,7 @@
               <!-- Prévia do demonstrativo selecionado (como na Ficha de EPI) -->
               <HoleriteModal
                 v-if="holeriteDestaque"
+                ref="previaHolerite"
                 :key="'previa-' + holeriteDestaque.id"
                 inline
                 :holerite="holeriteDestaque"
@@ -2435,6 +2436,15 @@ function fecharBuscaGlobal() {
 }
 
 const focarCienciaModal = ref(false);
+
+// Botão do destaque: salva / imprime o holerite sem abrir aba e registra o recebimento
+const previaHolerite = ref(null);
+function baixarHoleriteDestaque() {
+  const h = holeriteDestaque.value;
+  if (!h) return;
+  previaHolerite.value?.baixarPdf();
+  registrarRecebimento(h);
+}
 
 function abrirHolerite(h, focarCiencia = false) {
   focarCienciaModal.value = focarCiencia;

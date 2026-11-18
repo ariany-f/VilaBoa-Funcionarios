@@ -164,6 +164,7 @@
 </template>
 
 <script setup>
+import { imprimirHtml } from '../utils/imprimir.js';
 import { ref, computed, onMounted, nextTick } from 'vue';
 import AppIcon from './AppIcon.vue';
 
@@ -319,12 +320,8 @@ function imprimir() {
     <p style="font-size:12px;margin:0 0 8px">${esc(c.nome || '')} · Chapa ${esc(c.matricula || '')} · ${dataBr(e.periodo_inicio)} a ${dataBr(e.periodo_fim)}</p>
     <table><thead><tr><th>Data</th><th>Dia</th><th>Entrada 1</th><th>Saída 1</th><th>Entrada 2</th><th>Saída 2</th></tr></thead><tbody>${linhas}</tbody></table>
     <footer>CHAPA: ${esc(c.matricula || '')}<br>${rodape}</footer>
-    <scr${"ipt"}>window.onload=function(){window.print()}</scr${"ipt"}>
   </body></html>`;
-  const janela = window.open('', '_blank');
-  if (!janela) return;
-  janela.document.write(html);
-  janela.document.close();
+  imprimirHtml(html);
 }
 
 onMounted(carregar);

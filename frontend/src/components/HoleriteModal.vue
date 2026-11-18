@@ -43,7 +43,7 @@
       </div>
 
       <!-- Corpo com rolagem do Holerite (Área imprimível) -->
-      <div class="p-4 sm:p-5 space-y-4 text-xs sm:text-sm" :class="inline ? '' : 'overflow-y-auto printable-area'">
+      <div ref="corpo" class="p-4 sm:p-5 space-y-4 text-xs sm:text-sm" :class="inline ? '' : 'overflow-y-auto printable-area'">
                 <!-- GRADE DE 2 COLUNAS NO TOPO: VALOR LÍQUIDO + CONFIRMAÇÃO DE CIÊNCIA CLT -->
         <div class="grid grid-cols-1 md:grid-cols-2 gap-3.5 items-stretch no-print">
           
@@ -84,7 +84,7 @@
             <!-- Prévia na tela: o recebimento só é registrado ao abrir o holerite -->
             <template v-else-if="inline">
               <AppIcon name="info" size="15" class="text-amber-500 shrink-0" />
-              <span>Ainda não recebido. Toque em <strong>Ver holerite</strong> para confirmar o recebimento.</span>
+              <span>Ainda não recebido. Ao salvar o PDF ou mandar no WhatsApp, o recebimento é registrado.</span>
             </template>
             <template v-else>
               <span class="w-3.5 h-3.5 border-2 border-slate-400 border-t-transparent rounded-full animate-spin shrink-0"></span>
@@ -437,6 +437,7 @@ import { formatCurrency } from '../utils/masks.js';
 import { obterExplicacaoRubrica, GLOSSARIO_RUBRICAS } from '../utils/rubricas.js';
 import { logoEmpresa } from '../utils/logoEmpresa.js';
 import AppIcon from './AppIcon.vue';
+import { imprimirElemento } from '../utils/imprimir.js';
 import QRCode from 'qrcode';
 
 const props = defineProps({
@@ -611,6 +612,13 @@ function compartilharNoWhatsapp() {
   );
   window.open(`https://api.whatsapp.com/send?text=${texto}`, '_blank');
 }
+
+// Prévia na tela: salva / imprime o demonstrativo sem abrir aba nova
+const corpo = ref(null);
+function baixarPdf() {
+  imprimirElemento(corpo.value, `Holerite ${props.holerite?.competencia || ''}`);
+}
+defineExpose({ baixarPdf });
 
 // Imprime só o holerite: o resto do portal (#app) sai do layout durante a impressão
 function imprimir() {
