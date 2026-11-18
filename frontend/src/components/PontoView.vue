@@ -8,8 +8,34 @@
     </div>
 
     <template v-else>
-      <!-- Último espelho (mesmo formato do último holerite) -->
-      <div class="w-full bg-gradient-to-br from-[#141414] to-[#000000] text-white rounded-2xl p-6 sm:p-7 shadow-sm relative overflow-hidden space-y-5">
+      <!-- Seletor de competência (mesmo formato da Ficha de EPI) -->
+      <div class="bg-white rounded-2xl border border-slate-200 p-4 sm:p-5 space-y-3">
+        <div class="flex items-center justify-between gap-3">
+          <div>
+            <h3 class="text-base font-semibold text-slate-900">Espelho de ponto</h3>
+            <p class="text-xs text-slate-400">{{ competencias.length }} {{ competencias.length === 1 ? 'competência' : 'competências' }}</p>
+          </div>
+          <span v-if="totalPendentes > 0" class="text-xs font-semibold px-3 py-1 rounded-full bg-amber-100 text-amber-700 whitespace-nowrap">
+            {{ totalPendentes }} {{ totalPendentes === 1 ? 'pendente' : 'pendentes' }}
+          </span>
+        </div>
+        <div class="flex gap-2 overflow-x-auto pb-1 -mx-1 px-1">
+          <button
+            v-for="c in competencias"
+            :key="c.competencia"
+            type="button"
+            @click="selecionarMes(c.competencia)"
+            class="shrink-0 px-4 h-11 rounded-xl border text-sm font-semibold flex items-center gap-2 cursor-pointer transition"
+            :class="c.competencia === atual.competencia ? 'bg-[#141414] text-white border-[#141414]' : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-50'"
+          >
+            <span>{{ c.competencia }}</span>
+            <span class="w-2 h-2 rounded-full" :class="c.assinado_em ? 'bg-emerald-500' : 'bg-amber-400'"></span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Espelho selecionado (resumo + ações) -->
+      <div class="w-full bg-gradient-to-br from-[#141414] to-[#000000] text-white rounded-2xl p-6 sm:p-7 shadow-sm relative overflow-hidden space-y-5 transition-opacity" :class="trocandoMes ? 'opacity-60' : ''">
         <div class="absolute -right-20 -top-20 w-80 h-80 bg-[#9c2337]/30 rounded-full blur-3xl pointer-events-none"></div>
 
         <!-- Identificação do colaborador -->
@@ -22,22 +48,22 @@
         </div>
 
         <div class="relative z-10 space-y-1.5" :class="colaborador ? 'sm:border-t sm:border-white/10 sm:pt-4' : ''">
-          <span class="text-xs text-white/60 font-medium">Seu último espelho de ponto</span>
+          <span class="text-xs text-white/60 font-medium">{{ atual.competencia === ultimo.competencia ? 'Seu último espelho de ponto' : 'Espelho de ponto' }}</span>
           <div class="flex items-center gap-2.5 flex-wrap">
-            <h3 class="text-3xl font-semibold tracking-tight leading-tight">{{ ultimo.mes_nome }}</h3>
+            <h3 class="text-3xl font-semibold tracking-tight leading-tight">{{ atual.mes_nome }}</h3>
             <span
               class="text-xs font-semibold px-3 py-1 rounded-full"
-              :class="ultimo.assinatura ? 'bg-emerald-500/15 text-emerald-300' : 'bg-amber-400/15 text-amber-300'"
-            >{{ ultimo.assinatura ? '✓ Assinado' : 'Falta assinar' }}</span>
+              :class="atual.assinatura ? 'bg-emerald-500/15 text-emerald-300' : 'bg-amber-400/15 text-amber-300'"
+            >{{ atual.assinatura ? '✓ Assinado' : 'Falta assinar' }}</span>
           </div>
-          <p class="text-sm text-white/70">{{ resumoLinha(ultimo) }}</p>
+          <p class="text-sm text-white/70">{{ resumoLinha(atual) }}</p>
         </div>
 
-        <div class="relative z-10 grid grid-cols-1 gap-3" :class="podeAssinar(ultimo) ? 'sm:grid-cols-2' : 'sm:grid-cols-1 sm:max-w-xs'">
+        <div class="relative z-10 grid grid-cols-1 gap-3" :class="podeAssinar(atual) ? 'sm:grid-cols-2' : 'sm:grid-cols-1 sm:max-w-xs'">
           <button
-            v-if="podeAssinar(ultimo)"
+            v-if="podeAssinar(atual)"
             type="button"
-            @click="assinarNoAutentique(ultimo)"
+            @click="assinarNoAutentique(atual)"
             class="h-14 sm:h-12 rounded-2xl sm:rounded-full bg-[#9c2337] hover:bg-[#831b2d] text-white active:scale-[0.98] font-semibold text-base sm:text-sm flex items-center justify-center gap-2 transition cursor-pointer"
           >
             <AppIcon name="pen-tool" size="18" />
@@ -45,82 +71,18 @@
           </button>
           <button
             type="button"
-            @click="abrirDetalhe(ultimo.competencia)"
+            @click="abrirDetalhe(atual.competencia)"
             class="h-14 sm:h-12 rounded-2xl sm:rounded-full bg-white/10 hover:bg-white/20 border border-white/20 text-white active:scale-[0.98] font-semibold text-base sm:text-sm flex items-center justify-center gap-2 transition cursor-pointer"
           >
             <AppIcon name="eye" size="18" />
             <span>Ver espelho</span>
           </button>
         </div>
-        <p v-if="!ultimo.assinatura && !somenteLeitura && !ultimo.link_assinatura" class="relative z-10 text-xs text-white/60">
+        <p v-if="!atual.assinatura && !somenteLeitura && !atual.link_assinatura" class="relative z-10 text-xs text-white/60">
           A assinatura deste mês ainda não foi liberada pelo RH.
         </p>
       </div>
 
-      <!-- Histórico de espelhos (mesmo formato do histórico de holerites) -->
-      <div class="w-full bg-white rounded-2xl p-6 sm:p-8 border border-slate-200 space-y-5">
-        <div class="border-b border-slate-100 pb-4">
-          <h3 class="text-sm font-semibold uppercase tracking-wider text-slate-800 leading-tight">Histórico de espelhos</h3>
-          <p class="text-xs text-slate-400 mt-0.5 font-medium">{{ competencias.length }} {{ competencias.length === 1 ? 'espelho disponível' : 'espelhos disponíveis' }}</p>
-        </div>
-
-        <!-- Celular: cartões com botões grandes -->
-        <div class="md:hidden space-y-3">
-          <div v-for="c in competencias" :key="c.competencia" class="bg-white rounded-2xl p-4 border border-slate-200 space-y-3">
-            <button type="button" @click="abrirDetalhe(c.competencia)" class="w-full flex items-center gap-3 text-left cursor-pointer">
-              <div class="w-12 h-12 rounded-xl bg-slate-100 flex flex-col items-center justify-center shrink-0">
-                <span class="text-sm font-semibold uppercase text-[#9c2337] leading-none">{{ c.mes_nome.slice(0, 3) }}</span>
-                <span class="text-[11px] font-semibold text-slate-900 leading-tight mt-0.5">{{ c.competencia.slice(3) }}</span>
-              </div>
-              <div class="min-w-0 flex-1">
-                <h4 class="font-semibold text-slate-900 text-base leading-tight">{{ c.mes_nome }}</h4>
-                <span class="text-xs text-slate-500 block mt-0.5">{{ c.assinado_em ? 'Assinado em ' + c.assinado_em.slice(0, 10) : 'Aguardando sua assinatura' }}</span>
-              </div>
-              <span class="shrink-0 text-[11px] font-semibold px-2.5 py-1 rounded-full" :class="c.assinado_em ? 'bg-emerald-50 text-emerald-700' : 'bg-amber-50 text-amber-700'">
-                {{ c.assinado_em ? '✓ Assinado' : 'Assinar' }}
-              </span>
-            </button>
-            <button type="button" @click="abrirDetalhe(c.competencia)" class="w-full h-12 rounded-xl bg-[#141414] text-white font-semibold text-sm inline-flex items-center justify-center gap-2 cursor-pointer active:scale-[0.98] transition">
-              <AppIcon name="eye" size="17" />
-              Ver espelho
-            </button>
-          </div>
-        </div>
-
-        <!-- Computador: tabela com botões com texto -->
-        <div class="hidden md:block rounded-2xl border border-slate-200 overflow-hidden">
-          <table class="w-full text-left border-collapse">
-            <thead class="bg-slate-50/80 border-b border-slate-200">
-              <tr class="text-[10px] font-semibold uppercase tracking-wider text-slate-400">
-                <th class="py-3.5 px-5">Mês</th>
-                <th class="py-3.5 px-5">Situação</th>
-                <th class="py-3.5 px-5"></th>
-              </tr>
-            </thead>
-            <tbody class="divide-y divide-slate-100 text-xs">
-              <tr v-for="c in competencias" :key="c.competencia" @click="abrirDetalhe(c.competencia)" class="hover:bg-slate-50/70 cursor-pointer group">
-                <td class="py-4 px-5">
-                  <span class="font-semibold text-slate-900 group-hover:text-[#9c2337] text-sm">{{ c.mes_nome }}</span>
-                </td>
-                <td class="py-4 px-5">
-                  <span class="h-6 px-3 rounded-full text-[11px] font-bold text-slate-600 bg-slate-100/90 border border-slate-200 inline-flex items-center gap-1.5">
-                    <span class="w-1.5 h-1.5 rounded-full" :class="c.assinado_em ? 'bg-emerald-500' : 'bg-amber-500'"></span>
-                    {{ c.assinado_em ? 'Assinado em ' + c.assinado_em.slice(0, 10) : 'Falta assinar' }}
-                  </span>
-                </td>
-                <td class="py-3 px-5 text-right" @click.stop>
-                  <div class="flex items-center justify-end gap-2">
-                    <button type="button" @click="abrirDetalhe(c.competencia)" class="h-9 px-3.5 rounded-lg bg-slate-100 text-slate-700 hover:bg-slate-200 text-xs font-semibold inline-flex items-center gap-1.5 cursor-pointer">
-                      <AppIcon name="eye" size="14" />
-                      Ver
-                    </button>
-                  </div>
-                </td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-      </div>
     </template>
 
     <!-- Detalhe do mês: espelho completo, com todos os dados do relatório de ponto -->
@@ -332,7 +294,11 @@ const props = defineProps({
 });
 
 const espelho = ref(null);       // mês aberto no detalhe
-const ultimo = ref(null);        // mês mais recente (destaque do topo)
+const ultimo = ref(null);        // mês mais recente
+const selecionado = ref(null);   // mês escolhido no seletor (destaque do topo)
+const trocandoMes = ref(false);
+const atual = computed(() => selecionado.value || ultimo.value);
+const totalPendentes = computed(() => competencias.value.filter((c) => !c.assinado_em).length);
 const detalheAberto = ref(false);
 const carregandoDetalhe = ref(false);
 usarFecharComEsc(() => { detalheAberto.value = false; }, detalheAberto);
@@ -548,6 +514,7 @@ async function carregar() {
     const data = await buscar();
     competencias.value = data.competencias || [];
     ultimo.value = data.espelho;
+    selecionado.value = null;
   } catch (e) {
     ultimo.value = null;
     erro.value = 'Não foi possível carregar o espelho de ponto.';
@@ -562,6 +529,19 @@ async function carregarMes(competencia) {
   const data = await buscar(competencia);
   espelho.value = data.espelho;
   return espelho.value;
+}
+
+// Troca o mês exibido no destaque ao tocar numa competência do seletor
+async function selecionarMes(competencia) {
+  if (atual.value?.competencia === competencia) return;
+  trocandoMes.value = true;
+  try {
+    selecionado.value = await carregarMes(competencia);
+  } catch (e) {
+    // mantém o mês atual se não conseguir carregar
+  } finally {
+    trocandoMes.value = false;
+  }
 }
 
 async function abrirDetalhe(competencia) {
@@ -586,7 +566,10 @@ watch(() => props.matricula, () => { espelho.value = null; carregar(); });
 
 onMounted(async () => {
   await carregar();
-  if (props.competenciaInicial) abrirDetalhe(props.competenciaInicial);
+  if (props.competenciaInicial) {
+    await abrirDetalhe(props.competenciaInicial);
+    if (espelho.value) selecionado.value = espelho.value;
+  }
 });
 
 </script>
