@@ -65,6 +65,9 @@ return [
             ['slug' => 'editar', 'name' => 'Editar dados do colaborador', 'group' => 'Linha', 'route' => 'POST /rh/colaboradores', 'enforce' => true],
             ['slug' => 'inativar', 'name' => 'Inativar e reativar o acesso ao portal', 'group' => 'Linha', 'route' => 'POST /rh/colaboradores/status', 'enforce' => true],
         ],
+        // Na primeira vez, os perfis recebem estas ações conforme o que já podem em Cadernos
+        // (quem vê cadernos vê colaboradores, quem publica cadastra, quem edita edita, quem remove inativa)
+        'herdar_de' => ['tela' => 'rh_cadernos', 'acoes' => ['visualizar' => 'visualizar', 'cadastrar' => 'publicar', 'editar' => 'editar', 'inativar' => 'remover']],
     ],
     [
         'slug' => 'rh_usuarios',
