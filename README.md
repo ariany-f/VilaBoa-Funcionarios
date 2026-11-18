@@ -60,6 +60,18 @@ A tela de login possui botões de 1 clique para auto-preenchimento rápido com q
 
 ---
 
+## 🏢 Empresa no Painel do RH
+
+O usuário do RH trabalha em uma empresa por vez. Com mais de uma empresa, ele escolhe no login e troca no menu lateral; o logo do painel é o da empresa escolhida (cadastrado em **Empresas**). Sem empresa escolhida, nenhum logo aparece.
+
+Por padrão, todo usuário do RH acessa todas as empresas. Para limitar, crie `backend/data/rh_usuarios_empresas.json`:
+
+```json
+{ "juliana.ramos@vilaboaconstrucoes.com.br": ["Mondego"] }
+```
+
+Quem não está no arquivo continua com todas. Hoje essa escolha filtra as telas do painel; as rotas da API ainda não bloqueiam dados de outra empresa.
+
 ## 🚀 Como Executar o Projeto
 
 ### Opção 1: Execução com 1 Clique (Recomendada)

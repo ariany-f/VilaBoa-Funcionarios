@@ -940,6 +940,14 @@ if ($method === 'POST' && $route === '/admin/login') {
         exit;
     }
 
+    // Empresas que ele pode escolher no painel (com mais de uma, escolhe antes de entrar)
+    $empresasRh = EmpresaService::doUsuarioRh((string)$usuario['email']);
+    if (!$empresasRh) {
+        http_response_code(403);
+        echo json_encode(['erro' => 'Seu usuário não tem acesso a nenhuma empresa.'], JSON_UNESCAPED_UNICODE);
+        exit;
+    }
+
     registrarAuditoriaLgpd('ADMIN_LOGIN', null, ['email' => $usuario['email']]);
     echo json_encode([
         'sucesso' => true,
@@ -949,7 +957,8 @@ if ($method === 'POST' && $route === '/admin/login') {
             'nome' => $usuario['name'],
             'email' => $usuario['email'],
             'permissoes' => $permissaoService->matrizDoUsuario((int)$usuario['id']),
-            'menus' => $menus
+            'menus' => $menus,
+            'empresas' => $empresasRh
         ]
     ], JSON_UNESCAPED_UNICODE);
     exit;
@@ -975,7 +984,8 @@ if (str_starts_with($route, '/admin/') || str_starts_with($route, '/rh/')) {
                 'nome' => $usuarioAdmin['name'],
                 'email' => $usuarioAdmin['email'],
                 'permissoes' => $permissoesLogado,
-                'menus' => $permissaoService->menusDoUsuario((int)$usuarioAdmin['id'])
+                'menus' => $permissaoService->menusDoUsuario((int)$usuarioAdmin['id']),
+                'empresas' => EmpresaService::doUsuarioRh((string)$usuarioAdmin['email'])
             ]
         ], JSON_UNESCAPED_UNICODE);
         exit;

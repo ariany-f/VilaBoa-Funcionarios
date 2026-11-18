@@ -2,12 +2,13 @@
   <div class="min-h-screen bg-[#f7f7f8] text-slate-800">
     <!-- Verificando sessão -->
     <div v-if="verificando" class="min-h-screen flex items-center justify-center">
-      <LogoLoader />
+      <!-- Sem logo até a empresa ser escolhida -->
+      <LogoLoader logo="" />
     </div>
 
-    <!-- Login do painel -->
+    <!-- Login do painel e, para quem tem mais de uma empresa, a escolha da empresa -->
     <!-- Mesmo layout do login do colaborador; o lado institucional em vinho marca a área do RH -->
-    <div v-else-if="!usuario" class="min-h-[100dvh] flex items-stretch sm:items-center justify-center sm:p-6 lg:p-8 bg-white sm:bg-slate-100">
+    <div v-else-if="!usuario || !empresaContexto" class="min-h-[100dvh] flex items-stretch sm:items-center justify-center sm:p-6 lg:p-8 bg-white sm:bg-slate-100">
       <div class="w-full sm:max-w-xl lg:max-w-5xl bg-white sm:rounded-2xl lg:rounded-3xl sm:shadow-2xl overflow-hidden flex flex-col lg:flex-row sm:border border-slate-200">
         <!-- Lado institucional: foto dos hexágonos (public/img/login-rh.webp), sem logo, texto escuro sobre fundo claro -->
         <div
@@ -26,7 +27,40 @@
           </div>
         </div>
 
-        <form class="lg:w-1/2 p-6 sm:p-8 lg:p-10 space-y-5 bg-white" @submit.prevent="entrar">
+        <!-- Escolha da empresa (antes de entrar no painel) -->
+        <div v-if="usuario" class="lg:w-1/2 p-6 sm:p-8 lg:p-10 space-y-5 bg-white">
+          <div>
+            <h2 class="text-xl sm:text-2xl font-semibold text-slate-900 tracking-tight">Escolha a empresa</h2>
+            <p class="text-xs sm:text-sm text-slate-500">Olá, {{ usuario.nome.split(' ')[0] }}. Em qual empresa você vai trabalhar agora? Dá para trocar depois no menu lateral.</p>
+          </div>
+          <div class="space-y-2">
+            <button
+              v-for="e in empresasContexto"
+              :key="e"
+              type="button"
+              @click="escolherEmpresa(e)"
+              class="w-full text-left p-4 rounded-2xl border bg-slate-50/80 hover:border-[#9c2337] hover:bg-rose-50/40 active:scale-[0.99] transition flex items-center gap-3 cursor-pointer"
+              :class="e === ultimaEmpresaUsada ? 'border-[#9c2337]/60' : 'border-slate-200/90'"
+            >
+              <span class="w-10 h-10 rounded-xl bg-white border border-slate-200 flex items-center justify-center text-[#9c2337] shrink-0">
+                <AppIcon name="hard-hat" size="18" />
+              </span>
+              <span class="min-w-0 flex-1">
+                <span class="block text-sm font-bold text-slate-800 truncate">{{ e }}</span>
+                <span v-if="e === ultimaEmpresaUsada" class="block text-[11px] text-slate-400">Último acesso</span>
+              </span>
+              <span class="text-slate-400">→</span>
+            </button>
+          </div>
+          <div class="text-center pt-2">
+            <button type="button" @click="sair" class="inline-flex items-center gap-1.5 h-9 px-4 rounded-full border border-slate-300 text-[11px] text-slate-700 hover:border-slate-400 hover:text-slate-900 font-semibold transition cursor-pointer">
+              <AppIcon name="log-out" size="13" />
+              Entrar com outro usuário
+            </button>
+          </div>
+        </div>
+
+        <form v-else class="lg:w-1/2 p-6 sm:p-8 lg:p-10 space-y-5 bg-white" @submit.prevent="entrar">
           <div>
             <h2 class="text-xl sm:text-2xl font-semibold text-slate-900 tracking-tight">Entrar no painel</h2>
             <p class="text-xs sm:text-sm text-slate-500">Use seu e-mail e senha corporativos</p>
@@ -84,12 +118,12 @@
     <div v-else class="flex h-[100dvh] overflow-hidden">
       <aside class="hidden md:flex w-60 shrink-0 flex-col bg-white border-r border-slate-200">
         <div class="h-16 px-4 flex items-center border-b border-slate-200">
-          <img src="/img/logo-vilaboa-horizontal-v2.png" alt="Vila Boa Construções e Serviços" class="h-8 w-auto object-contain" />
+          <img v-if="logoEmpresaContexto && !logoFalhou" :src="logoEmpresaContexto" :alt="empresaContexto" @error="logoFalhou = true" class="h-8 w-auto max-w-full object-contain" />
+          <span v-else class="text-sm font-bold text-slate-900 truncate">{{ empresaContexto }}</span>
         </div>
-        <div class="px-4 pt-4">
+        <div v-if="empresasContexto.length > 1" class="px-4 pt-4">
           <label for="empresa-contexto" class="block text-[10px] font-semibold uppercase tracking-wider text-slate-400 mb-1.5">Empresa</label>
           <select id="empresa-contexto" v-model="empresaContexto" class="w-full h-10 px-3 rounded-xl border border-slate-200 bg-slate-50 text-xs font-bold text-slate-700 outline-none focus:border-[#9c2337] cursor-pointer">
-            <option value="">Todas as empresas</option>
             <option v-for="e in empresasContexto" :key="e" :value="e">{{ e }}</option>
           </select>
         </div>
@@ -210,7 +244,8 @@
           <div class="absolute inset-0 bg-slate-900/60 backdrop-blur-xs gaveta-fundo" @click="menuAberto = false" aria-hidden="true"></div>
           <aside class="gaveta relative w-[82%] max-w-xs h-full bg-white flex flex-col shadow-2xl" role="dialog" aria-modal="true" aria-label="Menu do painel">
             <div class="px-4 pb-4 pt-[calc(1rem+env(safe-area-inset-top,0px))] border-b border-slate-100 flex items-center justify-between">
-              <img src="/img/logo-vilaboa-horizontal-v2.png" alt="Vila Boa Construções e Serviços" class="h-8 w-auto object-contain" />
+              <img v-if="logoEmpresaContexto && !logoFalhou" :src="logoEmpresaContexto" :alt="empresaContexto" @error="logoFalhou = true" class="h-8 w-auto max-w-[70%] object-contain" />
+              <span v-else class="text-base font-bold text-slate-900 truncate">{{ empresaContexto }}</span>
               <button type="button" @click="menuAberto = false" class="w-9 h-9 rounded-full bg-slate-100 text-slate-500 flex items-center justify-center active:scale-95 cursor-pointer" aria-label="Fechar menu">
                 <AppIcon name="close" size="14" />
               </button>
@@ -224,10 +259,9 @@
                 </span>
               </div>
             </div>
-            <div class="px-4 pb-3">
+            <div v-if="empresasContexto.length > 1" class="px-4 pb-3">
               <label for="empresa-contexto-mob" class="block text-[10px] font-semibold uppercase tracking-wider text-slate-400 mb-1.5">Empresa</label>
               <select id="empresa-contexto-mob" v-model="empresaContexto" class="w-full h-12 px-3 rounded-xl border border-slate-200 bg-slate-50 text-sm font-semibold text-slate-700 outline-none focus:border-[#9c2337] cursor-pointer">
-                <option value="">Todas as empresas</option>
                 <option v-for="e in empresasContexto" :key="e" :value="e">{{ e }}</option>
               </select>
             </div>
@@ -272,7 +306,7 @@ import { ref, computed, watch, onMounted } from 'vue';
 import AppIcon from './components/AppIcon.vue';
 import LogoLoader from './components/LogoLoader.vue';
 import RhView from './components/RhView.vue';
-import { empresaContexto, empresasContexto } from './utils/empresaContexto.js';
+import { empresaContexto, empresasContexto, logoEmpresaContexto, definirEmpresasDoUsuario, empresaSugerida, ultimaEmpresa, limparEmpresaContexto } from './utils/empresaContexto.js';
 import ResumoColaboradorModal from './components/ResumoColaboradorModal.vue';
 import { pode } from './utils/permissoes.js';
 import { tokenAdmin, CHAVE_TOKEN_ADMIN } from './utils/sessaoAdmin.js';
@@ -346,14 +380,45 @@ async function entrar() {
     if (!res.ok) throw new Error(data.erro);
     localStorage.setItem(CHAVE_TOKEN_ADMIN, data.admin_token);
     senha.value = '';
-    usuario.value = data.usuario;
-    escolherSecaoInicial();
+    abrirSessao(data.usuario, true);
   } catch (e) {
     erro.value = e.message || 'Não foi possível entrar.';
   } finally {
     entrando.value = false;
   }
 }
+
+// Sessão aberta: com uma empresa só, entra direto; com mais de uma, escolhe antes de entrar.
+// No login a escolha é sempre pedida; ao reabrir o painel com a sessão ativa, volta na última empresa.
+function abrirSessao(u, noLogin) {
+  definirEmpresasDoUsuario(u.empresas);
+  usuario.value = u;
+  ultimaEmpresaUsada.value = ultimaEmpresa();
+  const sugerida = empresaSugerida();
+  empresaContexto.value = (empresasContexto.value.length === 1 || !noLogin) ? sugerida : '';
+  escolherSecaoInicial();
+}
+
+const ultimaEmpresaUsada = ref('');
+function escolherEmpresa(nome) {
+  empresaContexto.value = nome;
+}
+
+// Logo da empresa escolhida; sem logo cadastrado (ou com erro ao carregar), mostra o nome
+const logoFalhou = ref(false);
+watch(logoEmpresaContexto, () => { logoFalhou.value = false; });
+
+// Cadastro de empresas mudou (nome, logo): atualiza as empresas do usuário e o logo do painel
+window.addEventListener('vb-empresas-atualizadas', async () => {
+  if (!usuario.value) return;
+  try {
+    const res = await fetch('/api/admin/me', { headers: { 'Authorization': `Bearer ${tokenAdmin()}` } });
+    if (!res.ok) return;
+    const u = (await res.json()).usuario;
+    definirEmpresasDoUsuario(u.empresas);
+    if (!empresasContexto.value.includes(empresaContexto.value)) empresaContexto.value = empresasContexto.value[0] || '';
+  } catch (e) { /* mantém o que está na tela */ }
+});
 
 const menuAberto = ref(false);
 const menuUsuarioAberto = ref(false);
@@ -364,6 +429,7 @@ function sair() {
   menuUsuarioAberto.value = false;
   localStorage.removeItem(CHAVE_TOKEN_ADMIN);
   usuario.value = null;
+  limparEmpresaContexto();
   colaboradores.value = null;
   carregarDemos();
 }
@@ -389,6 +455,7 @@ const resultados = computed(() => {
   const termo = busca.value.trim().toLowerCase();
   if (!termo) return [];
   return (colaboradores.value || [])
+    .filter((c) => !empresaContexto.value || c.empresa === empresaContexto.value)
     .filter((c) => [c.nome, c.matricula, c.cargo, c.departamento].some((t) => (t || '').toLowerCase().includes(termo)))
     .slice(0, 8);
 });
@@ -409,8 +476,7 @@ onMounted(async () => {
     try {
       const res = await fetch('/api/admin/me', { headers: { 'Authorization': `Bearer ${token}` } });
       if (res.ok) {
-        usuario.value = (await res.json()).usuario;
-        escolherSecaoInicial();
+        abrirSessao((await res.json()).usuario, false);
       } else {
         localStorage.removeItem(CHAVE_TOKEN_ADMIN);
       }
