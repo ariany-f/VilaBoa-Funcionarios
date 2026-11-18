@@ -610,66 +610,16 @@
           <div v-if="abaAtiva === 'holerites'" class="grid grid-cols-1 xl:grid-cols-[minmax(0,1fr)_300px] gap-6 items-start">
             <div class="space-y-6 min-w-0">
               
-              <!-- CARD 2: HERO CARD - DEMONSTRATIVO MAIS RECENTE & ENVIO WHATSAPP -->
-              <div v-if="holerites.length > 0" class="w-full bg-gradient-to-br from-[#141414] to-[#000000] text-white rounded-2xl p-6 sm:p-7 shadow-sm relative overflow-hidden space-y-5 transition-all duration-200">
-                <!-- Luz ambiente suave de fundo -->
-                <div class="absolute -right-20 -top-20 w-80 h-80 bg-[#9c2337]/30 rounded-full blur-3xl pointer-events-none"></div>
-
-                <!-- Identificação do colaborador -->
-                <div class="hidden sm:flex flex-wrap items-center justify-between gap-x-4 gap-y-1 relative z-10 text-xs text-white/60">
-                  <span class="text-sm font-semibold text-white">{{ usuarioLogado?.nome }}</span>
-                  <span class="flex flex-wrap items-center gap-x-3 gap-y-1">
-                    <span>{{ usuarioLogado?.cargo }}</span>
-                    <span>Matrícula <strong class="text-white/90 font-medium">{{ usuarioLogado?.matricula }}</strong></span>
-                    <span>CPF <strong class="text-white/90 font-medium">{{ ocultarValores ? '***.***.***-**' : (usuarioLogado?.cpf ? maskCPF(usuarioLogado.cpf) : '---') }}</strong></span>
-                  </span>
-                </div>
-
-                <!-- Último holerite: título, situação e as duas ações principais -->
-                <div class="relative z-10 space-y-1.5 sm:border-t sm:border-white/10 sm:pt-4">
-                  <span class="text-xs text-white/60 font-medium">Seu último holerite</span>
-                  <div class="flex items-center gap-2.5 flex-wrap">
-                    <h3 class="text-3xl font-semibold text-white tracking-tight leading-tight">
-                      {{ holerites[0].mes_nome }} / {{ holerites[0].ano }}
-                    </h3>
-                    <span
-                      class="text-xs font-semibold px-3 py-1 rounded-full"
-                      :class="holerites[0].aceite?.confirmado ? 'bg-emerald-500/15 text-emerald-300' : 'bg-amber-400/15 text-amber-300'"
-                    >{{ holerites[0].aceite?.confirmado ? '✓ Recebido' : 'Não lido' }}</span>
-                  </div>
-                  <p class="text-sm text-white/70">{{ holerites[0].tipo_folha || 'Folha Mensal' }} · pago em {{ holerites[0].data_pagamento }}</p>
-                </div>
-
-                <div class="relative z-10 grid grid-cols-1 sm:grid-cols-2 gap-3">
-                  <button
-                    type="button"
-                    @click="abrirHolerite(holerites[0], !holerites[0].aceite?.confirmado)"
-                    class="h-14 sm:h-12 rounded-2xl sm:rounded-full bg-[#9c2337] hover:bg-[#831b2d] text-white active:scale-[0.98] font-semibold text-base sm:text-sm flex items-center justify-center gap-2 transition cursor-pointer"
-                  >
-                    <AppIcon name="eye" size="18" />
-                    <span>Ver holerite</span>
-                  </button>
-                  <button
-                    type="button"
-                    @click="abrirModalWhatsapp(holerites[0])"
-                    class="h-14 sm:h-12 rounded-2xl sm:rounded-full bg-[#1DA851] hover:bg-[#178F44] active:scale-[0.98] text-white font-semibold text-base sm:text-sm flex items-center justify-center gap-2 transition cursor-pointer"
-                  >
-                    <AppIcon name="whatsapp" size="18" />
-                    <span>Mandar no WhatsApp</span>
-                  </button>
-                </div>
-              </div>
-
-              <!-- CARD 3: HISTÓRICO DE DEMONSTRATIVOS (TABELA & FEED COM MENU FLUTUANTE) -->
-              <div class="w-full bg-white rounded-2xl p-6 sm:p-8 border border-slate-200 shadow-none space-y-6">
+              <!-- HISTÓRICO DE DEMONSTRATIVOS: filtros + seletor (mesmo formato da Ficha de EPI) -->
+              <div class="w-full bg-white rounded-2xl p-4 sm:p-5 border border-slate-200 shadow-none space-y-3">
                 <!-- CABEÇALHO DO CARD (TÍTULO, SUBTÍTULO E SELETOR DE ANO) -->
-                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3.5 border-b border-slate-100 pb-4">
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                   <div>
-                    <h3 id="historico-demonstrativos" class="text-sm font-semibold uppercase tracking-wider text-slate-800 leading-tight">
+                    <h3 id="historico-demonstrativos" class="text-base font-semibold text-slate-900">
                       Histórico de Demonstrativos
                     </h3>
-                    <p class="text-xs text-slate-400 mt-0.5 font-medium">
-                      {{ contadoresFolha.todos }} demonstrativos emitidos em {{ anoReferencia }}
+                    <p class="text-xs text-slate-400">
+                      {{ contadoresFolha.todos }} {{ contadoresFolha.todos === 1 ? 'demonstrativo emitido' : 'demonstrativos emitidos' }} em {{ anoReferencia }}
                     </p>
                   </div>
                   
@@ -800,132 +750,20 @@
                   <p class="text-xs font-medium">Carregando dados da folha {{ anoReferencia }}...</p>
                 </div>
 
-                <!-- CELULAR: um cartão por holerite, com botões grandes e diretos -->
-                <div v-else-if="holeritesPaginados.length > 0" class="md:hidden space-y-3">
-                  <div
-                    v-for="h in holeritesPaginados"
+                <!-- SELETOR DE DEMONSTRATIVOS (mesmo formato da Ficha de EPI) -->
+                <div v-else-if="holeritesFiltrados.length > 0" class="flex gap-2 overflow-x-auto pb-1 -mx-1 px-1">
+                  <button
+                    v-for="h in holeritesFiltrados"
                     :key="h.id"
-                    class="bg-white rounded-2xl p-4 border border-slate-200 space-y-3"
+                    type="button"
+                    @click="holeriteDestaqueId = h.id"
+                    class="shrink-0 px-4 h-11 rounded-xl border text-sm font-semibold flex items-center gap-2 cursor-pointer transition"
+                    :class="h.id === holeriteDestaque?.id ? 'bg-[#141414] text-white border-[#141414]' : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-50'"
                   >
-                    <button type="button" @click="abrirHolerite(h)" class="w-full flex items-center gap-3 text-left cursor-pointer">
-                      <div class="w-12 h-12 rounded-xl bg-slate-100 flex flex-col items-center justify-center shrink-0">
-                        <span class="text-sm font-semibold uppercase text-[#9c2337] leading-none">{{ h.mes_nome.slice(0, 3) }}</span>
-                        <span class="text-[11px] font-semibold text-slate-900 leading-tight mt-0.5">{{ h.ano }}</span>
-                      </div>
-                      <div class="min-w-0 flex-1">
-                        <h4 class="font-semibold text-slate-900 text-base leading-tight">{{ h.mes_nome }} de {{ h.ano }}</h4>
-                        <span class="text-xs text-slate-500 block mt-0.5">{{ h.tipo_folha || 'Folha Mensal' }} · pago em {{ h.data_pagamento }}</span>
-                      </div>
-                      <span
-                        class="shrink-0 text-[11px] font-semibold px-2.5 py-1 rounded-full"
-                        :class="h.aceite?.confirmado ? 'bg-emerald-50 text-emerald-700' : 'bg-amber-50 text-amber-700'"
-                      >{{ h.aceite?.confirmado ? '✓ Recebido' : 'Não lido' }}</span>
-                    </button>
-
-                    <div class="grid grid-cols-2 gap-2">
-                      <button
-                        type="button"
-                        @click="abrirHolerite(h)"
-                        class="h-12 rounded-xl bg-[#141414] active:bg-black text-white font-semibold text-sm inline-flex items-center justify-center gap-2 cursor-pointer active:scale-[0.98] transition"
-                      >
-                        <AppIcon name="eye" size="17" />
-                        Ver holerite
-                      </button>
-                      <button
-                        type="button"
-                        @click="abrirModalWhatsapp(h)"
-                        class="h-12 rounded-xl bg-[#1DA851] active:bg-[#178F44] text-white font-semibold text-sm inline-flex items-center justify-center gap-2 cursor-pointer active:scale-[0.98] transition"
-                      >
-                        <AppIcon name="whatsapp" size="17" />
-                        WhatsApp
-                      </button>
-                    </div>
-                  </div>
-                </div>
-
-                <!-- TABELA DE DEMONSTRATIVOS (ESTRUTURA LIMPA & MENU FLUTUANTE CONTEXTUAL) -->
-                <div v-if="holeritesPaginados.length > 0" class="hidden md:block overflow-visible rounded-2xl border border-slate-200 bg-white shadow-2xs">
-                  <table class="w-full text-left border-collapse min-w-[620px]">
-                    <thead class="bg-slate-50/80 border-b border-slate-200">
-                      <tr class="text-[10px] font-semibold uppercase tracking-wider text-slate-400">
-                        <th class="py-3.5 px-5">DEMONSTRATIVO / COMPETÊNCIA</th>
-                        <th class="py-3.5 px-5">DATA PAGTO</th>
-                        <th class="py-3.5 px-5">SITUAÇÃO</th>
-                        <th class="py-3.5 px-5 text-right"></th>
-                      </tr>
-                    </thead>
-                    <tbody class="divide-y divide-slate-100 text-xs">
-                      <tr 
-                        v-for="h in holeritesPaginados" 
-                        :key="h.id"
-                        @click="abrirHolerite(h)"
-                        class="transition-colors duration-150 group cursor-pointer"
-                        :class="menuItemAbertoId === h.id ? 'relative z-30 bg-slate-50' : 'hover:bg-slate-50/70'"
-                      >
-                        <!-- Coluna 1: Demonstrativo & Competência -->
-                        <td class="py-4 px-5">
-                          <button 
-                            type="button"
-                            @click="abrirHolerite(h)"
-                            class="font-semibold text-slate-900 group-hover:text-[#9c2337] transition-colors cursor-pointer text-left block text-sm leading-tight"
-                          >
-                            {{ h.mes_nome }} / {{ h.ano }}
-                          </button>
-                          <span class="text-[10px] font-medium text-slate-400 block mt-0.5">
-                            {{ h.tipo_folha || 'Folha Mensal' }}
-                          </span>
-                        </td>
-
-                        <!-- Coluna 2: DATA PAGTO -->
-                        <td class="py-4 px-5 text-slate-600 font-medium">
-                          {{ h.data_pagamento }}
-                        </td>
-
-
-
-                        <!-- Coluna 4: CIÊNCIA CLT (DISCRETO) -->
-                        <td class="py-4 px-5">
-                          <span 
-                            v-if="h.aceite?.confirmado" 
-                            class="h-6 px-3 rounded-full text-[11px] font-bold text-slate-600 bg-slate-100/90 border border-slate-200 inline-flex items-center gap-1.5 shadow-2xs"
-                          >
-                            <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
-                            <span>Recebido</span>
-                          </span>
-                          
-                          <span 
-                            v-else 
-                            class="h-6 px-3 rounded-full text-[11px] font-bold text-slate-500 bg-slate-100/90 border border-slate-200 inline-flex items-center gap-1.5 shadow-2xs"
-                          >
-                            <span class="w-1.5 h-1.5 rounded-full bg-amber-500"></span>
-                            <span>Não lido</span>
-                          </span>
-                        </td>
-
-                        <!-- Coluna 5: AÇÕES -->
-                        <td class="py-3 px-5 text-right" @click.stop>
-                          <div class="flex items-center justify-end gap-2">
-                            <button
-                              type="button"
-                              @click="abrirHolerite(h)"
-                              class="h-9 px-3.5 rounded-lg bg-slate-100 text-slate-700 hover:bg-slate-200 text-xs font-semibold inline-flex items-center gap-1.5 transition cursor-pointer"
-                            >
-                              <AppIcon name="eye" size="14" />
-                              Ver
-                            </button>
-                            <button
-                              type="button"
-                              @click="abrirModalWhatsapp(h)"
-                              class="h-9 px-3.5 rounded-lg bg-slate-100 text-slate-700 hover:bg-[#1DA851] hover:text-white text-xs font-semibold inline-flex items-center gap-1.5 transition cursor-pointer"
-                            >
-                              <AppIcon name="whatsapp" size="14" />
-                              WhatsApp
-                            </button>
-                          </div>
-                        </td>
-                      </tr>
-                    </tbody>
-                  </table>
+                    <span>{{ h.mes_nome.slice(0, 3) }}/{{ h.ano }}</span>
+                    <span v-if="tipoFolhaCurto(h)" class="text-[11px] font-medium" :class="h.id === holeriteDestaque?.id ? 'text-white/60' : 'text-slate-400'">{{ tipoFolhaCurto(h) }}</span>
+                    <span class="w-2 h-2 rounded-full" :class="h.aceite?.confirmado ? 'bg-emerald-500' : 'bg-amber-400'"></span>
+                  </button>
                 </div>
 
                 <!-- ESTADO VAZIO -->
@@ -940,30 +778,58 @@
                     Limpar filtros
                   </button>
                 </div>
+              </div>
 
-                <!-- PAGINAÇÃO -->
-                <div v-if="totalPaginas > 1" class="flex items-center justify-between gap-3 border-t border-slate-100 pt-4">
+              <!-- HERO CARD - DEMONSTRATIVO SELECIONADO & ENVIO WHATSAPP -->
+              <div v-if="holeriteDestaque" class="w-full bg-gradient-to-br from-[#141414] to-[#000000] text-white rounded-2xl p-6 sm:p-7 shadow-sm relative overflow-hidden space-y-5 transition-all duration-200">
+                <!-- Luz ambiente suave de fundo -->
+                <div class="absolute -right-20 -top-20 w-80 h-80 bg-[#9c2337]/30 rounded-full blur-3xl pointer-events-none"></div>
+
+                <!-- Identificação do colaborador -->
+                <div class="hidden sm:flex flex-wrap items-center justify-between gap-x-4 gap-y-1 relative z-10 text-xs text-white/60">
+                  <span class="text-sm font-semibold text-white">{{ usuarioLogado?.nome }}</span>
+                  <span class="flex flex-wrap items-center gap-x-3 gap-y-1">
+                    <span>{{ usuarioLogado?.cargo }}</span>
+                    <span>Matrícula <strong class="text-white/90 font-medium">{{ usuarioLogado?.matricula }}</strong></span>
+                    <span>CPF <strong class="text-white/90 font-medium">{{ ocultarValores ? '***.***.***-**' : (usuarioLogado?.cpf ? maskCPF(usuarioLogado.cpf) : '---') }}</strong></span>
+                  </span>
+                </div>
+
+                <!-- Último holerite: título, situação e as duas ações principais -->
+                <div class="relative z-10 space-y-1.5 sm:border-t sm:border-white/10 sm:pt-4">
+                  <span class="text-xs text-white/60 font-medium">{{ holeriteDestaque.id === holerites[0]?.id ? 'Seu último holerite' : 'Holerite selecionado' }}</span>
+                  <div class="flex items-center gap-2.5 flex-wrap">
+                    <h3 class="text-3xl font-semibold text-white tracking-tight leading-tight">
+                      {{ holeriteDestaque.mes_nome }} / {{ holeriteDestaque.ano }}
+                    </h3>
+                    <span
+                      class="text-xs font-semibold px-3 py-1 rounded-full"
+                      :class="holeriteDestaque.aceite?.confirmado ? 'bg-emerald-500/15 text-emerald-300' : 'bg-amber-400/15 text-amber-300'"
+                    >{{ holeriteDestaque.aceite?.confirmado ? '✓ Recebido' : 'Não lido' }}</span>
+                  </div>
+                  <p class="text-sm text-white/70">{{ holeriteDestaque.tipo_folha || 'Folha Mensal' }} · pago em {{ holeriteDestaque.data_pagamento }}</p>
+                </div>
+
+                <div class="relative z-10 grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <button
                     type="button"
-                    @click="paginaAnterior"
-                    :disabled="paginaAtual === 1"
-                    class="h-11 px-4 rounded-xl border border-slate-200 text-sm font-semibold text-slate-700 inline-flex items-center gap-1.5 hover:bg-slate-50 disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer"
+                    @click="abrirHolerite(holeriteDestaque, !holeriteDestaque.aceite?.confirmado)"
+                    class="h-14 sm:h-12 rounded-2xl sm:rounded-full bg-[#9c2337] hover:bg-[#831b2d] text-white active:scale-[0.98] font-semibold text-base sm:text-sm flex items-center justify-center gap-2 transition cursor-pointer"
                   >
-                    <AppIcon name="chevron-left" size="15" />
-                    Anterior
+                    <AppIcon name="eye" size="18" />
+                    <span>Ver holerite</span>
                   </button>
-                  <span class="text-xs text-slate-500 text-center">Página {{ paginaAtual }} de {{ totalPaginas }}</span>
                   <button
                     type="button"
-                    @click="proximaPagina"
-                    :disabled="paginaAtual === totalPaginas"
-                    class="h-11 px-4 rounded-xl border border-slate-200 text-sm font-semibold text-slate-700 inline-flex items-center gap-1.5 hover:bg-slate-50 disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer"
+                    @click="abrirModalWhatsapp(holeriteDestaque)"
+                    class="h-14 sm:h-12 rounded-2xl sm:rounded-full bg-[#1DA851] hover:bg-[#178F44] active:scale-[0.98] text-white font-semibold text-base sm:text-sm flex items-center justify-center gap-2 transition cursor-pointer"
                   >
-                    Próxima
-                    <AppIcon name="chevron-right" size="15" />
+                    <AppIcon name="whatsapp" size="18" />
+                    <span>Mandar no WhatsApp</span>
                   </button>
                 </div>
               </div>
+
             
             </div>
 
@@ -1776,6 +1642,22 @@ const holeritesFiltrados = computed(() => {
 
   return lista;
 });
+
+// Demonstrativo em destaque no topo (escolhido no seletor; padrão: o mais recente da lista filtrada)
+const holeriteDestaqueId = ref(null);
+const holeriteDestaque = computed(() =>
+  holeritesFiltrados.value.find((h) => h.id === holeriteDestaqueId.value) || holeritesFiltrados.value[0] || holerites.value[0] || null
+);
+
+function tipoFolhaCurto(h) {
+  const codigo = h.tipo_folha_codigo || '';
+  const tipo = (h.tipo_folha || '').toLowerCase();
+  if (codigo.includes('adiantamento') || tipo.includes('adiantamento') || tipo.includes('vale')) return 'Adiant.';
+  if (codigo.includes('ferias') || tipo.includes('férias') || tipo.includes('ferias')) return 'Férias';
+  if (codigo.includes('13') || tipo.includes('13')) return '13º';
+  if (codigo.includes('plr') || tipo.includes('plr')) return 'PLR';
+  return '';
+}
 
 // Paginação estilo OpeRH
 const itensPorPagina = ref(5);
