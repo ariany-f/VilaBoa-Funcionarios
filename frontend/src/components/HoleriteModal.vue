@@ -317,7 +317,8 @@
         </div>
 
         <!-- Bloco Institucional de Validação por QR Code (Autenticidade para Bancos / Terceiros) -->
-        <div class="p-3 bg-slate-50 border border-slate-200 rounded-2xl flex items-center gap-3">
+        <!-- Só no PDF / impressão: dentro do portal o documento já é oficial -->
+        <div class="hidden print:flex p-3 bg-slate-50 border border-slate-200 rounded-2xl items-center gap-3">
           <div v-if="qrCodeDataUrl" class="shrink-0 bg-white p-1 rounded-xl border border-slate-200 shadow-2xs">
             <img :src="qrCodeDataUrl" alt="QR Code de Autenticidade" class="w-16 h-16 object-contain" />
           </div>
