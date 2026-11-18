@@ -23,6 +23,9 @@
     <!-- Acompanhamento: painel narrativo próprio (busca /api/rh/indicadores) -->
     <AcompanhamentoRh v-if="aba === 'acompanhamento'" :colaborador="colaborador" />
 
+    <!-- Usuários: não depende do resumo do RH (perfil pode ter só esta tela) -->
+    <UsuariosRh v-else-if="aba === 'usuarios'" :colaborador="colaborador" />
+
     <div v-else-if="carregando" class="py-16 text-center text-sm text-slate-400">Carregando painel...</div>
     <div v-else-if="erro" class="py-16 text-center text-sm text-rose-700">{{ erro }}</div>
 
@@ -323,6 +326,7 @@ import AcademiaRh from './AcademiaRh.vue';
 import AcompanhamentoRh from './AcompanhamentoRh.vue';
 import CadernoWizardRh from './CadernoWizardRh.vue';
 import EmpresasRh from './EmpresasRh.vue';
+import UsuariosRh from './UsuariosRh.vue';
 import EscalasFolgaRh from './EscalasFolgaRh.vue';
 import { ref, computed, watch, onMounted, nextTick } from 'vue';
 import AppIcon from './AppIcon.vue';
@@ -353,7 +357,8 @@ const abas = computed(() => [
   { id: 'empresas', rotulo: 'Empresas', tela: 'rh_cadernos' },
   { id: 'ponto', rotulo: 'Espelho de ponto', tela: 'rh_ponto' },
   { id: 'escalas', rotulo: 'Escala de folgas', tela: 'rh_ponto' },
-  { id: 'holerites', rotulo: 'Holerites', tela: 'rh_holerites' }
+  { id: 'holerites', rotulo: 'Holerites', tela: 'rh_holerites' },
+  { id: 'usuarios', rotulo: 'Usuários', tela: 'rh_usuarios' }
 ].filter((a) => pode(props.colaborador, a.tela, 'visualizar')));
 const aba = ref(props.abaExterna || abas.value[0]?.id || 'acompanhamento');
 watch(() => props.abaExterna, (v) => { if (v) aba.value = v; });

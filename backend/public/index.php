@@ -53,6 +53,7 @@ require_once __DIR__ . '/../services/EmpresaService.php';
 require_once __DIR__ . '/../services/HomologacaoService.php';
 require_once __DIR__ . '/../services/DesligamentoService.php';
 require_once __DIR__ . '/../services/EscalaFolgaService.php';
+require_once __DIR__ . '/../services/UsuariosRhService.php';
 require_once __DIR__ . '/../controllers/FeriasController.php';
 require_once __DIR__ . '/../controllers/ChamadosController.php';
 require_once __DIR__ . '/../controllers/CadernosController.php';
@@ -71,6 +72,7 @@ use App\Services\EmpresaService;
 use App\Services\HomologacaoService;
 use App\Services\DesligamentoService;
 use App\Services\EscalaFolgaService;
+use App\Services\UsuariosRhService;
 use App\Controllers\FeriasController;
 use App\Controllers\ChamadosController;
 use App\Controllers\CadernosController;
@@ -87,6 +89,7 @@ $whatsAppService = new WhatsAppNotificationService();
 $homologacaoService = new HomologacaoService($colaboradorService);
 $desligamentoService = new DesligamentoService($colaboradorService);
 $escalaFolgaService = new EscalaFolgaService();
+$usuariosRhService = new UsuariosRhService(Banco::conexao(), $permissaoService);
 $feriasController = new FeriasController();
 $chamadosController = new ChamadosController();
 $cadernosController = new CadernosController();
@@ -895,6 +898,7 @@ if ($method === 'GET' && $route === '/admin/usuarios-demo') {
     }
     $demo = [];
     foreach (Banco::conexao()->buscar('users') as $u) {
+        if (!PermissaoService::ativo($u)) continue;
         $perfis = array_map(fn($r) => (int)$r['role_id'], Banco::conexao()->buscar('users_roles', ['user_id' => $u['id']]));
         $nomesPerfis = array_column(Banco::conexao()->buscar('roles', ['id' => $perfis ?: [0]]), 'nome');
         $demo[] = ['nome' => $u['name'], 'email' => $u['email'], 'perfil' => implode(', ', $nomesPerfis)];
@@ -933,6 +937,14 @@ if ($method === 'POST' && $route === '/admin/login') {
     unset($tentativas[$chaveTentativa]);
     salvarTentativasSeguranca($tentativasSegurancaFile, $tentativas);
 
+    if (!PermissaoService::ativo($usuario)) {
+        registrarAuditoriaLgpd('ADMIN_LOGIN_DESATIVADO', null, ['email' => $usuario['email']]);
+        http_response_code(403);
+        echo json_encode(['erro' => 'Seu usuário está desativado. Fale com o administrador do painel.'], JSON_UNESCAPED_UNICODE);
+        exit;
+    }
+
+    $permissaoService->garantirTelasNovas();
     $menus = $permissaoService->menusDoUsuario((int)$usuario['id']);
     if (!$menus) {
         http_response_code(403);
@@ -941,7 +953,7 @@ if ($method === 'POST' && $route === '/admin/login') {
     }
 
     // Empresas que ele pode escolher no painel (com mais de uma, escolhe antes de entrar)
-    $empresasRh = EmpresaService::doUsuarioRh((string)$usuario['email']);
+    $empresasRh = EmpresaService::doUsuarioRh($usuario);
     if (!$empresasRh) {
         http_response_code(403);
         echo json_encode(['erro' => 'Seu usuário não tem acesso a nenhuma empresa.'], JSON_UNESCAPED_UNICODE);
@@ -969,12 +981,41 @@ if (str_starts_with($route, '/admin/') || str_starts_with($route, '/rh/')) {
     $usuarioAdmin = ($sessaoAdmin && ($sessaoAdmin['etapa'] ?? '') === 'admin')
         ? $permissaoService->usuarioPorId((int)$sessaoAdmin['user_id'])
         : null;
-    if (!$usuarioAdmin) {
+    if (!$usuarioAdmin || !PermissaoService::ativo($usuarioAdmin)) {
         http_response_code(401);
-        echo json_encode(['erro' => 'Sessão do painel expirada. Entre novamente.'], JSON_UNESCAPED_UNICODE);
+        echo json_encode(['erro' => $usuarioAdmin ? 'Seu usuário foi desativado.' : 'Sessão do painel expirada. Entre novamente.'], JSON_UNESCAPED_UNICODE);
         exit;
     }
+    $permissaoService->garantirTelasNovas();
     $permissoesLogado = $permissaoService->matrizDoUsuario((int)$usuarioAdmin['id']);
+
+    // ---------------- Acesso por empresa ----------------
+    // Quem acessa só algumas empresas vê só os colaboradores delas (o filtro fica no ColaboradorService)
+    // e só lê/grava cadernos, trilhas, comunicados e empresas delas. Itens de "todas" as empresas
+    // aparecem para todos, mas só quem acessa todas as empresas cria ou altera esses itens.
+    $empresasLogado = EmpresaService::nomesDoUsuarioRh($usuarioAdmin); // null = todas
+    $colaboradorService->restringirEmpresas($empresasLogado);
+    $empresaDoItem = fn($empresa) => ($empresa === null || $empresa === '' || $empresa === 'todas') ? 'todas' : (EmpresaService::normalizar((string)$empresa) ?? (string)$empresa);
+    $podeLerEmpresa = fn($empresa) => $empresasLogado === null || $empresaDoItem($empresa) === 'todas' || in_array($empresaDoItem($empresa), $empresasLogado, true);
+    $podeGravarEmpresa = fn($empresa) => $empresasLogado === null || in_array($empresaDoItem($empresa), $empresasLogado, true);
+    $exigirEmpresa = function (bool $permitido, string $mensagem = 'Você não tem acesso a esta empresa.'): void {
+        if (!$permitido) {
+            http_response_code(403);
+            echo json_encode(['sucesso' => false, 'erro' => $mensagem], JSON_UNESCAPED_UNICODE);
+            exit;
+        }
+    };
+    $exigirGravarEmpresa = fn($empresa) => $exigirEmpresa($podeGravarEmpresa($empresa), $empresaDoItem($empresa) === 'todas'
+        ? 'Só quem acessa todas as empresas pode criar ou alterar itens de todas as empresas. Escolha uma empresa sua.'
+        : 'Você não tem acesso a esta empresa.');
+    $exigirColaborador = fn(string $matricula) => $exigirEmpresa($matricula === '' || $colaboradorService->visivel($matricula), 'Você não tem acesso a este colaborador.');
+    $filtrarPorEmpresa = fn(array $itens) => $empresasLogado === null ? $itens : array_values(array_filter($itens, fn($i) => $podeLerEmpresa($i['empresa'] ?? 'todas')));
+    $acharPorCampo = function (array $itens, string $campo, string $valor): ?array {
+        foreach ($itens as $i) {
+            if ((string)($i[$campo] ?? '') === $valor) return $i;
+        }
+        return null;
+    };
 
     if ($method === 'GET' && $route === '/admin/me') {
         echo json_encode([
@@ -985,13 +1026,52 @@ if (str_starts_with($route, '/admin/') || str_starts_with($route, '/rh/')) {
                 'email' => $usuarioAdmin['email'],
                 'permissoes' => $permissoesLogado,
                 'menus' => $permissaoService->menusDoUsuario((int)$usuarioAdmin['id']),
-                'empresas' => EmpresaService::doUsuarioRh((string)$usuarioAdmin['email'])
+                'empresas' => EmpresaService::doUsuarioRh($usuarioAdmin)
             ]
         ], JSON_UNESCAPED_UNICODE);
         exit;
     }
 
+    // ---------------- Usuários do painel, perfis e empresas de cada usuário ----------------
+    if ($method === 'GET' && $route === '/rh/usuarios') {
+        exigirPermissao($permissoesLogado, 'rh_usuarios', 'visualizar');
+        echo json_encode(['sucesso' => true, 'eu' => (int)$usuarioAdmin['id']] + $usuariosRhService->painel($empresasLogado), JSON_UNESCAPED_UNICODE);
+        exit;
+    }
+    $rotasUsuarios = [
+        '/rh/usuarios' => ['editar', fn() => $usuariosRhService->salvar($body, $usuarioAdmin, $empresasLogado)],
+        '/rh/usuarios/status' => ['editar', fn() => $usuariosRhService->definirAtivo((int)($body['id'] ?? 0), !empty($body['ativo']), $usuarioAdmin, $empresasLogado)],
+        '/rh/usuarios/senha' => ['editar', fn() => $usuariosRhService->redefinirSenha((int)($body['id'] ?? 0), (string)($body['senha'] ?? ''), $empresasLogado)],
+        '/rh/perfis' => ['perfis', fn() => $usuariosRhService->salvarPerfil($body)],
+        '/rh/perfis/remover' => ['perfis', fn() => $usuariosRhService->removerPerfil((int)($body['id'] ?? 0))],
+    ];
+    if ($method === 'POST' && isset($rotasUsuarios[$route])) {
+        [$acaoUsuarios, $executar] = $rotasUsuarios[$route];
+        exigirPermissao($permissoesLogado, 'rh_usuarios', $acaoUsuarios);
+        $resp = $executar();
+        if (!empty($resp['erro'])) {
+            http_response_code($resp['status'] ?? 400);
+            $resp = ['erro' => $resp['erro']];
+        } else {
+            // A senha nunca vai para o registro de auditoria
+            registrarAuditoriaLgpd('RH_USUARIOS', $usuarioAdmin['email'], ['rota' => $route, 'id' => $resp['id'] ?? ($body['id'] ?? null)] + array_intersect_key($body, array_flip(['email', 'ativo', 'nome'])));
+        }
+        echo json_encode($resp, JSON_UNESCAPED_UNICODE);
+        exit;
+    }
+
     // Rotas do RH (cada uma exige a ação correspondente no perfil)
+
+    // Resumo/indicadores só com as empresas, cadernos, trilhas e comunicados que o usuário acessa
+    $limitarResumo = function (array $r) use ($empresasLogado, $filtrarPorEmpresa): array {
+        if ($empresasLogado === null) return $r;
+        foreach (['cadernos', 'trilhas', 'comunicados'] as $chave) {
+            if (isset($r[$chave])) $r[$chave] = $filtrarPorEmpresa($r[$chave]);
+        }
+        $r['empresas'] = array_values(array_intersect($r['empresas'] ?? [], $empresasLogado));
+        $r['empresas_logos'] = array_intersect_key($r['empresas_logos'] ?? [], array_flip($empresasLogado));
+        return $r;
+    };
 
     if ($method === 'GET' && $route === '/rh/resumo') {
         // O resumo alimenta as abas de acompanhamento, cadernos e ponto
@@ -1002,26 +1082,33 @@ if (str_starts_with($route, '/admin/') || str_starts_with($route, '/rh/')) {
         if (!$podeAlgumaAba) {
             exigirPermissao($permissoesLogado, 'rh_acompanhamento', 'visualizar');
         }
-        echo json_encode(['sucesso' => true] + $rhController->resumo($_GET['ano'] ?? date('Y')), JSON_UNESCAPED_UNICODE);
+        echo json_encode(['sucesso' => true] + $limitarResumo($rhController->resumo($_GET['ano'] ?? date('Y'))), JSON_UNESCAPED_UNICODE);
         exit;
     }
 
     // Indicadores do painel narrativo de acompanhamento (todos os módulos por colaborador)
     if ($method === 'GET' && $route === '/rh/indicadores') {
         exigirPermissao($permissoesLogado, 'rh_acompanhamento', 'visualizar');
-        echo json_encode(['sucesso' => true] + $rhController->indicadores($_GET['ano'] ?? date('Y')), JSON_UNESCAPED_UNICODE);
+        echo json_encode(['sucesso' => true] + $limitarResumo($rhController->indicadores($_GET['ano'] ?? date('Y'))), JSON_UNESCAPED_UNICODE);
         exit;
     }
 
     // Academia Vila Boa: trilhas (quem gerencia os cadernos também gerencia as trilhas)
+    $exigirTrilha = function (string $id) use ($academiaController, $acharPorCampo, $exigirGravarEmpresa): void {
+        if ($id === '') return;
+        $trilha = $acharPorCampo($academiaController->listarParaRh(), 'id', $id);
+        if ($trilha) $exigirGravarEmpresa($trilha['empresa'] ?? 'todas');
+    };
     if ($method === 'GET' && $route === '/rh/academia') {
         exigirPermissao($permissoesLogado, 'rh_cadernos', 'visualizar');
-        echo json_encode(['sucesso' => true, 'trilhas' => $academiaController->listarParaRh()], JSON_UNESCAPED_UNICODE);
+        echo json_encode(['sucesso' => true, 'trilhas' => $filtrarPorEmpresa($academiaController->listarParaRh())], JSON_UNESCAPED_UNICODE);
         exit;
     }
 
     if ($method === 'POST' && $route === '/rh/academia') {
         exigirPermissao($permissoesLogado, 'rh_cadernos', empty($body['id']) ? 'publicar' : 'editar');
+        $exigirTrilha((string)($body['id'] ?? ''));
+        $exigirGravarEmpresa($body['empresa'] ?? null);
         $resp = $academiaController->salvar($body);
         if (!empty($resp['erro'])) {
             http_response_code($resp['status'] ?? 400);
@@ -1036,6 +1123,7 @@ if (str_starts_with($route, '/admin/') || str_starts_with($route, '/rh/')) {
     if ($method === 'POST' && $route === '/rh/academia/capa') {
         exigirPermissao($permissoesLogado, 'rh_cadernos', 'editar');
         $idTrilha = (string)($_POST['id'] ?? '');
+        $exigirTrilha($idTrilha);
         $resp = $academiaController->salvarCapa($idTrilha, $_FILES['capa'] ?? []);
         if (!empty($resp['erro'])) {
             http_response_code($resp['status'] ?? 400);
@@ -1048,6 +1136,7 @@ if (str_starts_with($route, '/admin/') || str_starts_with($route, '/rh/')) {
 
     if ($method === 'POST' && $route === '/rh/academia/capa/remover') {
         exigirPermissao($permissoesLogado, 'rh_cadernos', 'editar');
+        $exigirTrilha((string)($body['id'] ?? ''));
         $academiaController->removerCapa((string)($body['id'] ?? ''));
         echo json_encode(['sucesso' => true]);
         exit;
@@ -1055,6 +1144,7 @@ if (str_starts_with($route, '/admin/') || str_starts_with($route, '/rh/')) {
 
     if ($method === 'POST' && $route === '/rh/academia/remover') {
         exigirPermissao($permissoesLogado, 'rh_cadernos', 'remover');
+        $exigirTrilha((string)($body['id'] ?? ''));
         $resp = $academiaController->remover((string)($body['id'] ?? ''));
         if (!empty($resp['erro'])) {
             http_response_code($resp['status'] ?? 400);
@@ -1075,6 +1165,7 @@ if (str_starts_with($route, '/admin/') || str_starts_with($route, '/rh/')) {
 
     if ($method === 'POST' && ($route === '/rh/desligamentos' || $route === '/rh/desligamentos/acao')) {
         exigirPermissao($permissoesLogado, 'rh_cadernos', $route === '/rh/desligamentos' ? 'publicar' : 'editar');
+        $exigirColaborador((string)($body['matricula'] ?? ''));
         $resp = $route === '/rh/desligamentos'
             ? $desligamentoService->registrar($body, $usuarioAdmin['email'])
             : $desligamentoService->acaoRh((string)($body['matricula'] ?? ''), (string)($body['acao'] ?? ''));
@@ -1089,11 +1180,15 @@ if (str_starts_with($route, '/admin/') || str_starts_with($route, '/rh/')) {
     }
 
     // Homologação sindical: agendador com aviso por WhatsApp e e-mail (usa as permissões de rh_cadernos)
+    $exigirHomologacao = function (string $id) use ($homologacaoService, $acharPorCampo, $exigirColaborador): void {
+        $h = $acharPorCampo($homologacaoService->listar(), 'id', $id);
+        if ($h) $exigirColaborador((string)($h['matricula'] ?? ''));
+    };
     if ($method === 'GET' && $route === '/rh/homologacoes') {
         exigirPermissao($permissoesLogado, 'rh_cadernos', 'visualizar');
         echo json_encode([
             'sucesso' => true,
-            'homologacoes' => $homologacaoService->listar(),
+            'homologacoes' => $empresasLogado === null ? $homologacaoService->listar() : array_values(array_filter($homologacaoService->listar(), fn($h) => $colaboradorService->visivel((string)($h['matricula'] ?? '')))),
             'colaboradores' => $homologacaoService->colaboradoresParaSeletor(),
             'sindicatos' => $homologacaoService->sindicatosUsados(),
             'documentos_padrao' => HomologacaoService::DOCUMENTOS_PADRAO,
@@ -1104,6 +1199,7 @@ if (str_starts_with($route, '/admin/') || str_starts_with($route, '/rh/')) {
 
     if ($method === 'POST' && $route === '/rh/homologacoes') {
         exigirPermissao($permissoesLogado, 'rh_cadernos', 'publicar');
+        $exigirColaborador((string)($body['matricula'] ?? ''));
         $resp = $homologacaoService->criar($body, $usuarioAdmin['email']);
         if (!empty($resp['erro'])) {
             http_response_code($resp['status'] ?? 400);
@@ -1117,6 +1213,7 @@ if (str_starts_with($route, '/admin/') || str_starts_with($route, '/rh/')) {
 
     if ($method === 'POST' && $route === '/rh/homologacoes/acao') {
         exigirPermissao($permissoesLogado, 'rh_cadernos', 'editar');
+        $exigirHomologacao((string)($body['id'] ?? ''));
         $acaoHom = (string)($body['acao'] ?? '');
         $resp = $homologacaoService->acao((string)($body['id'] ?? ''), $acaoHom, $body, $usuarioAdmin['email']);
         if (!empty($resp['erro'])) {
@@ -1131,6 +1228,7 @@ if (str_starts_with($route, '/admin/') || str_starts_with($route, '/rh/')) {
 
     if ($method === 'POST' && $route === '/rh/homologacoes/remover') {
         exigirPermissao($permissoesLogado, 'rh_cadernos', 'remover');
+        $exigirHomologacao((string)($body['id'] ?? ''));
         $resp = $homologacaoService->remover((string)($body['id'] ?? ''));
         if (!empty($resp['erro'])) {
             http_response_code($resp['status'] ?? 400);
@@ -1143,14 +1241,21 @@ if (str_starts_with($route, '/admin/') || str_starts_with($route, '/rh/')) {
     }
 
     // Comunicados (mural de avisos): quem gerencia os cadernos também publica os comunicados
+    $exigirComunicado = function (string $id) use ($comunicadosController, $acharPorCampo, $exigirGravarEmpresa): void {
+        if ($id === '') return;
+        $c = $acharPorCampo($comunicadosController->listarParaRh(), 'id', $id);
+        if ($c) $exigirGravarEmpresa($c['empresa'] ?? 'todas');
+    };
     if ($method === 'GET' && $route === '/rh/comunicados') {
         exigirPermissao($permissoesLogado, 'rh_cadernos', 'visualizar');
-        echo json_encode(['sucesso' => true, 'comunicados' => $comunicadosController->listarParaRh(), 'categorias' => ComunicadosController::CATEGORIAS], JSON_UNESCAPED_UNICODE);
+        echo json_encode(['sucesso' => true, 'comunicados' => $filtrarPorEmpresa($comunicadosController->listarParaRh()), 'categorias' => ComunicadosController::CATEGORIAS], JSON_UNESCAPED_UNICODE);
         exit;
     }
 
     if ($method === 'POST' && $route === '/rh/comunicados') {
         exigirPermissao($permissoesLogado, 'rh_cadernos', empty($body['id']) ? 'publicar' : 'editar');
+        $exigirComunicado((string)($body['id'] ?? ''));
+        $exigirGravarEmpresa($body['empresa'] ?? null);
         $resp = $comunicadosController->salvar($body, $usuarioAdmin['email']);
         if (!empty($resp['erro'])) {
             http_response_code($resp['status'] ?? 400);
@@ -1165,6 +1270,7 @@ if (str_starts_with($route, '/admin/') || str_starts_with($route, '/rh/')) {
     if ($method === 'POST' && $route === '/rh/comunicados/acao') {
         $acaoCom = (string)($body['acao'] ?? '');
         exigirPermissao($permissoesLogado, 'rh_cadernos', $acaoCom === 'duplicar' ? 'publicar' : 'editar');
+        $exigirComunicado((string)($body['id'] ?? ''));
         $resp = $comunicadosController->acao((string)($body['id'] ?? ''), $acaoCom, $usuarioAdmin['email']);
         if (!empty($resp['erro'])) {
             http_response_code($resp['status'] ?? 400);
@@ -1178,6 +1284,7 @@ if (str_starts_with($route, '/admin/') || str_starts_with($route, '/rh/')) {
 
     if ($method === 'POST' && $route === '/rh/comunicados/remover') {
         exigirPermissao($permissoesLogado, 'rh_cadernos', 'remover');
+        $exigirComunicado((string)($body['id'] ?? ''));
         $resp = $comunicadosController->remover((string)($body['id'] ?? ''));
         if (!empty($resp['erro'])) {
             http_response_code($resp['status'] ?? 400);
@@ -1189,8 +1296,18 @@ if (str_starts_with($route, '/admin/') || str_starts_with($route, '/rh/')) {
         exit;
     }
 
+    // Caderno existente: só mexe quem acessa a empresa dele
+    $exigirCaderno = function (string $arquivo) use ($cadernosController, $acharPorCampo, $exigirGravarEmpresa, $empresasLogado): void {
+        if ($empresasLogado === null || $arquivo === '') return;
+        $cad = $acharPorCampo($cadernosController->listar(), 'arquivo', $arquivo);
+        if ($cad) $exigirGravarEmpresa($cad['empresa'] ?? 'todas');
+    };
+
     if ($method === 'POST' && $route === '/rh/cadernos') {
         exigirPermissao($permissoesLogado, 'rh_cadernos', 'publicar');
+        $exigirGravarEmpresa((json_decode((string)($_POST['config'] ?? ''), true) ?: [])['empresa'] ?? null);
+        // Mesmo nome de arquivo substitui o caderno: só se ele for de uma empresa sua
+        $exigirCaderno(basename((string)($_FILES['arquivo']['name'] ?? '')));
         $resp = $cadernosController->salvarUpload($_FILES['arquivo'] ?? []);
         if (empty($resp['erro']) && isset($_POST['config'])) {
             $cadernosController->salvarConfig($resp['arquivo'], json_decode($_POST['config'], true) ?: []);
@@ -1208,6 +1325,7 @@ if (str_starts_with($route, '/admin/') || str_starts_with($route, '/rh/')) {
     if ($method === 'POST' && $route === '/rh/cadernos/capa') {
         exigirPermissao($permissoesLogado, 'rh_cadernos', 'editar');
         $arquivoCaderno = (string)($_POST['arquivo'] ?? '');
+        $exigirCaderno($arquivoCaderno);
         $resp = $cadernosController->salvarCapa($arquivoCaderno, $_FILES['capa'] ?? []);
         if (!empty($resp['erro'])) http_response_code(400);
         else registrarAuditoriaLgpd('RH_CADERNO_CAPA', $usuarioAdmin['email'], ['arquivo' => $arquivoCaderno]);
@@ -1217,6 +1335,7 @@ if (str_starts_with($route, '/admin/') || str_starts_with($route, '/rh/')) {
 
     if ($method === 'POST' && $route === '/rh/cadernos/capa/remover') {
         exigirPermissao($permissoesLogado, 'rh_cadernos', 'editar');
+        $exigirCaderno((string)($body['arquivo'] ?? ''));
         $cadernosController->removerCapa((string)($body['arquivo'] ?? ''));
         echo json_encode(['sucesso' => true]);
         exit;
@@ -1224,6 +1343,8 @@ if (str_starts_with($route, '/admin/') || str_starts_with($route, '/rh/')) {
 
     if ($method === 'POST' && $route === '/rh/cadernos/config') {
         exigirPermissao($permissoesLogado, 'rh_cadernos', 'editar');
+        $exigirCaderno((string)($body['arquivo'] ?? ''));
+        if (array_key_exists('empresa', $body) || $empresasLogado !== null) $exigirGravarEmpresa($body['empresa'] ?? null);
         $config = $cadernosController->salvarConfig($body['arquivo'] ?? '', $body);
         if (!$config) {
             http_response_code(404);
@@ -1238,7 +1359,9 @@ if (str_starts_with($route, '/admin/') || str_starts_with($route, '/rh/')) {
     // Empresas do grupo: o RH que edita cadernos também gerencia as empresas
     if ($method === 'GET' && $route === '/rh/empresas') {
         exigirPermissao($permissoesLogado, 'rh_cadernos', 'visualizar');
-        echo json_encode(['sucesso' => true, 'empresas' => EmpresaService::listarDetalhado()], JSON_UNESCAPED_UNICODE);
+        $empresasDetalhe = EmpresaService::listarDetalhado();
+        if ($empresasLogado !== null) $empresasDetalhe = array_values(array_filter($empresasDetalhe, fn($e) => in_array($e['nome'], $empresasLogado, true)));
+        echo json_encode(['sucesso' => true, 'empresas' => $empresasDetalhe, 'acessa_todas' => $empresasLogado === null], JSON_UNESCAPED_UNICODE);
         exit;
     }
     $rotasEmpresas = [
@@ -1254,6 +1377,14 @@ if (str_starts_with($route, '/admin/') || str_starts_with($route, '/rh/')) {
     ];
     if ($method === 'POST' && isset($rotasEmpresas[$route])) {
         exigirPermissao($permissoesLogado, 'rh_cadernos', 'editar');
+        if ($route === '/rh/empresas') {
+            $exigirEmpresa($empresasLogado === null, 'Só quem acessa todas as empresas pode cadastrar uma empresa nova.');
+        } elseif ($route === '/rh/empresas/colaborador') {
+            $exigirColaborador((string)($body['matricula'] ?? ''));
+            $exigirGravarEmpresa($body['empresa'] ?? null);
+        } else {
+            $exigirGravarEmpresa($route === '/rh/empresas/logo' ? ($_POST['nome'] ?? null) : ($body['nome'] ?? null));
+        }
         $resp = $rotasEmpresas[$route]();
         if (!empty($resp['erro'])) http_response_code(400);
         else registrarAuditoriaLgpd('RH_EMPRESAS', $usuarioAdmin['email'], ['rota' => $route] + array_intersect_key($body, array_flip(['nome', 'novo_nome', 'matricula', 'empresa'])));
@@ -1282,6 +1413,10 @@ if (str_starts_with($route, '/admin/') || str_starts_with($route, '/rh/')) {
     // PDF do caderno para o RH conferir
     if ($method === 'GET' && $route === '/rh/cadernos/arquivo') {
         exigirPermissao($permissoesLogado, 'rh_cadernos', 'visualizar');
+        if ($empresasLogado !== null) {
+            $cad = $acharPorCampo($cadernosController->listar(), 'arquivo', (string)($_GET['nome'] ?? ''));
+            if ($cad) $exigirEmpresa($podeLerEmpresa($cad['empresa'] ?? 'todas'));
+        }
         $caminho = $cadernosController->caminhoDoArquivo($_GET['nome'] ?? '');
         if (!$caminho) {
             http_response_code(404);
@@ -1297,6 +1432,7 @@ if (str_starts_with($route, '/admin/') || str_starts_with($route, '/rh/')) {
 
     if ($method === 'POST' && $route === '/rh/cadernos/remover') {
         exigirPermissao($permissoesLogado, 'rh_cadernos', 'remover');
+        $exigirCaderno((string)($body['arquivo'] ?? ''));
         $resultado = $cadernosController->remover($body['arquivo'] ?? '');
         if (!empty($resultado['sucesso'])) {
             registrarAuditoriaLgpd('RH_CADERNO_REMOVIDO', $usuarioAdmin['email'], ['arquivo' => $body['arquivo']]);
@@ -1311,6 +1447,7 @@ if (str_starts_with($route, '/admin/') || str_starts_with($route, '/rh/')) {
     if ($method === 'GET' && $route === '/rh/ponto') {
         exigirPermissao($permissoesLogado, 'rh_ponto', 'visualizar');
         $matricula = $_GET['matricula'] ?? '';
+        $exigirColaborador((string)$matricula);
         echo json_encode([
             'sucesso' => true,
             'competencias' => $pontoController->competencias($matricula),
@@ -1322,6 +1459,7 @@ if (str_starts_with($route, '/admin/') || str_starts_with($route, '/rh/')) {
     // Holerites de qualquer colaborador, por ano (consulta do RH não registra recebimento)
     if ($method === 'GET' && $route === '/rh/holerites') {
         exigirPermissao($permissoesLogado, 'rh_holerites', 'visualizar');
+        $exigirColaborador((string)($_GET['matricula'] ?? ''));
         echo json_encode([
             'sucesso' => true,
             'holerites' => $holeriteService->getHolerites($_GET['matricula'] ?? '', $_GET['ano'] ?? date('Y'))
@@ -1335,7 +1473,14 @@ if (str_starts_with($route, '/admin/') || str_starts_with($route, '/rh/')) {
         $colabs = $colaboradorService->getAll();
         echo json_encode([
             'sucesso' => true,
-            'escalas' => $escalaFolgaService->listarParaRh($colabs),
+            'escalas' => $empresasLogado === null ? $escalaFolgaService->listarParaRh($colabs) : array_values(array_filter(array_map(function ($e) use ($colaboradorService) {
+                // Só os colaboradores das empresas do usuário; escala sem nenhum deles some da lista
+                $e['colaboradores'] = array_values(array_filter($e['colaboradores'], fn($c) => $colaboradorService->visivel((string)$c['matricula'])));
+                $e['matriculas'] = array_column($e['colaboradores'], 'matricula');
+                $e['total'] = count($e['colaboradores']);
+                $e['cientes'] = count(array_filter($e['colaboradores'], fn($c) => $c['ciente_em']));
+                return $e;
+            }, $escalaFolgaService->listarParaRh($colabs)), fn($e) => $e['total'] > 0)),
             'colaboradores' => array_map(fn($c) => [
                 'matricula' => $c['matricula'],
                 'nome' => $c['nome'],
@@ -1354,6 +1499,17 @@ if (str_starts_with($route, '/admin/') || str_starts_with($route, '/rh/')) {
     ];
     if ($method === 'POST' && isset($rotasEscalas[$route])) {
         exigirPermissao($permissoesLogado, 'rh_ponto', 'importar');
+        if ($empresasLogado !== null) {
+            foreach ((array)($body['matriculas'] ?? []) as $m) $exigirColaborador((string)$m);
+            $escalaAtual = $route === '/rh/escalas-folga' ? null : $acharPorCampo($escalaFolgaService->listarParaRh($colaboradorService->getAll()), 'id', (string)($body['id'] ?? ''));
+            $deFora = $escalaAtual ? array_values(array_filter($escalaAtual['matriculas'] ?? [], fn($m) => !$colaboradorService->visivel((string)$m))) : [];
+            if ($route === '/rh/escalas-folga/remover') {
+                $exigirEmpresa(!$deFora, 'Esta escala tem colaboradores de empresas que você não acessa. Tire só os seus em vez de remover a escala.');
+            } elseif ($route === '/rh/escalas-folga/colaboradores' && $deFora) {
+                // Quem é de outra empresa continua na escala
+                $body['matriculas'] = array_values(array_unique(array_merge($deFora, (array)($body['matriculas'] ?? []))));
+            }
+        }
         try {
             $resp = $rotasEscalas[$route]();
         } catch (\RuntimeException $e) {

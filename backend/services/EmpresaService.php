@@ -2,6 +2,8 @@
 
 namespace App\Services;
 
+use App\Database\Banco;
+
 /**
  * Empresas do grupo (Vila Boa, Mondego...), cadastradas pelo RH em data/empresas.json.
  * O colaborador guarda o nome da empresa no campo "empresa" de colaboradores.json
@@ -55,18 +57,59 @@ class EmpresaService
     }
 
     // ---------------- Empresas de cada usuário do RH ----------------
-    // data/rh_usuarios_empresas.json: { "email@empresa.com.br": ["Vila Boa"] }.
-    // Usuário fora do arquivo acessa todas as empresas cadastradas.
+    // Tabela users_empresas (user_id, empresa), gerenciada na tela "Usuários" do painel.
+    // Usuário sem nenhuma linha acessa todas as empresas, inclusive as cadastradas depois.
+    // data/rh_usuarios_empresas.json ({ "email": ["Vila Boa"] }) é o formato antigo: vale enquanto
+    // o usuário não for salvo na tela de usuários.
+
+    /** Nomes das empresas que o usuário do RH acessa; null = todas. */
+    public static function nomesDoUsuarioRh(array $usuario): ?array
+    {
+        $nomes = array_column(self::linhasUsuariosEmpresas(['user_id' => (int)$usuario['id']]), 'empresa');
+        if (!$nomes) {
+            $mapa = array_change_key_case(self::lerJson('rh_usuarios_empresas.json'), CASE_LOWER);
+            $doArquivo = $mapa[mb_strtolower(trim((string)($usuario['email'] ?? '')))] ?? null;
+            if (!is_array($doArquivo)) return null;
+            $nomes = $doArquivo;
+        }
+        return array_values(array_unique(array_filter(array_map(fn($n) => self::normalizar((string)$n), $nomes))));
+    }
 
     /** Empresas (com a versão do logo) que o usuário do RH pode escolher no painel. */
-    public static function doUsuarioRh(string $email): array
+    public static function doUsuarioRh(array $usuario): array
     {
-        $mapa = array_change_key_case(self::lerJson('rh_usuarios_empresas.json'), CASE_LOWER);
+        $nomes = self::nomesDoUsuarioRh($usuario);
         $todas = self::listarComLogo();
-        $chave = mb_strtolower(trim($email));
-        if (!isset($mapa[$chave]) || !is_array($mapa[$chave])) return $todas;
-        $permitidas = array_filter(array_map(fn($n) => self::normalizar((string)$n), $mapa[$chave]));
-        return array_values(array_filter($todas, fn($e) => in_array($e['nome'], $permitidas, true)));
+        if ($nomes === null) return $todas;
+        return array_values(array_filter($todas, fn($e) => in_array($e['nome'], $nomes, true)));
+    }
+
+    /** Grava as empresas do usuário (null = todas) e tira o usuário do arquivo antigo. */
+    public static function definirDoUsuarioRh(int $userId, string $email, ?array $empresas): void
+    {
+        $banco = Banco::conexao();
+        $banco->excluir('users_empresas', ['user_id' => $userId]);
+        foreach (array_unique($empresas ?? []) as $empresa) {
+            $banco->inserir('users_empresas', ['user_id' => $userId, 'empresa' => $empresa]);
+        }
+        if (file_exists(self::dataDir() . '/rh_usuarios_empresas.json')) {
+            $mapa = self::lerJson('rh_usuarios_empresas.json');
+            foreach (array_keys($mapa) as $chave) {
+                if (mb_strtolower(trim((string)$chave)) === mb_strtolower(trim($email))) unset($mapa[$chave]);
+            }
+            self::gravarJson('rh_usuarios_empresas.json', $mapa);
+        }
+    }
+
+    /** Linhas de users_empresas (vazio se a tabela ainda não existir no banco). */
+    private static function linhasUsuariosEmpresas(array $condicoes = []): array
+    {
+        try {
+            return Banco::conexao()->buscar('users_empresas', $condicoes);
+        } catch (\Throwable $e) {
+            error_log('[empresas] users_empresas indisponível: ' . $e->getMessage() . ' Rode backend/scripts/instalar_banco.php.');
+            return [];
+        }
     }
 
     /** Empresas com logo e contagem de vínculos (tela de cadastro do RH). */
@@ -139,6 +182,9 @@ class EmpresaService
             unset($empresasDoUsuario);
             self::gravarJson('rh_usuarios_empresas.json', $mapa);
         }
+        foreach (self::linhasUsuariosEmpresas(['empresa' => $atual]) as $linha) {
+            Banco::conexao()->atualizar('users_empresas', (int)$linha['id'], ['empresa' => $novo]);
+        }
 
         return ['sucesso' => true, 'empresas' => $lista];
     }
@@ -156,6 +202,8 @@ class EmpresaService
         if ($v['trilhas']) return ['erro' => 'Há ' . $v['trilhas'] . ' trilha(s) da Academia desta empresa. Mude a empresa delas antes de remover.'];
         if ($v['comunicados']) return ['erro' => 'Há ' . $v['comunicados'] . ' comunicado(s) desta empresa. Mude a empresa deles antes de remover.'];
         self::removerLogo($nome);
+        // As linhas de users_empresas com esta empresa ficam: apagá-las deixaria um usuário que só
+        // tinha esta empresa sem nenhuma linha, ou seja, com acesso a todas
         $lista = array_values(array_filter($lista, fn($e) => $e !== $nome));
         self::salvar($lista);
         return ['sucesso' => true, 'empresas' => $lista];

@@ -151,7 +151,7 @@ if (isset($opcoes['sem-dados'])) {
     try {
         // login e permissões (ordem respeita as chaves estrangeiras)
         foreach ([
-            'roles' => ['id'], 'users' => ['id'], 'users_roles' => ['id'], 'menus' => ['id'], 'roles_menus' => ['id'],
+            'roles' => ['id'], 'users' => ['id'], 'users_roles' => ['id'], 'users_empresas' => ['id'], 'menus' => ['id'], 'roles_menus' => ['id'],
             'permission_screens' => ['id'], 'permission_actions' => ['id'], 'roles_permission_actions' => ['id'],
         ] as $tabela => $pk) {
             $gravar($tabela, $pk, array_map(fn($l) => array_map(fn($v) => is_bool($v) ? (int)$v : $v, $l), $json("db/$tabela.json")));
@@ -246,7 +246,7 @@ if (isset($opcoes['sem-dados'])) {
         $gravar('academia_certificados', ['chave'], $certificados);
 
         // contadores de id (as linhas importadas trazem o id do JSON)
-        foreach (['users', 'roles', 'users_roles', 'menus', 'roles_menus', 'permission_screens', 'permission_actions', 'roles_permission_actions'] as $t) {
+        foreach (['users', 'roles', 'users_roles', 'users_empresas', 'menus', 'roles_menus', 'permission_screens', 'permission_actions', 'roles_permission_actions'] as $t) {
             $banco->pdo()->exec("SELECT setval(pg_get_serial_sequence('$t', 'id'), GREATEST((SELECT COALESCE(MAX(id), 0) FROM \"$t\"), 1))");
         }
         $banco->pdo()->commit();

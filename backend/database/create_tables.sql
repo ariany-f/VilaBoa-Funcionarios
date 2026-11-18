@@ -14,6 +14,8 @@ CREATE TABLE IF NOT EXISTS `users` (
   `cellphone` VARCHAR(20) NULL DEFAULT NULL,
   -- Vínculo com o colaborador do portal (o colaborador entra por CPF + data de nascimento)
   `cpf` VARCHAR(11) NULL DEFAULT NULL,
+  -- 0 = desativado na tela "Usuários" do painel do RH (banco já criado: ALTER TABLE users ADD COLUMN is_active TINYINT NOT NULL DEFAULT 1)
+  `is_active` TINYINT NOT NULL DEFAULT 1,
   `created` DATETIME NULL DEFAULT NULL,
   `modified` DATETIME NULL DEFAULT NULL,
   PRIMARY KEY (`id`),
@@ -36,6 +38,18 @@ CREATE TABLE IF NOT EXISTS `users_roles` (
   PRIMARY KEY (`id`),
   CONSTRAINT `users_roles_user_fk` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE,
   CONSTRAINT `users_roles_role_fk` FOREIGN KEY (`role_id`) REFERENCES `roles` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Empresas que cada usuário do painel do RH acessa (sem nenhuma linha = todas)
+CREATE TABLE IF NOT EXISTS `users_empresas` (
+  `id` INT NOT NULL AUTO_INCREMENT,
+  `user_id` INT NOT NULL,
+  `empresa` VARCHAR(120) NOT NULL,
+  `created` DATETIME NULL DEFAULT NULL,
+  `modified` DATETIME NULL DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `users_empresas_user_empresa` (`user_id`, `empresa`),
+  CONSTRAINT `users_empresas_user_fk` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS `menus` (

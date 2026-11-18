@@ -319,7 +319,7 @@ const senha = ref('');
 const erro = ref('');
 const entrando = ref(false);
 // Cada seção do painel tem sua rota: /admin#/acompanhamento, #/cadernos, #/ponto, #/holerites
-const SECOES_VALIDAS = ['acompanhamento', 'comunicados', 'homologacao', 'academia', 'cadernos', 'empresas', 'ponto', 'escalas', 'holerites'];
+const SECOES_VALIDAS = ['acompanhamento', 'comunicados', 'homologacao', 'academia', 'cadernos', 'empresas', 'ponto', 'escalas', 'holerites', 'usuarios'];
 const secaoDaUrl = () => {
   const h = window.location.hash.replace(/^#\/?/, '').split('?')[0];
   return SECOES_VALIDAS.includes(h) ? h : '';
@@ -364,7 +364,8 @@ const secoes = computed(() => [
   { id: 'empresas', rotulo: 'Empresas', icone: 'hard-hat', tela: 'rh_cadernos' },
   { id: 'ponto', rotulo: 'Espelho de ponto', rotuloCurto: 'Ponto', icone: 'calendar', tela: 'rh_ponto' },
   { id: 'escalas', rotulo: 'Escala de folgas', rotuloCurto: 'Folgas', icone: 'calendar-check', tela: 'rh_ponto' },
-  { id: 'holerites', rotulo: 'Holerites', icone: 'document', tela: 'rh_holerites' }
+  { id: 'holerites', rotulo: 'Holerites', icone: 'document', tela: 'rh_holerites' },
+  { id: 'usuarios', rotulo: 'Usuários', icone: 'users', tela: 'rh_usuarios' }
 ].filter((s) => pode(usuario.value, s.tela, 'visualizar')));
 
 async function entrar() {
@@ -417,6 +418,9 @@ window.addEventListener('vb-empresas-atualizadas', async () => {
     const u = (await res.json()).usuario;
     definirEmpresasDoUsuario(u.empresas);
     if (!empresasContexto.value.includes(empresaContexto.value)) empresaContexto.value = empresasContexto.value[0] || '';
+    // Permissões e menus também podem ter mudado (tela de usuários e perfis)
+    usuario.value = { ...usuario.value, ...u };
+    if (!secoes.value.some((s) => s.id === secao.value)) secao.value = secoes.value[0]?.id || 'acompanhamento';
   } catch (e) { /* mantém o que está na tela */ }
 });
 
