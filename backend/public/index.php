@@ -51,6 +51,7 @@ require_once __DIR__ . '/../services/EpiService.php';
 require_once __DIR__ . '/../services/WhatsAppNotificationService.php';
 require_once __DIR__ . '/../services/EmpresaService.php';
 require_once __DIR__ . '/../services/HomologacaoService.php';
+require_once __DIR__ . '/../services/DesligamentoService.php';
 require_once __DIR__ . '/../controllers/FeriasController.php';
 require_once __DIR__ . '/../controllers/ChamadosController.php';
 require_once __DIR__ . '/../controllers/CadernosController.php';
@@ -67,6 +68,7 @@ use App\Services\EpiService;
 use App\Services\WhatsAppNotificationService;
 use App\Services\EmpresaService;
 use App\Services\HomologacaoService;
+use App\Services\DesligamentoService;
 use App\Controllers\FeriasController;
 use App\Controllers\ChamadosController;
 use App\Controllers\CadernosController;
@@ -81,6 +83,7 @@ $holeriteService = new HoleriteService();
 $epiService = new EpiService();
 $whatsAppService = new WhatsAppNotificationService();
 $homologacaoService = new HomologacaoService($colaboradorService);
+$desligamentoService = new DesligamentoService($colaboradorService);
 $feriasController = new FeriasController();
 $chamadosController = new ChamadosController();
 $cadernosController = new CadernosController();
@@ -1050,6 +1053,28 @@ if (str_starts_with($route, '/admin/') || str_starts_with($route, '/rh/')) {
         exit;
     }
 
+    // Desligamentos: data de demissão que dispara o aviso no portal do colaborador (links do Bookings + guia)
+    if ($method === 'GET' && $route === '/rh/desligamentos') {
+        exigirPermissao($permissoesLogado, 'rh_cadernos', 'visualizar');
+        echo json_encode(['sucesso' => true, 'desligamentos' => $desligamentoService->listar(), 'colaboradores' => $homologacaoService->colaboradoresParaSeletor(), 'links' => DesligamentoService::links()], JSON_UNESCAPED_UNICODE);
+        exit;
+    }
+
+    if ($method === 'POST' && ($route === '/rh/desligamentos' || $route === '/rh/desligamentos/acao')) {
+        exigirPermissao($permissoesLogado, 'rh_cadernos', $route === '/rh/desligamentos' ? 'publicar' : 'editar');
+        $resp = $route === '/rh/desligamentos'
+            ? $desligamentoService->registrar($body, $usuarioAdmin['email'])
+            : $desligamentoService->acaoRh((string)($body['matricula'] ?? ''), (string)($body['acao'] ?? ''));
+        if (!empty($resp['erro'])) {
+            http_response_code($resp['status'] ?? 400);
+            $resp = ['erro' => $resp['erro']];
+        } else {
+            registrarAuditoriaLgpd($route === '/rh/desligamentos' ? 'RH_DESLIGAMENTO_REGISTRADO' : 'RH_DESLIGAMENTO_' . strtoupper((string)($body['acao'] ?? '')), $usuarioAdmin['email'], ['matricula' => (string)($body['matricula'] ?? '')]);
+        }
+        echo json_encode($resp, JSON_UNESCAPED_UNICODE);
+        exit;
+    }
+
     // Homologação sindical: agendador com aviso por WhatsApp e e-mail (usa as permissões de rh_cadernos)
     if ($method === 'GET' && $route === '/rh/homologacoes') {
         exigirPermissao($permissoesLogado, 'rh_cadernos', 'visualizar');
@@ -1646,6 +1671,38 @@ if ($method === 'POST' && ($route === '/academia/video-concluido' || $route === 
         $resp = ['erro' => $resp['erro']];
     }
     echo json_encode($resp, JSON_UNESCAPED_UNICODE);
+    exit;
+}
+
+// 16.8. Desligamento: aviso com os links de agendamento (homologação e documentos) e o guia da empresa
+if ($method === 'GET' && $route === '/desligamento') {
+    echo json_encode(['sucesso' => true, 'desligamento' => $desligamentoService->paraColaborador($colaboradorLogado)], JSON_UNESCAPED_UNICODE);
+    exit;
+}
+
+if ($method === 'POST' && $route === '/desligamento/agendado') {
+    $resp = $desligamentoService->marcarAgendado($colaboradorLogado, (string)($body['tipo'] ?? ''), ($body['agendado'] ?? true) !== false);
+    if (!empty($resp['erro'])) {
+        http_response_code($resp['status'] ?? 400);
+        $resp = ['erro' => $resp['erro']];
+    } else {
+        registrarAuditoriaLgpd('DESLIGAMENTO_AGENDAMENTO_' . strtoupper((string)($body['tipo'] ?? '')), $colaboradorLogado['matricula']);
+    }
+    echo json_encode($resp, JSON_UNESCAPED_UNICODE);
+    exit;
+}
+
+if ($method === 'GET' && $route === '/desligamento/guia') {
+    $guia = $desligamentoService->caminhoDoGuia($colaboradorLogado);
+    if (!$guia) {
+        http_response_code(404);
+        echo json_encode(['erro' => 'Guia não encontrado.']);
+        exit;
+    }
+    header('Content-Type: application/pdf');
+    header('Content-Length: ' . filesize($guia));
+    header('Content-Disposition: inline; filename="' . basename($guia) . '"');
+    readfile($guia);
     exit;
 }
 
