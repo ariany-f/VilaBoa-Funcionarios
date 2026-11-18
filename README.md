@@ -43,6 +43,10 @@ Em conformidade com a **NR-06 do Ministério do Trabalho e Emprego (Portaria MTP
 
 ---
 
+### Cadastro das fichas pelo RH
+
+Em **Painel do RH > Fichas de EPI** o RH cadastra a ficha de cada colaborador por competência (chapa, função, equipe e os itens: data, quantidade, unidade, código, descrição, C.A., valor e situação Primeira Entrega/Troca). A ficha aparece no portal para o colaborador assinar e, depois de assinada, não pode mais ser alterada nem removida. Também dá para importar uma planilha (.xlsx ou .csv, uma linha por item); o modelo é baixado na própria tela. As fichas ficam em `backend/data/epis.json`. Usa as permissões de `rh_cadernos` (publicar = nova ficha/importar, editar, remover).
+
 ## 🎨 Identidade Visual Oficial (vilaboa.com.br)
 
 - **Cor Primária de Ação / Ícone da Marca**: `#BA2E45` / `#B82E45` (Vermelho Rubi Oficial dos botões e do logotipo).
@@ -75,6 +79,10 @@ A seção **Usuários** do painel (perfil Administrador) cadastra quem entra no 
 O acesso por empresa vale também na API: quem acessa só algumas empresas recebe só os colaboradores delas (resumo, ponto, holerites, escalas, desligamentos, homologações) e só cria ou altera cadernos, trilhas, comunicados e empresas delas. Itens de "todas as empresas" aparecem para todos, mas só quem acessa todas pode criar ou alterar esses itens. Ninguém desativa a si mesmo, e o painel sempre mantém pelo menos um usuário ativo que gerencia usuários.
 
 As empresas de cada usuário ficam na tabela `users_empresas` (sem linhas = todas) e a situação em `users.is_active`. Em banco SQL, rode `php backend/scripts/instalar_banco.php` no deploy para criar a tabela e a coluna. O arquivo antigo `backend/data/rh_usuarios_empresas.json` continua valendo para quem ainda não foi salvo na tela de usuários.
+
+## 🚪 Aviso de Desligamento: links e guia por empresa
+
+Em **Painel do RH > Desligamentos**, o bloco "Links e guia" vale para a empresa escolhida no painel: os links do Bookings (homologação com o DP e retirada de documentos) e o PDF do Guia de Desligamento. Link em branco usa o padrão (`VB_LINK_HOMOLOGACAO` / `VB_LINK_DOCUMENTOS` ou o que está em `DesligamentoService`). Os links ficam em `backend/data/desligamento_config.json` e os guias enviados em `backend/data/guias_desligamento/`; sem guia enviado, vale o de `backend/guias`. O PHP precisa aceitar o tamanho do PDF (`upload_max_filesize` e `post_max_size`; os `.bat` já sobem o servidor local com 20 MB).
 
 ## 🚀 Como Executar o Projeto
 

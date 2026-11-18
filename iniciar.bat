@@ -9,5 +9,5 @@ echo Pressione Ctrl+C para encerrar o servidor.
 echo ========================================================
 
 start http://localhost:8000
-php -S 0.0.0.0:8000 -t backend/public backend/public/index.php
+php -d upload_max_filesize=20M -d post_max_size=25M -S 0.0.0.0:8000 -t backend/public backend/public/index.php
 pause

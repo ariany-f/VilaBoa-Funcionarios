@@ -29,12 +29,206 @@ class DesligamentoService
         $this->arquivo = dirname(__DIR__) . '/data/desligamentos.json';
     }
 
-    public static function links(): array
+    /**
+     * Links do Bookings da empresa. O RH cadastra por empresa no painel (data/desligamento_config.json);
+     * sem cadastro, vale o padrão (variáveis VB_LINK_* ou as constantes acima).
+     */
+    public static function links(?string $empresa = null): array
+    {
+        $padrao = self::linksPadrao();
+        $cfg = self::configuracoes()[$empresa ?? ''] ?? [];
+        return [
+            'homologacao' => ($cfg['homologacao'] ?? '') ?: $padrao['homologacao'],
+            'documentos' => ($cfg['documentos'] ?? '') ?: $padrao['documentos'],
+        ];
+    }
+
+    public static function linksPadrao(): array
     {
         return [
             'homologacao' => getenv('VB_LINK_HOMOLOGACAO') ?: self::LINK_HOMOLOGACAO,
             'documentos' => getenv('VB_LINK_DOCUMENTOS') ?: self::LINK_DOCUMENTOS,
         ];
+    }
+
+    // ---------------------------------------------------------------- links e guia por empresa (RH)
+
+    private const GUIA_TAMANHO_MAXIMO = 10 * 1024 * 1024;
+
+    private static function dataDir(): string
+    {
+        return dirname(__DIR__) . '/data';
+    }
+
+    private static function arquivoConfig(): string
+    {
+        return self::dataDir() . '/desligamento_config.json';
+    }
+
+    /** { "Vila Boa": { "homologacao": "https://...", "documentos": "https://..." } } */
+    private static function configuracoes(): array
+    {
+        $arq = self::arquivoConfig();
+        if (!is_file($arq)) return [];
+        $d = json_decode((string)file_get_contents($arq), true);
+        return is_array($d) ? $d : [];
+    }
+
+    private static function gravarConfiguracoes(array $cfg): bool
+    {
+        return file_put_contents(self::arquivoConfig(), json_encode($cfg, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES), LOCK_EX) !== false;
+    }
+
+    /** Links e guia de cada empresa, para a tela do RH. */
+    public static function configuracaoPorEmpresa(): array
+    {
+        $cfg = self::configuracoes();
+        $padrao = self::linksPadrao();
+        $resultado = [];
+        foreach (EmpresaService::listar() as $empresa) {
+            $enviado = self::caminhoGuiaEnviado($empresa);
+            $resultado[$empresa] = [
+                'links' => self::links($empresa),
+                'links_personalizados' => [
+                    'homologacao' => !empty($cfg[$empresa]['homologacao']),
+                    'documentos' => !empty($cfg[$empresa]['documentos']),
+                ],
+                'links_padrao' => $padrao,
+                'guia' => [
+                    'tem' => self::caminhoDoGuiaDaEmpresa($empresa) !== null,
+                    // enviado = arquivo que o RH subiu; senão é o guia que vem com o sistema
+                    'enviado' => $enviado !== null,
+                    'atualizado_em' => $enviado ? date('Y-m-d H:i:s', filemtime($enviado)) : null,
+                ],
+            ];
+        }
+        return $resultado;
+    }
+
+    /** Grava os links de uma empresa. Link em branco volta ao padrão. */
+    public static function salvarLinks(string $empresa, string $homologacao, string $documentos): array
+    {
+        $empresa = EmpresaService::normalizar($empresa);
+        if (!$empresa) return ['erro' => 'Empresa não encontrada.', 'status' => 422];
+        $links = ['homologacao' => trim($homologacao), 'documentos' => trim($documentos)];
+        foreach ($links as $tipo => $url) {
+            if ($url === '') continue;
+            if (!preg_match('#^https?://#i', $url) || !filter_var($url, FILTER_VALIDATE_URL) || mb_strlen($url) > 500) {
+                $nome = $tipo === 'homologacao' ? 'homologação' : 'retirada de documentos';
+                return ['erro' => "O link de $nome precisa ser um endereço completo, começando com https://", 'status' => 422];
+            }
+        }
+        $cfg = self::configuracoes();
+        $cfg[$empresa] = array_filter($links) + ($cfg[$empresa] ?? []);
+        foreach ($links as $tipo => $url) if ($url === '') unset($cfg[$empresa][$tipo]);
+        if (!$cfg[$empresa]) unset($cfg[$empresa]);
+        if (!self::gravarConfiguracoes($cfg)) return ['erro' => 'O servidor não tem permissão para gravar. Peça para a TI liberar a escrita em backend/data.', 'status' => 500];
+        return ['sucesso' => true, 'links' => self::links($empresa)];
+    }
+
+    private static function pastaGuias(): string
+    {
+        return self::dataDir() . '/guias_desligamento';
+    }
+
+    /** Nome do arquivo sem caracteres problemáticos ("Vila Boa" -> "vila-boa"). */
+    private static function baseDoArquivo(string $empresa): string
+    {
+        $base = strtolower(iconv('UTF-8', 'ASCII//TRANSLIT//IGNORE', $empresa) ?: $empresa);
+        return trim(preg_replace('/[^a-z0-9]+/', '-', $base), '-') ?: 'empresa';
+    }
+
+    private static function caminhoGuiaEnviado(string $empresa): ?string
+    {
+        $arq = self::pastaGuias() . '/' . self::baseDoArquivo($empresa) . '.pdf';
+        return is_file($arq) ? $arq : null;
+    }
+
+    /** Guia que vem com o sistema (backend/guias), pelo nome da empresa. */
+    private static function caminhoGuiaDoSistema(string $empresa): ?string
+    {
+        $arq = dirname(__DIR__) . '/guias/Guia de Desligamento - ' . preg_replace('/[\/\\\\:*?"<>|]/', '', $empresa) . '.pdf';
+        return ($empresa !== '' && is_file($arq)) ? $arq : null;
+    }
+
+    /** Guia da empresa: o enviado pelo RH ou o que vem com o sistema. */
+    public static function caminhoDoGuiaDaEmpresa(string $empresa): ?string
+    {
+        return self::caminhoGuiaEnviado($empresa) ?? self::caminhoGuiaDoSistema($empresa);
+    }
+
+    /** Maior arquivo que o PHP aceita receber (o menor entre o limite do guia e o do php.ini), em bytes. */
+    public static function limiteUpload(): int
+    {
+        $bytes = function (string $v): int {
+            $n = (int)$v;
+            return match (strtolower(substr(trim($v), -1))) { 'g' => $n * 1024 ** 3, 'm' => $n * 1024 ** 2, 'k' => $n * 1024, default => $n };
+        };
+        $limites = array_filter([self::GUIA_TAMANHO_MAXIMO, $bytes((string)ini_get('upload_max_filesize')), $bytes((string)ini_get('post_max_size'))]);
+        return min($limites);
+    }
+
+    private static function formatarTamanho(int $bytes): string
+    {
+        return $bytes >= 1024 ** 2 ? round($bytes / 1024 ** 2, 1) . ' MB' : round($bytes / 1024) . ' KB';
+    }
+
+    public static function salvarGuia(string $empresa, array $arquivo): array
+    {
+        $empresa = EmpresaService::normalizar($empresa);
+        if (!$empresa) return ['erro' => 'Empresa não encontrada.', 'status' => 422];
+        if (empty($arquivo['tmp_name']) || ($arquivo['error'] ?? UPLOAD_ERR_NO_FILE) !== UPLOAD_ERR_OK) {
+            $grande = in_array($arquivo['error'] ?? null, [UPLOAD_ERR_INI_SIZE, UPLOAD_ERR_FORM_SIZE], true);
+            $limite = self::formatarTamanho(self::limiteUpload());
+            return ['erro' => $grande ? "O arquivo passou do limite do servidor ($limite). Peça para a TI aumentar upload_max_filesize e post_max_size do PHP." : 'Escolha o PDF do guia.', 'status' => 422];
+        }
+        if (($arquivo['size'] ?? 0) > self::GUIA_TAMANHO_MAXIMO) return ['erro' => 'O guia pode ter no máximo ' . self::formatarTamanho(self::GUIA_TAMANHO_MAXIMO) . '.', 'status' => 422];
+        $inicio = (string)@file_get_contents($arquivo['tmp_name'], false, null, 0, 5);
+        if ($inicio !== '%PDF-') return ['erro' => 'O guia precisa ser um arquivo PDF.', 'status' => 422];
+        $pasta = self::pastaGuias();
+        if (!is_dir($pasta)) @mkdir($pasta, 0775, true);
+        $destino = $pasta . '/' . self::baseDoArquivo($empresa) . '.pdf';
+        $ok = is_uploaded_file($arquivo['tmp_name']) ? move_uploaded_file($arquivo['tmp_name'], $destino) : @rename($arquivo['tmp_name'], $destino);
+        if (!is_writable($pasta) || !$ok) {
+            return ['erro' => 'O servidor não tem permissão para gravar o guia. Peça para a TI liberar a escrita em backend/data.', 'status' => 500];
+        }
+        return ['sucesso' => true];
+    }
+
+    /** Apaga o guia enviado pelo RH; volta a valer o que vem com o sistema (se houver). */
+    public static function removerGuia(string $empresa): array
+    {
+        $empresa = EmpresaService::normalizar($empresa);
+        if (!$empresa) return ['erro' => 'Empresa não encontrada.', 'status' => 422];
+        $arq = self::caminhoGuiaEnviado($empresa);
+        if (!$arq) return ['erro' => 'Esta empresa não tem guia enviado pelo RH.', 'status' => 404];
+        @unlink($arq);
+        return ['sucesso' => true];
+    }
+
+    /** Empresa renomeada no cadastro: leva junto os links e o guia enviado. */
+    public static function aoRenomearEmpresa(string $atual, string $novo): void
+    {
+        $cfg = self::configuracoes();
+        if (isset($cfg[$atual])) {
+            $cfg[$novo] = $cfg[$atual];
+            unset($cfg[$atual]);
+            self::gravarConfiguracoes($cfg);
+        }
+        $guia = self::pastaGuias() . '/' . self::baseDoArquivo($atual) . '.pdf';
+        if (is_file($guia)) @rename($guia, self::pastaGuias() . '/' . self::baseDoArquivo($novo) . '.pdf');
+    }
+
+    /** Empresa removida do cadastro: apaga os links e o guia enviado dela. */
+    public static function aoRemoverEmpresa(string $empresa): void
+    {
+        $cfg = self::configuracoes();
+        if (isset($cfg[$empresa])) {
+            unset($cfg[$empresa]);
+            self::gravarConfiguracoes($cfg);
+        }
+        $guia = self::pastaGuias() . '/' . self::baseDoArquivo($empresa) . '.pdf';
+        if (is_file($guia)) @unlink($guia);
     }
 
     // ---------------------------------------------------------------- colaborador
@@ -53,7 +247,7 @@ class DesligamentoService
             'mostrar' => $chegou && !($homologacaoOk && $documentosOk),
             'data_demissao' => $data,
             'empresa' => EmpresaService::doColaborador($colab),
-            'links' => self::links(),
+            'links' => self::links(EmpresaService::doColaborador($colab)),
             'homologacao' => [
                 'agendado' => $homologacaoOk,
                 'agendado_em' => $reg['homologacao_agendada_em'] ?? null,
@@ -82,15 +276,11 @@ class DesligamentoService
         return ['sucesso' => true, 'desligamento' => $this->paraColaborador($colab)];
     }
 
+    /** Guia da empresa do colaborador; sem guia da empresa, vale o da Vila Boa. */
     public function caminhoDoGuia(array $colab): ?string
     {
-        $dir = dirname(__DIR__) . '/guias/';
         $empresa = EmpresaService::doColaborador($colab);
-        foreach ([$empresa, 'Vila Boa'] as $nome) {
-            $arq = $dir . 'Guia de Desligamento - ' . preg_replace('/[\/\\\\:*?"<>|]/', '', $nome) . '.pdf';
-            if ($nome !== '' && is_file($arq)) return $arq;
-        }
-        return null;
+        return self::caminhoDoGuiaDaEmpresa($empresa) ?? self::caminhoDoGuiaDaEmpresa('Vila Boa');
     }
 
     // ---------------------------------------------------------------- RH

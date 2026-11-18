@@ -97,7 +97,7 @@ function linhasCsv(texto) {
 // ---------- Interpretação ----------
 const semAcento = (s) => String(s ?? '').normalize('NFD').replace(/[̀-ͯ]/g, '').trim().toLowerCase();
 
-function paraData(valor) {
+export function paraData(valor) {
   if (typeof valor === 'number' && valor > 20000 && valor < 80000) {
     const d = new Date(Date.UTC(1899, 11, 30) + Math.round(valor) * 86400000);
     return d.toISOString().slice(0, 10);
@@ -120,6 +120,13 @@ function paraHorario(valor) {
 }
 
 const ehZerado = (h) => h === '' || /^0{1,2}(:00){0,2}$/.test(h) || h === '-' || h === '--:--';
+
+/** Linhas (arrays de células) da primeira aba de um .xlsx ou de um .csv. Usado também na importação de EPI. */
+export async function lerLinhasPlanilha(arquivo) {
+  return /\.csv$/i.test(arquivo.name || '')
+    ? linhasCsv(await arquivo.text())
+    : await linhasXlsx(await arquivo.arrayBuffer());
+}
 
 export async function lerPlanilhaEscala(arquivo) {
   const nome = arquivo.name || '';

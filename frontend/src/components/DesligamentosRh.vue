@@ -42,7 +42,45 @@
         </tbody>
       </table>
     </div>
-    <p class="text-[11px] text-slate-400">Links: <a :href="links.homologacao" target="_blank" rel="noopener" class="underline">homologação com o DP</a> · <a :href="links.documentos" target="_blank" rel="noopener" class="underline">retirada de documentos</a></p>
+    <!-- Links do Bookings e Guia de Desligamento da empresa escolhida no painel -->
+    <div v-if="config" class="rounded-2xl border border-slate-200 bg-slate-50/60 p-4 sm:p-5 space-y-4">
+      <div>
+        <h4 class="text-xs font-semibold uppercase tracking-wider text-slate-700">Links e guia · {{ empresaAtual }}</h4>
+        <p class="text-xs text-slate-500 mt-0.5">O que o colaborador desta empresa vê no aviso. Link em branco usa o padrão.</p>
+      </div>
+      <p v-if="msgConfig" class="text-xs font-medium" :class="msgConfigErro ? 'text-rose-700' : 'text-emerald-700'">{{ msgConfig }}</p>
+
+      <form class="grid grid-cols-1 lg:grid-cols-2 gap-3" @submit.prevent="salvarLinks">
+        <label v-for="t in tiposLink" :key="t.id" class="block min-w-0">
+          <span class="flex items-center justify-between gap-2 text-xs font-medium text-slate-600 mb-1">
+            <span>{{ t.rotulo }}</span>
+            <a :href="config.links[t.id]" target="_blank" rel="noopener" class="text-[11px] font-semibold text-[#9c2337] hover:underline">Testar link</a>
+          </span>
+          <input v-model="formLinks[t.id]" type="url" inputmode="url" :disabled="!podeEditar" :placeholder="config.links_padrao[t.id] + ' (padrão)'" class="w-full h-11 px-3 rounded-xl border border-slate-200 bg-white text-sm outline-none focus:border-slate-400 disabled:bg-slate-50" />
+        </label>
+        <div v-if="podeEditar" class="lg:col-span-2 flex justify-end">
+          <button type="submit" :disabled="salvandoLinks || !linksMudaram" class="h-10 px-5 rounded-full bg-[#9c2337] hover:bg-[#831b2d] disabled:opacity-50 disabled:cursor-not-allowed text-white text-sm font-semibold cursor-pointer">{{ salvandoLinks ? 'Salvando...' : 'Salvar links' }}</button>
+        </div>
+      </form>
+
+      <div class="pt-4 border-t border-slate-200 flex flex-wrap items-center gap-3">
+        <span class="w-10 h-10 rounded-xl bg-white border border-slate-200 flex items-center justify-center text-[#9c2337] shrink-0"><AppIcon name="document" size="18" /></span>
+        <div class="flex-1 min-w-[180px]">
+          <p class="text-sm font-semibold text-slate-800">Guia de Desligamento</p>
+          <p class="text-xs text-slate-500">{{ descricaoGuia }}</p>
+        </div>
+        <div class="flex flex-wrap gap-1.5">
+          <button v-if="config.guia.tem" type="button" @click="verGuia" class="acao border border-slate-200 bg-white">Ver guia</button>
+          <template v-if="podeEditar">
+            <label class="acao border border-slate-200 bg-white inline-flex items-center" :class="enviandoGuia ? 'opacity-50 pointer-events-none' : ''">
+              {{ enviandoGuia ? 'Enviando...' : (config.guia.tem ? 'Trocar PDF' : 'Enviar PDF') }}
+              <input type="file" accept="application/pdf,.pdf" class="sr-only" @change="enviarGuia" />
+            </label>
+            <button v-if="config.guia.enviado" type="button" @click="removerGuia" class="acao border border-slate-200 bg-white hover:!text-rose-700">Remover enviado</button>
+          </template>
+        </div>
+      </div>
+    </div>
 
     <ModalCadastro :aberto="novoAberto" titulo="Registrar desligamento" descricao="Na data informada, o aviso aparece para o colaborador no portal." rotulo-salvar="Registrar" :enviando="salvando" :erro="erroNovo" :pode-salvar="!!form.matricula && !!form.data_demissao" :sujo="false" @fechar="novoAberto = false" @salvar="registrar">
       <div class="space-y-4">
@@ -60,18 +98,20 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue';
+import { ref, computed, watch, onMounted } from 'vue';
+import AppIcon from './AppIcon.vue';
 import ModalCadastro from './ModalCadastro.vue';
 import SeletorColaborador from './SeletorColaborador.vue';
 import { pode } from '../utils/permissoes.js';
 import { tokenAdmin } from '../utils/sessaoAdmin.js';
-import { doContexto } from '../utils/empresaContexto.js';
+import { doContexto, empresaContexto } from '../utils/empresaContexto.js';
 
-defineProps({ colaborador: { type: Object, required: true } });
+const props = defineProps({ colaborador: { type: Object, required: true } });
 
 const lista = ref([]);
 const colaboradores = ref([]);
-const links = ref({});
+const configuracoes = ref({});
+const limiteGuia = ref(0);
 const carregando = ref(true);
 const mensagem = ref('');
 const mensagemErro = ref(false);
@@ -99,7 +139,9 @@ async function carregar() {
     if (!res.ok) return aviso(data.erro || 'Não foi possível carregar os desligamentos.', true);
     lista.value = data.desligamentos;
     colaboradores.value = data.colaboradores;
-    links.value = data.links;
+    configuracoes.value = data.configuracoes || {};
+    limiteGuia.value = data.limite_guia || 0;
+    preencherLinks();
   } finally {
     carregando.value = false;
   }
@@ -140,6 +182,103 @@ async function acao(d, tipo) {
     await carregar();
   } catch (e) {
     aviso(e.message, true);
+  }
+}
+
+// ---------------- Links e guia por empresa ----------------
+const tiposLink = [
+  { id: 'homologacao', rotulo: 'Agendar homologação com o DP' },
+  { id: 'documentos', rotulo: 'Agendar retirada de documentos' }
+];
+const podeEditar = computed(() => pode(props.colaborador, 'rh_cadernos', 'editar'));
+const empresaAtual = computed(() => empresaContexto.value || Object.keys(configuracoes.value)[0] || '');
+const config = computed(() => configuracoes.value[empresaAtual.value] || null);
+const formLinks = ref({ homologacao: '', documentos: '' });
+const salvandoLinks = ref(false);
+const enviandoGuia = ref(false);
+const msgConfig = ref('');
+const msgConfigErro = ref(false);
+function avisoConfig(texto, erro = false) { msgConfig.value = texto; msgConfigErro.value = erro; }
+
+// Mostra no campo só o link próprio da empresa; o padrão fica no placeholder
+function valoresSalvos() {
+  const c = config.value;
+  if (!c) return { homologacao: '', documentos: '' };
+  return Object.fromEntries(tiposLink.map((t) => [t.id, c.links_personalizados[t.id] ? c.links[t.id] : '']));
+}
+function preencherLinks() { formLinks.value = valoresSalvos(); }
+watch(empresaAtual, () => { preencherLinks(); msgConfig.value = ''; });
+const linksMudaram = computed(() => JSON.stringify(formLinks.value) !== JSON.stringify(valoresSalvos()));
+
+const tamanho = (b) => (b >= 1048576 ? `${Math.round(b / 104857.6) / 10} MB` : `${Math.round(b / 1024)} KB`);
+const descricaoGuia = computed(() => {
+  const g = config.value?.guia;
+  if (!g?.tem) return 'Nenhum guia para esta empresa: o colaborador vê o guia da Vila Boa.';
+  if (g.enviado) return `Enviado pelo RH em ${g.atualizado_em.slice(8, 10)}/${g.atualizado_em.slice(5, 7)}/${g.atualizado_em.slice(0, 4)}.`;
+  return 'Guia que veio com o sistema. Envie um PDF para trocar.';
+});
+
+async function salvarLinks() {
+  salvandoLinks.value = true;
+  try {
+    const data = await chamar('/api/rh/desligamentos/links', { empresa: empresaAtual.value, ...formLinks.value });
+    configuracoes.value = data.configuracoes;
+    preencherLinks();
+    avisoConfig(`Links da ${empresaAtual.value} salvos.`);
+  } catch (e) {
+    avisoConfig(e.message, true);
+  } finally {
+    salvandoLinks.value = false;
+  }
+}
+
+async function enviarGuia(ev) {
+  const arquivo = ev.target.files?.[0];
+  ev.target.value = '';
+  if (!arquivo) return;
+  if (limiteGuia.value && arquivo.size > limiteGuia.value) {
+    return avisoConfig(`O PDF tem ${tamanho(arquivo.size)} e o servidor aceita até ${tamanho(limiteGuia.value)}. Peça para a TI aumentar o limite de envio do PHP ou reduza o PDF.`, true);
+  }
+  enviandoGuia.value = true;
+  try {
+    const corpo = new FormData();
+    corpo.append('empresa', empresaAtual.value);
+    corpo.append('guia', arquivo);
+    const res = await fetch('/api/rh/desligamentos/guia', { method: 'POST', headers: auth(), body: corpo });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) throw new Error(data.erro || 'Não foi possível enviar o guia.');
+    configuracoes.value = data.configuracoes;
+    avisoConfig(`Guia da ${empresaAtual.value} atualizado. O colaborador já recebe o novo PDF.`);
+  } catch (e) {
+    avisoConfig(e.message, true);
+  } finally {
+    enviandoGuia.value = false;
+  }
+}
+
+async function removerGuia() {
+  if (!window.confirm(`Remover o guia enviado da ${empresaAtual.value}? Volta a valer o guia que veio com o sistema, se houver.`)) return;
+  try {
+    const data = await chamar('/api/rh/desligamentos/guia/remover', { empresa: empresaAtual.value });
+    configuracoes.value = data.configuracoes;
+    avisoConfig('Guia enviado removido.');
+  } catch (e) {
+    avisoConfig(e.message, true);
+  }
+}
+
+// Abre o PDF numa aba nova (aberta já no clique para o navegador não bloquear)
+async function verGuia() {
+  const aba = window.open('', '_blank');
+  try {
+    const res = await fetch(`/api/rh/desligamentos/guia?empresa=${encodeURIComponent(empresaAtual.value)}`, { headers: auth() });
+    if (!res.ok) throw new Error();
+    const url = URL.createObjectURL(await res.blob());
+    if (aba) aba.location.href = url;
+    else window.location.href = url;
+  } catch (e) {
+    aba?.close();
+    avisoConfig('Não foi possível abrir o guia.', true);
   }
 }
 
