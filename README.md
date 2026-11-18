@@ -64,13 +64,17 @@ A tela de login possui botões de 1 clique para auto-preenchimento rápido com q
 
 O usuário do RH trabalha em uma empresa por vez. Com mais de uma empresa, ele escolhe no login e troca no menu lateral; o logo do painel é o da empresa escolhida (cadastrado em **Empresas**). Sem empresa escolhida, nenhum logo aparece.
 
-Por padrão, todo usuário do RH acessa todas as empresas. Para limitar, crie `backend/data/rh_usuarios_empresas.json`:
+### Usuários do painel
 
-```json
-{ "juliana.ramos@vilaboaconstrucoes.com.br": ["Mondego"] }
-```
+A seção **Usuários** do painel (perfil Administrador) cadastra quem entra no Painel do RH:
 
-Quem não está no arquivo continua com todas. Hoje essa escolha filtra as telas do painel; as rotas da API ainda não bloqueiam dados de outra empresa.
+- criar, editar, desativar/reativar usuários e redefinir a senha;
+- escolher o perfil de cada um e, na aba **Perfis e permissões**, o que cada perfil pode fazer (telas e ações de `backend/config/permissoes.php`);
+- escolher as empresas que cada um acessa (ou "Todas as empresas", inclusive as cadastradas depois).
+
+O acesso por empresa vale também na API: quem acessa só algumas empresas recebe só os colaboradores delas (resumo, ponto, holerites, escalas, desligamentos, homologações) e só cria ou altera cadernos, trilhas, comunicados e empresas delas. Itens de "todas as empresas" aparecem para todos, mas só quem acessa todas pode criar ou alterar esses itens. Ninguém desativa a si mesmo, e o painel sempre mantém pelo menos um usuário ativo que gerencia usuários.
+
+As empresas de cada usuário ficam na tabela `users_empresas` (sem linhas = todas) e a situação em `users.is_active`. Em banco SQL, rode `php backend/scripts/instalar_banco.php` no deploy para criar a tabela e a coluna. O arquivo antigo `backend/data/rh_usuarios_empresas.json` continua valendo para quem ainda não foi salvo na tela de usuários.
 
 ## 🚀 Como Executar o Projeto
 

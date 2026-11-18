@@ -107,6 +107,35 @@ class PermissaoService
         return array_map(fn($m) => ['name' => $m['name'], 'url' => $m['url'], 'icon' => $m['icon']], $menus);
     }
 
+    /** Usuário do painel ativo? (sem a coluna is_active, vale como ativo) */
+    public static function ativo(array $usuario): bool
+    {
+        return !isset($usuario['is_active']) || (int)$usuario['is_active'] === 1;
+    }
+
+    /**
+     * Telas novas de config/permissoes.php que ainda não estão no banco são gravadas na hora e liberadas
+     * para o perfil Administrador. Assim uma tela nova (ex.: Usuários) aparece sem rodar script nenhum.
+     */
+    public function garantirTelasNovas(): void
+    {
+        $noBanco = array_column($this->banco->buscar('permission_screens'), 'slug');
+        $novas = array_values(array_diff(array_column(require dirname(__DIR__) . '/config/permissoes.php', 'slug'), $noBanco));
+        if (!$novas) {
+            return;
+        }
+        $this->sincronizar();
+        $admins = array_filter($this->banco->buscar('roles'), fn($r) => mb_strtolower(trim($r['nome'])) === 'administrador');
+        $telaIds = array_column($this->banco->buscar('permission_screens', ['slug' => $novas]), 'id');
+        foreach ($this->banco->buscar('permission_actions', ['screen_id' => $telaIds ?: [0]]) as $acao) {
+            foreach ($admins as $role) {
+                if (!$this->banco->primeiro('roles_permission_actions', ['role_id' => (int)$role['id'], 'permission_action_id' => (int)$acao['id']])) {
+                    $this->banco->inserir('roles_permission_actions', ['role_id' => (int)$role['id'], 'permission_action_id' => (int)$acao['id']]);
+                }
+            }
+        }
+    }
+
     public static function pode(array $matriz, string $tela, string $acao): bool
     {
         return !empty($matriz[$tela][$acao]);

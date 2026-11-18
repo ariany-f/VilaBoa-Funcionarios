@@ -54,4 +54,15 @@ return [
             ['slug' => 'visualizar', 'name' => 'Consultar holerites de todos', 'group' => 'Tela'],
         ],
     ],
+    [
+        'slug' => 'rh_usuarios',
+        'name' => 'RH — Usuários',
+        'description' => 'Usuários do painel do RH: cadastro, senha, perfis de permissão e empresas que cada um acessa.',
+        'menu_url' => '/rh',
+        'actions' => [
+            ['slug' => 'visualizar', 'name' => 'Ver usuários e perfis', 'group' => 'Tela'],
+            ['slug' => 'editar', 'name' => 'Criar, editar e desativar usuários e redefinir senhas', 'group' => 'Tela', 'route' => 'POST /rh/usuarios', 'enforce' => true],
+            ['slug' => 'perfis', 'name' => 'Criar perfis e mudar as permissões de cada perfil', 'group' => 'Tela', 'route' => 'POST /rh/perfis', 'enforce' => true],
+        ],
+    ],
 ];

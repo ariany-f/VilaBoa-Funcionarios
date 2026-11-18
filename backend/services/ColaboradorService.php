@@ -6,12 +6,45 @@ class ColaboradorService
 {
     private string $dataFile;
 
+    /** Empresas que o usuário do RH logado pode ver (null = todas). Só vale para o painel do RH. */
+    private ?array $empresasPermitidas = null;
+
     public function __construct(?string $dataFile = null)
     {
         $this->dataFile = $dataFile ?: dirname(__DIR__) . '/data/colaboradores.json';
     }
 
+    /**
+     * Limita getAll() aos colaboradores dessas empresas (usuário do RH com acesso a só algumas).
+     * Todo o painel do RH lê os colaboradores por aqui, então o filtro vale para resumo, seletores,
+     * importação de ponto, desligamentos e homologações.
+     */
+    public function restringirEmpresas(?array $empresas): void
+    {
+        $this->empresasPermitidas = $empresas === null ? null : array_values($empresas);
+    }
+
+    /** Colaboradores visíveis (respeita restringirEmpresas). */
     public function getAll(): array
+    {
+        $todos = $this->lerTodos();
+        if ($this->empresasPermitidas === null) {
+            return $todos;
+        }
+        return array_values(array_filter($todos, fn($c) => in_array(EmpresaService::doColaborador($c), $this->empresasPermitidas, true)));
+    }
+
+    /** O colaborador está entre os visíveis para o usuário logado? */
+    public function visivel(string $matricula): bool
+    {
+        foreach ($this->getAll() as $c) {
+            if (($c['matricula'] ?? '') === $matricula) return true;
+        }
+        return false;
+    }
+
+    /** Todos os colaboradores do arquivo, sem filtro (para gravar sem perder ninguém). */
+    private function lerTodos(): array
     {
         if (!file_exists($this->dataFile)) {
             return [];
@@ -239,7 +272,7 @@ class ColaboradorService
 
     public function confirmarTelefone(int $colaboradorId, string $novoTelefone): ?array
     {
-        $colaboradores = $this->getAll();
+        $colaboradores = $this->lerTodos();
         $atualizado = null;
 
         foreach ($colaboradores as &$c) {

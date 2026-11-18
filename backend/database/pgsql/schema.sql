@@ -20,6 +20,8 @@ CREATE TABLE IF NOT EXISTS users (
 CREATE UNIQUE INDEX IF NOT EXISTS users_cpf_unique ON users (cpf);
 CREATE UNIQUE INDEX IF NOT EXISTS users_email_unique ON users (lower(email));
 CREATE INDEX IF NOT EXISTS users_cellphone ON users (cellphone);
+-- Usuário desativado na tela "Usuários" do painel do RH não entra mais
+ALTER TABLE users ADD COLUMN IF NOT EXISTS is_active SMALLINT NOT NULL DEFAULT 1;
 
 CREATE TABLE IF NOT EXISTS roles (
   id SERIAL PRIMARY KEY,
@@ -32,6 +34,16 @@ CREATE TABLE IF NOT EXISTS users_roles (
   id SERIAL PRIMARY KEY,
   user_id INT NOT NULL REFERENCES users (id) ON DELETE CASCADE,
   role_id INT NOT NULL REFERENCES roles (id) ON DELETE CASCADE
+);
+
+-- Empresas que cada usuário do painel do RH acessa (sem nenhuma linha = todas)
+CREATE TABLE IF NOT EXISTS users_empresas (
+  id SERIAL PRIMARY KEY,
+  user_id INT NOT NULL REFERENCES users (id) ON DELETE CASCADE,
+  empresa VARCHAR(120) NOT NULL,
+  created TIMESTAMP DEFAULT now(),
+  modified TIMESTAMP DEFAULT now(),
+  UNIQUE (user_id, empresa)
 );
 
 CREATE TABLE IF NOT EXISTS menus (
