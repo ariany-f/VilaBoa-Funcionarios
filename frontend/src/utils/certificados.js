@@ -1,4 +1,4 @@
-// Certificados da Academia Vila Boa: abrem uma página A4 (paisagem) pronta para imprimir ou salvar em PDF.
+// Certificados de Treinamentos: abrem uma página A4 (paisagem) pronta para imprimir ou salvar em PDF.
 // Cada função devolve false quando o navegador bloqueou o pop-up.
 
 const esc = (t) => String(t ?? '').replace(/[&<>"]/g, (m) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[m]));
@@ -82,7 +82,7 @@ export function htmlCertificadoTrilha(c, logo, imprimir = false) {
   <h1>Certificado</h1>
   <p>Certificamos que</p>
   <div class="nome">${esc(c.nome)}</div>
-  <p>concluiu o treinamento da <strong>Academia Vila Boa</strong></p>
+  <p>concluiu o treinamento</p>
   <div class="curso">${esc(c.trilha)}</div>
   <p>${c.carga_horaria ? 'com carga horária de <strong>' + esc(c.carga_horaria) + '</strong>, ' : ''}${esc(c.etapas)} ${c.etapas === 1 ? 'etapa concluída' : 'etapas concluídas'} em <strong>${esc((c.concluida_em || '').slice(0, 10))}</strong>.</p>
   <div class="assinaturas">
