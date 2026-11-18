@@ -1,0 +1,350 @@
+[
+    {
+        "id": "esc_exemplo052a",
+        "titulo": "Escala 5x1 - Letra A",
+        "letra": "A",
+        "horario": "052 08:00 - 11:20 12:40 - 16:40 (ESCALA 5 X 1)",
+        "periodo_inicio": "2026-11-21",
+        "periodo_fim": "2026-12-20",
+        "dias": [
+            {
+                "data": "2026-11-21",
+                "dia": "SÁB",
+                "folga": false,
+                "horarios": [
+                    "TRABALHO",
+                    "TRABALHO",
+                    "TRABALHO",
+                    "TRABALHO"
+                ]
+            },
+            {
+                "data": "2026-11-22",
+                "dia": "DOM",
+                "folga": true,
+                "horarios": [
+                    "FOLGA",
+                    "FOLGA",
+                    "FOLGA",
+                    "FOLGA"
+                ]
+            },
+            {
+                "data": "2026-11-23",
+                "dia": "SEG",
+                "folga": false,
+                "horarios": [
+                    "TRABALHO",
+                    "TRABALHO",
+                    "TRABALHO",
+                    "TRABALHO"
+                ]
+            },
+            {
+                "data": "2026-11-24",
+                "dia": "TER",
+                "folga": false,
+                "horarios": [
+                    "TRABALHO",
+                    "TRABALHO",
+                    "TRABALHO",
+                    "TRABALHO"
+                ]
+            },
+            {
+                "data": "2026-11-25",
+                "dia": "QUA",
+                "folga": false,
+                "horarios": [
+                    "TRABALHO",
+                    "TRABALHO",
+                    "TRABALHO",
+                    "TRABALHO"
+                ]
+            },
+            {
+                "data": "2026-11-26",
+                "dia": "QUI",
+                "folga": false,
+                "horarios": [
+                    "TRABALHO",
+                    "TRABALHO",
+                    "TRABALHO",
+                    "TRABALHO"
+                ]
+            },
+            {
+                "data": "2026-11-27",
+                "dia": "SEX",
+                "folga": false,
+                "horarios": [
+                    "TRABALHO",
+                    "TRABALHO",
+                    "TRABALHO",
+                    "TRABALHO"
+                ]
+            },
+            {
+                "data": "2026-11-28",
+                "dia": "SÁB",
+                "folga": true,
+                "horarios": [
+                    "FOLGA",
+                    "FOLGA",
+                    "FOLGA",
+                    "FOLGA"
+                ]
+            },
+            {
+                "data": "2026-11-29",
+                "dia": "DOM",
+                "folga": false,
+                "horarios": [
+                    "TRABALHO",
+                    "TRABALHO",
+                    "TRABALHO",
+                    "TRABALHO"
+                ]
+            },
+            {
+                "data": "2026-11-30",
+                "dia": "SEG",
+                "folga": false,
+                "horarios": [
+                    "TRABALHO",
+                    "TRABALHO",
+                    "TRABALHO",
+                    "TRABALHO"
+                ]
+            },
+            {
+                "data": "2026-12-01",
+                "dia": "TER",
+                "folga": false,
+                "horarios": [
+                    "TRABALHO",
+                    "TRABALHO",
+                    "TRABALHO",
+                    "TRABALHO"
+                ]
+            },
+            {
+                "data": "2026-12-02",
+                "dia": "QUA",
+                "folga": false,
+                "horarios": [
+                    "TRABALHO",
+                    "TRABALHO",
+                    "TRABALHO",
+                    "TRABALHO"
+                ]
+            },
+            {
+                "data": "2026-12-03",
+                "dia": "QUI",
+                "folga": false,
+                "horarios": [
+                    "TRABALHO",
+                    "TRABALHO",
+                    "TRABALHO",
+                    "TRABALHO"
+                ]
+            },
+            {
+                "data": "2026-12-04",
+                "dia": "SEX",
+                "folga": true,
+                "horarios": [
+                    "FOLGA",
+                    "FOLGA",
+                    "FOLGA",
+                    "FOLGA"
+                ]
+            },
+            {
+                "data": "2026-12-05",
+                "dia": "SÁB",
+                "folga": false,
+                "horarios": [
+                    "TRABALHO",
+                    "TRABALHO",
+                    "TRABALHO",
+                    "TRABALHO"
+                ]
+            },
+            {
+                "data": "2026-12-06",
+                "dia": "DOM",
+                "folga": false,
+                "horarios": [
+                    "TRABALHO",
+                    "TRABALHO",
+                    "TRABALHO",
+                    "TRABALHO"
+                ]
+            },
+            {
+                "data": "2026-12-07",
+                "dia": "SEG",
+                "folga": false,
+                "horarios": [
+                    "TRABALHO",
+                    "TRABALHO",
+                    "TRABALHO",
+                    "TRABALHO"
+                ]
+            },
+            {
+                "data": "2026-12-08",
+                "dia": "TER",
+                "folga": false,
+                "horarios": [
+                    "TRABALHO",
+                    "TRABALHO",
+                    "TRABALHO",
+                    "TRABALHO"
+                ]
+            },
+            {
+                "data": "2026-12-09",
+                "dia": "QUA",
+                "folga": false,
+                "horarios": [
+                    "TRABALHO",
+                    "TRABALHO",
+                    "TRABALHO",
+                    "TRABALHO"
+                ]
+            },
+            {
+                "data": "2026-12-10",
+                "dia": "QUI",
+                "folga": true,
+                "horarios": [
+                    "FOLGA",
+                    "FOLGA",
+                    "FOLGA",
+                    "FOLGA"
+                ]
+            },
+            {
+                "data": "2026-12-11",
+                "dia": "SEX",
+                "folga": false,
+                "horarios": [
+                    "TRABALHO",
+                    "TRABALHO",
+                    "TRABALHO",
+                    "TRABALHO"
+                ]
+            },
+            {
+                "data": "2026-12-12",
+                "dia": "SÁB",
+                "folga": false,
+                "horarios": [
+                    "TRABALHO",
+                    "TRABALHO",
+                    "TRABALHO",
+                    "TRABALHO"
+                ]
+            },
+            {
+                "data": "2026-12-13",
+                "dia": "DOM",
+                "folga": false,
+                "horarios": [
+                    "TRABALHO",
+                    "TRABALHO",
+                    "TRABALHO",
+                    "TRABALHO"
+                ]
+            },
+            {
+                "data": "2026-12-14",
+                "dia": "SEG",
+                "folga": false,
+                "horarios": [
+                    "TRABALHO",
+                    "TRABALHO",
+                    "TRABALHO",
+                    "TRABALHO"
+                ]
+            },
+            {
+                "data": "2026-12-15",
+                "dia": "TER",
+                "folga": false,
+                "horarios": [
+                    "TRABALHO",
+                    "TRABALHO",
+                    "TRABALHO",
+                    "TRABALHO"
+                ]
+            },
+            {
+                "data": "2026-12-16",
+                "dia": "QUA",
+                "folga": true,
+                "horarios": [
+                    "FOLGA",
+                    "FOLGA",
+                    "FOLGA",
+                    "FOLGA"
+                ]
+            },
+            {
+                "data": "2026-12-17",
+                "dia": "QUI",
+                "folga": false,
+                "horarios": [
+                    "TRABALHO",
+                    "TRABALHO",
+                    "TRABALHO",
+                    "TRABALHO"
+                ]
+            },
+            {
+                "data": "2026-12-18",
+                "dia": "SEX",
+                "folga": false,
+                "horarios": [
+                    "TRABALHO",
+                    "TRABALHO",
+                    "TRABALHO",
+                    "TRABALHO"
+                ]
+            },
+            {
+                "data": "2026-12-19",
+                "dia": "SÁB",
+                "folga": false,
+                "horarios": [
+                    "TRABALHO",
+                    "TRABALHO",
+                    "TRABALHO",
+                    "TRABALHO"
+                ]
+            },
+            {
+                "data": "2026-12-20",
+                "dia": "DOM",
+                "folga": false,
+                "horarios": [
+                    "TRABALHO",
+                    "TRABALHO",
+                    "TRABALHO",
+                    "TRABALHO"
+                ]
+            }
+        ],
+        "arquivo": "12 Escala 5x1 Letra A.xlsx",
+        "matriculas": [
+            "VB-1040",
+            "VB-2085",
+            "VB-3042"
+        ],
+        "publicado_em": "2026-11-17 09:00:00",
+        "publicado_por": "rh@vilaboa.com.br"
+    }
+]

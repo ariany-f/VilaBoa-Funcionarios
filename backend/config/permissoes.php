@@ -38,11 +38,11 @@ return [
     [
         'slug' => 'rh_ponto',
         'name' => 'RH — Espelho de ponto',
-        'description' => 'Consulta dos espelhos de todos os colaboradores e importação de marcações.',
+        'description' => 'Consulta dos espelhos de todos os colaboradores, importação de marcações e publicação da escala de folgas.',
         'menu_url' => '/rh',
         'actions' => [
             ['slug' => 'visualizar', 'name' => 'Consultar espelhos de todos', 'group' => 'Tela'],
-            ['slug' => 'importar', 'name' => 'Importar espelho de ponto', 'group' => 'Tela', 'route' => 'POST /rh/ponto', 'enforce' => true],
+            ['slug' => 'importar', 'name' => 'Importar espelho de ponto e publicar escala de folgas', 'group' => 'Tela', 'route' => 'POST /rh/ponto', 'enforce' => true],
         ],
     ],
     [

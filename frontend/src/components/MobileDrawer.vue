@@ -196,6 +196,7 @@ const todosModulos = [
   { id: 'comunicados', rotulo: 'Comunicados', descricao: 'Avisos e campanhas da empresa', icone: 'megaphone' },
   { id: 'holerites', rotulo: 'Holerites', descricao: 'Demonstrativos de pagamento', icone: 'document' },
   { id: 'ponto', rotulo: 'Espelho de Ponto', descricao: 'Marcações e assinatura do mês', icone: 'calendar' },
+  { id: 'escala', rotulo: 'Escala de Folgas', descricao: 'Seus dias de folga e ciência', icone: 'calendar-check' },
   { id: 'epis', rotulo: 'Ficha de EPI', descricao: 'Entregas e assinatura de EPIs', icone: 'hard-hat' },
   { id: 'cadernos', rotulo: 'Políticas Internas', descricao: 'Regras, direitos, deveres e benefícios', icone: 'landmark' },
   { id: 'academia', rotulo: 'Treinamentos', descricao: 'Treinamentos, vídeos e certificados', icone: 'graduation-cap' }

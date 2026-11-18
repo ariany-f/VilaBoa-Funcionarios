@@ -174,6 +174,7 @@ const todosModulos = [
   { id: 'comunicados', rotulo: 'Comunicados', icone: 'megaphone' },
   { id: 'holerites', rotulo: 'Holerites', icone: 'document' },
   { id: 'ponto', rotulo: 'Espelho de Ponto', icone: 'calendar' },
+  { id: 'escala', rotulo: 'Escala de Folgas', icone: 'calendar-check' },
   { id: 'epis', rotulo: 'Ficha de EPI', icone: 'hard-hat' },
   { id: 'cadernos', rotulo: 'Políticas Internas', icone: 'landmark' },
   { id: 'academia', rotulo: 'Treinamentos', icone: 'graduation-cap' }

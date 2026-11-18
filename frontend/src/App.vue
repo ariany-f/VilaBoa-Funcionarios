@@ -882,6 +882,9 @@
           <!-- ESPELHO DE PONTO COM ASSINATURA ELETRÔNICA -->
           <PontoView v-else-if="abaAtiva === 'ponto'" :key="competenciaPontoInicial" :colaborador="usuarioLogado" :competenciaInicial="competenciaPontoInicial" />
 
+          <!-- ESCALA DE FOLGAS COM CIÊNCIA DIGITAL (PRC-153) -->
+          <EscalaFolgaView v-else-if="abaAtiva === 'escala'" :key="escalaInicial" :colaborador="usuarioLogado" :escalaInicial="escalaInicial" @ciencia="carregarEscalasPendentes(tokenAutenticado || '')" />
+
           <!-- CADERNOS DO COLABORADOR (PDFs) -->
           <!-- COMUNICADOS (MURAL DE AVISOS) -->
           <ComunicadosView v-else-if="abaAtiva === 'comunicados'" />
@@ -1256,6 +1259,7 @@ import Sidebar from './components/Sidebar.vue';
 import MobileDrawer from './components/MobileDrawer.vue';
 import FeriasView from './components/FeriasView.vue';
 import PontoView from './components/PontoView.vue';
+import EscalaFolgaView from './components/EscalaFolgaView.vue';
 import CadernosView from './components/CadernosView.vue';
 import ComunicadosView from './components/ComunicadosView.vue';
 import AcademiaView from './components/AcademiaView.vue';
@@ -1316,7 +1320,7 @@ function mascararCpf(cpf) {
 
 // ==================== SISTEMA DE ROTAS & PERSISTÊNCIA ====================
 // Módulos liberados; os demais seguem desativados.
-const ROTAS_VALIDAS = ['comunicados', 'holerites', 'ponto', 'epis', 'cadernos', 'academia'];
+const ROTAS_VALIDAS = ['comunicados', 'holerites', 'ponto', 'escala', 'epis', 'cadernos', 'academia'];
 
 function obterRotaValida() {
   if (typeof window === 'undefined') return 'holerites';
@@ -1506,6 +1510,7 @@ const destinoLink = ref((() => {
 })());
 const cadernoParaAbrir = ref('');
 const competenciaPontoInicial = ref('');
+const escalaInicial = ref('');
 
 function irParaDestino() {
   const d = destinoLink.value;
@@ -1520,6 +1525,9 @@ function irParaDestino() {
   } else if (d.tipo === 'ponto') {
     competenciaPontoInicial.value = d.valor;
     navegarParaAba('ponto');
+  } else if (d.tipo === 'escala') {
+    escalaInicial.value = d.valor;
+    navegarParaAba('escala');
   } else if (d.tipo === 'holerite') {
     navegarParaAba('holerites');
     const h = holerites.value.find((x) => String(x.id) === String(d.valor));
@@ -1968,6 +1976,7 @@ async function carregarTodosModulos(token) {
     carregarProgressoCadernos(token),
     carregarTrilhasPendentes(token),
     carregarPontosPendentes(token),
+    carregarEscalasPendentes(token),
     carregarDesligamento(token)
   ]);
 }
@@ -2035,12 +2044,25 @@ async function carregarPontosPendentes(token) {
   }
 }
 
+// Escalas de folga que ainda faltam dar ciência
+const escalasPendentes = ref([]);
+async function carregarEscalasPendentes(token) {
+  try {
+    const res = await fetch('/api/escalas-folga', { headers: { 'Authorization': `Bearer ${token || localStorage.getItem('vb_auth_token') || ''}` } });
+    const data = await res.json();
+    if (res.ok) escalasPendentes.value = (data.escalas || []).filter((e) => !e.ciencia);
+  } catch (e) {
+    // sem notificações de escala
+  }
+}
+
 // Atualiza tudo ao abrir o sino
 function carregarPendencias() {
   const token = localStorage.getItem('vb_auth_token') || '';
   carregarProgressoCadernos(token);
   carregarTrilhasPendentes(token);
   carregarPontosPendentes(token);
+  carregarEscalasPendentes(token);
 }
 
 // Notificações do cabeçalho: holerites não lidos, espelhos para assinar e cadernos para ler
@@ -2072,6 +2094,13 @@ const notificacoes = computed(() => {
     icone: 'pen-tool',
     cor: 'bg-amber-50 text-amber-700',
     acao: () => navegarParaAba('ponto')
+  }));
+  escalasPendentes.value.forEach((e) => lista.push({
+    titulo: 'Dê ciência da sua escala de folgas',
+    descricao: `${e.periodo_inicio.split('-').reverse().join('/')} a ${e.periodo_fim.split('-').reverse().join('/')}`,
+    icone: 'calendar-check',
+    cor: 'bg-amber-50 text-amber-700',
+    acao: () => { escalaInicial.value = e.id; navegarParaAba('escala'); }
   }));
   (epis.value.pendentes || []).length && lista.push({
     titulo: epis.value.pendentes.length === 1 ? 'Assine a ficha de EPI' : `Assine ${epis.value.pendentes.length} fichas de EPI`,
@@ -2366,6 +2395,7 @@ const resultadosBusca = computed(() => {
   const modulos = [
     { titulo: 'Holerites', aba: 'holerites', icone: 'document', chaves: 'holerite demonstrativo salario pagamento folha' },
     { titulo: 'Espelho de Ponto', aba: 'ponto', icone: 'calendar', chaves: 'ponto espelho marcacao jornada banco de horas assinatura' },
+    { titulo: 'Escala de Folgas', aba: 'escala', icone: 'calendar-check', chaves: 'escala folga folgas descanso dsr 5x1 letra ciencia' },
     { titulo: 'Comunicados', aba: 'comunicados', icone: 'megaphone', chaves: 'comunicados avisos mural campanha prazo' },
     { titulo: 'Ficha de EPI', aba: 'epis', icone: 'hard-hat', chaves: 'epi equipamento protecao seguranca ficha' },
     { titulo: 'Políticas Internas', aba: 'cadernos', icone: 'landmark', chaves: 'cadernos manual programa politica pdf' },
