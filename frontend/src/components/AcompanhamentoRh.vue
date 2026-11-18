@@ -24,11 +24,10 @@
     <template v-else-if="dados">
       <!-- ===================== FILTROS ===================== -->
       <div class="bg-white rounded-2xl border border-slate-200 p-2.5 grid grid-cols-2 gap-2 sm:flex sm:flex-wrap sm:items-end" role="search" aria-label="Filtros do painel">
-        <label class="campo">
+        <label v-if="empresasContexto.length > 1" class="campo">
           <span>Empresa</span>
           <select v-model="empresaFiltro">
-            <option value="">Todas</option>
-            <option v-for="e in dados.empresas" :key="e" :value="e">{{ e }}</option>
+            <option v-for="e in empresasContexto" :key="e" :value="e">{{ e }}</option>
           </select>
         </label>
         <label class="campo">
@@ -401,7 +400,7 @@ import Rosca from './acompanhamento/Rosca.vue';
 import ColunasEmpilhadas from './acompanhamento/ColunasEmpilhadas.vue';
 import BarrasHorizontais from './acompanhamento/BarrasHorizontais.vue';
 import { pode } from '../utils/permissoes.js';
-import { empresaContexto } from '../utils/empresaContexto.js';
+import { empresaContexto, empresasContexto } from '../utils/empresaContexto.js';
 import { tokenAdmin } from '../utils/sessaoAdmin.js';
 import { usarFecharComEsc } from '../utils/fecharComEsc.js';
 import { avisoCaderno, avisoPonto, avisoHolerite, cobrancaGeral } from '../utils/avisosWhatsapp.js';
@@ -480,9 +479,9 @@ const deptoFiltro = ref('');
 const periodoId = ref('ano');
 const busca = ref('');
 const periodoAtual = computed(() => periodos.find((p) => p.id === periodoId.value) || periodos[0]);
-const filtrosAtivos = computed(() => !!(empresaFiltro.value || deptoFiltro.value || busca.value || periodoId.value !== 'ano'));
+// A empresa é a escolhida no menu lateral: não conta como filtro a limpar
+const filtrosAtivos = computed(() => !!(deptoFiltro.value || busca.value || periodoId.value !== 'ano'));
 function limparFiltros() {
-  empresaFiltro.value = '';
   deptoFiltro.value = '';
   busca.value = '';
   periodoId.value = 'ano';

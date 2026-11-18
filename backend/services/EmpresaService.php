@@ -54,6 +54,21 @@ class EmpresaService
         ];
     }
 
+    // ---------------- Empresas de cada usuário do RH ----------------
+    // data/rh_usuarios_empresas.json: { "email@empresa.com.br": ["Vila Boa"] }.
+    // Usuário fora do arquivo acessa todas as empresas cadastradas.
+
+    /** Empresas (com a versão do logo) que o usuário do RH pode escolher no painel. */
+    public static function doUsuarioRh(string $email): array
+    {
+        $mapa = array_change_key_case(self::lerJson('rh_usuarios_empresas.json'), CASE_LOWER);
+        $todas = self::listarComLogo();
+        $chave = mb_strtolower(trim($email));
+        if (!isset($mapa[$chave]) || !is_array($mapa[$chave])) return $todas;
+        $permitidas = array_filter(array_map(fn($n) => self::normalizar((string)$n), $mapa[$chave]));
+        return array_values(array_filter($todas, fn($e) => in_array($e['nome'], $permitidas, true)));
+    }
+
     /** Empresas com logo e contagem de vínculos (tela de cadastro do RH). */
     public static function listarDetalhado(): array
     {
@@ -111,6 +126,18 @@ class EmpresaService
             }
             unset($it);
             self::gravarJson($arq, $itens);
+        }
+
+        // Acesso dos usuários do RH por empresa
+        if (file_exists(self::dataDir() . '/rh_usuarios_empresas.json')) {
+            $mapa = self::lerJson('rh_usuarios_empresas.json');
+            foreach ($mapa as &$empresasDoUsuario) {
+                if (is_array($empresasDoUsuario)) {
+                    $empresasDoUsuario = array_map(fn($e) => self::normalizarEm((string)$e, $atual) ? $novo : $e, $empresasDoUsuario);
+                }
+            }
+            unset($empresasDoUsuario);
+            self::gravarJson('rh_usuarios_empresas.json', $mapa);
         }
 
         return ['sucesso' => true, 'empresas' => $lista];

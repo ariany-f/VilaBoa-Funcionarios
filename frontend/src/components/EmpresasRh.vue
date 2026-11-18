@@ -208,6 +208,8 @@ async function carregar() {
     const data = await res.json();
     if (!res.ok) throw new Error(data.erro);
     empresas.value = data.empresas;
+    // O painel atualiza as empresas do menu lateral e o logo (nome ou logo podem ter mudado)
+    window.dispatchEvent(new Event('vb-empresas-atualizadas'));
   } catch (e) {
     avisar(e.message || 'Não foi possível carregar as empresas.', true);
   } finally {

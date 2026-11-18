@@ -46,9 +46,8 @@
               <button v-if="pode(colaborador, 'rh_cadernos', 'publicar')" type="button" @click="novoCaderno" class="h-11 px-6 rounded-full bg-[#9c2337] hover:bg-[#831b2d] text-white text-sm font-semibold cursor-pointer">+ Novo caderno</button>
             </div>
             <p class="text-xs text-slate-500 mt-0.5">Ao substituir um PDF por outro com o mesmo nome, o público precisa ler de novo.</p>
-            <select v-model="empresaFiltroCadernos" class="mt-3 h-9 px-3 rounded-lg border border-slate-200 bg-slate-50 text-sm text-slate-700 outline-none">
-              <option value="">Todas as empresas</option>
-              <option v-for="e in empresas" :key="e" :value="e">{{ e }}</option>
+            <select v-if="empresasContexto.length > 1" v-model="empresaFiltroCadernos" class="mt-3 h-9 px-3 rounded-lg border border-slate-200 bg-slate-50 text-sm text-slate-700 outline-none">
+              <option v-for="e in empresasContexto" :key="e" :value="e">{{ e }}</option>
             </select>
           </div>
 
@@ -334,7 +333,7 @@ import { usarFecharComEsc } from '../utils/fecharComEsc.js';
 import { avisoCaderno, avisoPonto, avisoHolerite, cobrancaGeral } from '../utils/avisosWhatsapp.js';
 import PontoView from './PontoView.vue';
 import SeletorColaborador from './SeletorColaborador.vue';
-import { empresaContexto, empresasContexto, conferirEmpresaContexto } from '../utils/empresaContexto.js';
+import { empresaContexto, empresasContexto } from '../utils/empresaContexto.js';
 import HoleriteModal from './HoleriteModal.vue';
 
 const props = defineProps({
@@ -562,8 +561,7 @@ const mostraColuna = (tipo) => tipoFiltro.value === 'todos' || tipoFiltro.value 
 const empresas = computed(() => dados.value.empresas || []);
 const empresaFiltro = ref('');
 const empresaFiltroCadernos = ref('');
-// Empresa escolhida no menu lateral do painel: vale para todas as telas (vazio = todas)
-watch(empresas, (l) => { empresasContexto.value = l; conferirEmpresaContexto(); }, { immediate: true });
+// Empresa escolhida no login / menu lateral do painel: vale para todas as telas
 watch(empresaContexto, (v) => { empresaFiltro.value = v; empresaFiltroCadernos.value = v; }, { immediate: true });
 watch(empresaFiltro, (v) => { empresaContexto.value = v; });
 watch(empresaFiltroCadernos, (v) => { empresaContexto.value = v; });
