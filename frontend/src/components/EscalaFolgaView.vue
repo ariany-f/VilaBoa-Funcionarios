@@ -138,20 +138,8 @@
             </tbody>
           </table>
 
-          <!-- Rodapé da folha: chapa e assinatura (aqui, a ciência digital) -->
-          <div class="mt-6 space-y-3">
-            <p><b>CHAPA:</b> {{ colaborador?.matricula }}</p>
-            <template v-if="escala.ciencia">
-              <p><b>ASSINATURA:</b> ciência digital registrada em {{ escala.ciencia.data_hora }}</p>
-              <p class="text-[10px] text-slate-500 break-all">{{ escala.ciencia.termo }} · Código de autenticidade {{ escala.ciencia.hash_autenticidade }}</p>
-            </template>
-            <template v-else>
-              <p class="leading-relaxed text-left sm:text-justify">
-                Declaro que tomei ciência da minha escala de folgas ({{ escala.titulo }}) do período de {{ dataBr(escala.periodo_inicio) }} a {{ dataBr(escala.periodo_fim) }}, com os dias de trabalho e de folga nela indicados.
-              </p>
-              <p><b>ASSINATURA:</b> ____________________________________</p>
-            </template>
-          </div>
+          <!-- Registro da ciência digital (sem campo de assinatura física) -->
+          <p v-if="escala.ciencia" class="mt-6 text-[10px] text-slate-500 break-all">Ciência digital registrada em {{ escala.ciencia.data_hora }} · Código de autenticidade {{ escala.ciencia.hash_autenticidade }}</p>
         </div>
 
         <!-- Ação flutuante: fica presa na base da tela enquanto falta a ciência -->
@@ -166,7 +154,7 @@
             <AppIcon name="pen-tool" size="16" />
             {{ enviando ? 'Registrando...' : 'Li e estou ciente da minha escala' }}
           </button>
-          <p class="text-[11px] text-slate-500 text-center">Registramos a data, a hora e o aparelho usado, no lugar da assinatura em papel.</p>
+          <p class="text-[11px] text-slate-500 text-center">Registramos a data, a hora e o aparelho usado.</p>
         </div>
       </div>
     </template>
@@ -269,7 +257,7 @@ async function darCiencia() {
   }
 }
 
-// Folha no formato da escala impressa do PRC-153: cabeçalho com nome e data, rodapé com chapa e ciência
+// Folha no formato da escala impressa do PRC-153 (cabeçalho com nome e data), sem campo de assinatura física
 function imprimir() {
   const e = escala.value;
   const c = props.colaborador || {};
@@ -279,8 +267,8 @@ function imprimir() {
     return `<tr class="${d.folga ? 'folga' : ''}"><td>${dataBr(d.data)}</td><td>${esc(d.dia)}</td>${h.map((x) => `<td>${esc(x)}</td>`).join('')}</tr>`;
   }).join('');
   const rodape = e.ciencia
-    ? `Ciência digital registrada em ${esc(e.ciencia.data_hora)} · Código ${esc(e.ciencia.hash_autenticidade)}`
-    : 'Ciência digital ainda não registrada no portal.';
+    ? `<footer>Ciência digital registrada em ${esc(e.ciencia.data_hora)} · Código ${esc(e.ciencia.hash_autenticidade)}</footer>`
+    : '';
   const html = `<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><title>${esc(e.titulo)}</title><style>
     body{font-family:Arial,sans-serif;margin:24px;color:#111}
     header{display:flex;justify-content:space-between;font-size:12px;margin-bottom:12px}
@@ -294,7 +282,7 @@ function imprimir() {
     <header><strong>${esc(e.arquivo || e.titulo)}</strong><span>${new Date().toLocaleDateString('pt-BR')}</span></header>
     <p style="font-size:12px;margin:0 0 8px">${esc(c.nome || '')} · Chapa ${esc(c.matricula || '')} · ${dataBr(e.periodo_inicio)} a ${dataBr(e.periodo_fim)}</p>
     <table><thead><tr><th>Data</th><th>Dia</th><th>Entrada 1</th><th>Saída 1</th><th>Entrada 2</th><th>Saída 2</th></tr></thead><tbody>${linhas}</tbody></table>
-    <footer>CHAPA: ${esc(c.matricula || '')}<br>${rodape}</footer>
+    ${rodape}
   </body></html>`;
   imprimirHtml(html);
 }
