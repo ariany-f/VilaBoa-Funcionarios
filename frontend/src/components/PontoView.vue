@@ -199,7 +199,7 @@
                       <tr class="text-[10px] font-semibold uppercase tracking-wider text-slate-400 text-left">
                         <th class="py-3 px-2">Data</th>
                         <th class="py-3 px-1.5">Ent1</th><th class="py-3 px-1.5">Sai1</th><th class="py-3 px-1.5">Ent2</th><th class="py-3 px-1.5">Sai2</th><th class="py-3 px-1.5">Ent3</th><th class="py-3 px-1.5">Sai3</th>
-                        <th class="py-3 px-1.5">Exec</th><th class="py-3 px-1.5">Ad.Not</th><th class="py-3 px-1.5">Atraso</th><th class="py-3 px-1.5">Falta</th><th class="py-3 px-1.5">Abono</th><th class="py-3 px-1.5">Saldo do dia</th>
+                        <th class="py-3 px-1.5">Exec</th><th class="py-3 px-1.5">Ad.Not</th><th class="py-3 px-1.5">Atraso</th><th class="py-3 px-1.5">Falta/Banco de horas</th><th class="py-3 px-1.5">Abono</th><th class="py-3 px-1.5">Saldo do dia</th>
                         <th class="py-3 px-2">Observação</th>
                       </tr>
                     </thead>
@@ -334,12 +334,12 @@ const execDe = (d) => d.exec || (trabalhado(d) ? d.total : '');
 
 // Seis marcações do dia (Ent1 ... Sai3)
 const marcas = (d) => [['Ent1', d.e1 || SEM], ['Sai1', d.s1 || SEM], ['Ent2', d.e2 || SEM], ['Sai2', d.s2 || SEM], ['Ent3', d.e3 || SEM], ['Sai3', d.s3 || SEM]];
-// Exec, Ad.Not, Atraso, Falta, Abono (+ saldo do dia): [rótulo, valor, classe de cor]
+// Exec, Ad.Not, Atraso, Falta/Banco de horas, Abono (+ saldo do dia): [rótulo, valor, classe de cor]
 const totaisDia = (d) => [
   ['Exec', execDe(d), ''],
   ['Ad.Not', d.ad_not || '', ''],
   ['Atraso', d.atraso || '', 'text-amber-700 font-semibold'],
-  ['Falta', d.falta || '', 'text-rose-700 font-semibold'],
+  ['Falta/Banco de horas', d.falta || '', 'text-rose-700 font-semibold'],
   ['Abono', d.abono || '', 'text-sky-700 font-semibold'],
   ['Saldo', trabalhado(d) && d.saldo !== '00:00' ? d.saldo : '', d.saldo?.startsWith('-') ? 'text-rose-700 font-semibold' : 'text-emerald-700 font-semibold']
 ];
@@ -365,7 +365,7 @@ const legenda = [
   ['Exec', 'horas realmente trabalhadas no dia'],
   ['Ad.Not', 'horas de adicional noturno'],
   ['Atraso', 'tempo que faltou para completar a jornada'],
-  ['Falta', 'dia (ou horas) sem trabalho e sem justificativa'],
+  ['Falta/Banco de horas', 'dia (ou horas) sem trabalho e sem justificativa'],
   ['Abono', 'horas justificadas (atestado, compensação, folga concedida)'],
   ['Saldo do dia', 'diferença entre o que você trabalhou e a jornada de 8h'],
   ['A pagar / A compensar', 'a pagar = a empresa te deve horas; a compensar = horas a repor']
@@ -414,8 +414,8 @@ function baixarEspelho(e) {
 <div class="topo"><div><h1>Espelho de Ponto · ${esc(e.mes_nome)}</h1></div><div>${esc(e.empresa || 'Vila Boa Construções e Serviços')}</div></div>
 <div class="id"><div><span>Colaborador</span><strong>${esc(nome)}</strong></div><div><span>Matrícula</span><strong>${esc(matricula)}</strong></div><div><span>Função</span><strong>${esc(e.funcao || props.colaborador?.cargo || '')}</strong></div><div><span>Admissão</span><strong>${esc(e.admissao || '')}</strong></div></div>
 <div class="resumo">${resumoHtml}</div>
-<table><thead><tr><th>Data</th><th>Ent1</th><th>Sai1</th><th>Ent2</th><th>Sai2</th><th>Ent3</th><th>Sai3</th><th>Exec</th><th>Ad.Not</th><th>Atraso</th><th>Falta</th><th>Abono</th><th>Saldo do dia</th><th>Observação</th></tr></thead><tbody>${linhas}</tbody></table>
-<div class="leg">Exec: horas trabalhadas · Ad.Not: adicional noturno · Atraso: falta para completar a jornada · Falta: ausência sem justificativa · Abono: horas justificadas · Saldo do dia: diferença para a jornada de 8h.</div>
+<table><thead><tr><th>Data</th><th>Ent1</th><th>Sai1</th><th>Ent2</th><th>Sai2</th><th>Ent3</th><th>Sai3</th><th>Exec</th><th>Ad.Not</th><th>Atraso</th><th>Falta/Banco de horas</th><th>Abono</th><th>Saldo do dia</th><th>Observação</th></tr></thead><tbody>${linhas}</tbody></table>
+<div class="leg">Exec: horas trabalhadas · Ad.Not: adicional noturno · Atraso: falta para completar a jornada · Falta/Banco de horas: ausência sem justificativa · Abono: horas justificadas · Saldo do dia: diferença para a jornada de 8h.</div>
 <div class="bloco"><h2>Banco de horas</h2><div class="banco">
 <div><span>Saldo anterior</span><strong>${esc(b.saldo_anterior || '-')}</strong></div>
 <div><span>Saldo do período${per ? ` (${dataBR(per.inicio)} a ${dataBR(per.fim)})` : ''}</span><strong>${esc(per?.valor || b.horas_mes_atual || '-')} ${esc(per?.situacao || '')}</strong></div>
